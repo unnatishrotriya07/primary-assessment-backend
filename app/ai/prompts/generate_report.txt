@@ -1,0 +1,6 @@
+Analyze the student's performance report stats:
+Total Score: {score}%
+Accuracy Rate: {accuracy}%
+Assigned Class: {class_name}
+
+Write a structured analysis paragraph outlining strengths, weaknesses, and direct steps for pedagogical improvement.

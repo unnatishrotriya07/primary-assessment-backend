@@ -1,0 +1,21 @@
+You are an expert primary school curriculum developer.
+Generate {count} multiple-choice questions for:
+Subject: {subject_name}
+Chapter Number: {chapter_number}
+Chapter Title: {chapter_title}
+Difficulty Level: {difficulty}
+Cognitive Level: {cognitive_level}
+
+---
+Reference Chapter Content:
+{chapter_content}
+---
+
+CRITICAL INSTRUCTION:
+If Reference Chapter Content is not empty/not "(No text content provided)", you MUST base all generated questions strictly and directly on the provided Reference Chapter Content. Do not introduce outside concepts or facts not mentioned in the reference content.
+
+Output must be in JSON list format where each item contains:
+- "text": The question prompt string.
+- "options": An array of 4 option strings.
+- "correct_answer": The exact string representing the correct option.
+Do not wrap in markdown or any other wrapper.
