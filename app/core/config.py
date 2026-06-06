@@ -34,13 +34,15 @@ class Settings(BaseSettings):
 
     def __init__(self, **values):
         if "BACKEND_CORS_ORIGINS" in os.environ:
-            raw_origins = os.environ["BACKEND_CORS_ORIGINS"]
+            raw_origins = os.environ["BACKEND_CORS_ORIGINS"].strip()
             import json
             try:
-                values["BACKEND_CORS_ORIGINS"] = json.loads(raw_origins)
+                parsed = json.loads(raw_origins)
+                if not isinstance(parsed, list):
+                    os.environ["BACKEND_CORS_ORIGINS"] = json.dumps([str(parsed)])
             except json.JSONDecodeError:
-                # Fallback to comma-separated list
-                values["BACKEND_CORS_ORIGINS"] = [o.strip() for o in raw_origins.split(",") if o.strip()]
+                origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
+                os.environ["BACKEND_CORS_ORIGINS"] = json.dumps(origins_list)
         super().__init__(**values)
         _is_testing = (
             "unittest" in sys.modules or 
