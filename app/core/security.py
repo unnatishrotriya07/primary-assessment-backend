@@ -1,6 +1,13 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 import jwt
+import bcrypt
+import types
+
+# Patch bcrypt to fix passlib bug with bcrypt >= 4.0.0
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = types.SimpleNamespace(__version__=bcrypt.__version__)
+
 from passlib.context import CryptContext
 from app.core.config import settings
 
