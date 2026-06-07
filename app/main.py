@@ -1,10 +1,3 @@
-import bcrypt
-import types
-
-# Patch bcrypt to fix passlib bug with bcrypt >= 4.0.0
-if not hasattr(bcrypt, "__about__"):
-    bcrypt.__about__ = types.SimpleNamespace(__version__=bcrypt.__version__)
-
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,9 +8,6 @@ from app.db.session import engine, Base
 # Create database tables automatically on startup
 try:
     print(f"DEBUG STARTUP: Starting database table creation/migration...", flush=True)
-    print(f"DEBUG STARTUP: bcrypt has __about__ attribute: {hasattr(bcrypt, '__about__')}", flush=True)
-    if hasattr(bcrypt, "__about__"):
-        print(f"DEBUG STARTUP: bcrypt.__about__.__version__ = {bcrypt.__about__.__version__}", flush=True)
     
     # Import base metadata so all models are recognized
     from app.db.base import Base
