@@ -1,3 +1,10 @@
+import bcrypt
+import types
+
+# Patch bcrypt to fix passlib bug with bcrypt >= 4.0.0
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = types.SimpleNamespace(__version__=bcrypt.__version__)
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
