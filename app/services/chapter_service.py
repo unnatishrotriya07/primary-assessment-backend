@@ -9,8 +9,8 @@ class ChapterService:
     def __init__(self, db: Session):
         self.chapter_repo = ChapterRepository(db)
 
-    def get_all_chapters(self) -> List[Chapter]:
-        return self.chapter_repo.get_all()
+    def get_all_chapters(self, class_id: int = None, subject_id: int = None) -> List[Chapter]:
+        return self.chapter_repo.get_filtered(class_id, subject_id)
 
     def get_chapter_by_id(self, chapter_id: int) -> Chapter:
         chap = self.chapter_repo.get_by_id(chapter_id)

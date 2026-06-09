@@ -59,6 +59,10 @@ try:
             print("Database successfully seeded with default administrator (admin@example.com / admin123)", flush=True)
         else:
             print("DEBUG STARTUP: Default admin already exists in the database.", flush=True)
+
+        # Seed Grade 1-5 NCERT Syllabus classes, subjects, and chapters if empty
+        from app.db.seed_ncert import seed_ncert_data
+        seed_ncert_data(db)
     except Exception as se:
         import traceback
         print(f"Database seeding check failed: {se}", flush=True)

@@ -10,9 +10,14 @@ from app.services.chapter_service import ChapterService
 router = APIRouter()
 
 @router.get("/", response_model=List[ChapterResponse])
-def read_chapters(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def read_chapters(
+    class_id: Optional[int] = None,
+    subject_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     service = ChapterService(db)
-    return service.get_all_chapters()
+    return service.get_all_chapters(class_id=class_id, subject_id=subject_id)
 
 @router.get("/subject/{subject_id}", response_model=List[ChapterResponse])
 def read_subject_chapters(subject_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
