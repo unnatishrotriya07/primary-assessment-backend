@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
 import io
 from pypdf import PdfReader
