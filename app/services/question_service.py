@@ -91,7 +91,7 @@ class QuestionService:
         chapter = self.db.query(Chapter).filter(Chapter.id == params.chapter_id).first()
         chapter_number = chapter.number if chapter else "Unknown"
         chapter_title = chapter.title if chapter else "Unknown"
-        chapter_content = chapter.content if chapter else None
+        chapter_content = (chapter.text_content or chapter.content) if chapter else None
 
         # Invoke LLM/AI question generator component
         generated_data, provider = self.ai_generator.generate_questions(

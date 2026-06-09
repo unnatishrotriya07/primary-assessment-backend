@@ -10,6 +10,7 @@ class Chapter(Base):
     title = Column(String, nullable=False)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
     content = Column(String, nullable=True)
+    text_content = Column(String, nullable=True)
 
     subject = relationship("Subject", back_populates="chapters")
     questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")

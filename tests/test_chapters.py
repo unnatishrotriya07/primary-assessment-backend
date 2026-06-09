@@ -108,5 +108,39 @@ class TestChaptersAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Unsupported file format", response.json()["detail"])
 
+    @unittest.mock.patch("app.utils.ncert_sync.fetch_ncert_chapter_text")
+    def test_sync_ncert_chapter_success(self, mock_fetch):
+        """Test successfully syncing NCERT content for a chapter."""
+        mock_fetch.return_value = "This is verified NCERT textbook chapter text."
+        
+        # Setup class and subject in DB
+        from app.models.class_model import Class
+        from app.models.subject import Subject
+        from app.models.chapter import Chapter
+        
+        test_class = Class(name="Grade 10", grade="10", section="A")
+        self.db.add(test_class)
+        self.db.commit()
+        
+        test_subj = Subject(name="Mathematics", code="MATH10", class_id=test_class.id)
+        self.db.add(test_subj)
+        self.db.commit()
+        
+        test_chap = Chapter(number="1", title="Real Numbers", subject_id=test_subj.id)
+        self.db.add(test_chap)
+        self.db.commit()
+        
+        response = self.client.post(
+            f"/api/chapters/{test_chap.id}/sync-ncert",
+            headers=self.headers
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["textContent"], "This is verified NCERT textbook chapter text.")
+        
+        # Verify db updated
+        self.db.refresh(test_chap)
+        self.assertEqual(test_chap.text_content, "This is verified NCERT textbook chapter text.")
+
 if __name__ == "__main__":
     unittest.main()

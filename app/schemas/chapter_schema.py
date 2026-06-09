@@ -6,6 +6,7 @@ class ChapterBase(CamelModel):
     title: str
     subject_id: int
     content: Optional[str] = None
+    text_content: Optional[str] = None
 
 class ChapterCreate(ChapterBase):
     pass
@@ -15,6 +16,7 @@ class ChapterUpdate(CamelModel):
     title: Optional[str] = None
     subject_id: Optional[int] = None
     content: Optional[str] = None
+    text_content: Optional[str] = None
 
 class ChapterResponse(ChapterBase):
     id: int

@@ -14,19 +14,33 @@ try:
     Base.metadata.create_all(bind=engine)
     print("DEBUG STARTUP: Database tables created/checked successfully.", flush=True)
 
-    # Auto-migrate: ensure 'session' column exists in 'questions' table
+    # Auto-migrate: ensure columns exist
     from app.db.session import SessionLocal
     db = SessionLocal()
     try:
         from sqlalchemy import text
         print("DEBUG STARTUP: Running database migrations...", flush=True)
-        db.execute(text("ALTER TABLE questions ADD COLUMN session VARCHAR"))
-        db.commit()
-        print("Database migration: Added 'session' column to 'questions' table.", flush=True)
+        # Migrate questions table
+        try:
+            db.execute(text("ALTER TABLE questions ADD COLUMN session VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'session' column to 'questions' table.", flush=True)
+        except Exception as qe:
+            db.rollback()
+            # Ignore if column already exists
+            pass
+            
+        # Migrate chapters table
+        try:
+            db.execute(text("ALTER TABLE chapters ADD COLUMN text_content VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'text_content' column to 'chapters' table.", flush=True)
+        except Exception as ce:
+            db.rollback()
+            # Ignore if column already exists
+            pass
     except Exception as me:
-        print(f"DEBUG STARTUP: Migration skipped (column likely already exists: {me})", flush=True)
-        # Ignore if the column already exists
-        pass
+        print(f"DEBUG STARTUP: Database migration failed: {me}", flush=True)
     finally:
         db.close()
 

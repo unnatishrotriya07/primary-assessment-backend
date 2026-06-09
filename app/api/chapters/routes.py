@@ -71,3 +71,8 @@ def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = 
     service = ChapterService(db)
     service.delete_chapter(id)
     return None
+
+@router.post("/{id}/sync-ncert", response_model=ChapterResponse)
+def sync_ncert_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    service = ChapterService(db)
+    return service.sync_ncert_content(id)
