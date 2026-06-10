@@ -20,6 +20,9 @@ class InterviewStartResponse(BaseModel):
     student_class: str
     assessment_title: str
     questions: List[dict]
+    subject_name: Optional[str] = None
+    chapter_number: Optional[str] = None
+    chapter_title: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -51,6 +54,7 @@ class InterviewReportResponse(BaseModel):
     status: str
     started_at: Optional[datetime.datetime] = None
     completed_at: Optional[datetime.datetime] = None
+    evaluated_answers: Optional[List[dict]] = None
 
     class Config:
         from_attributes = True

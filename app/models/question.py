@@ -10,6 +10,7 @@ class Question(Base):
     text = Column("question", String, nullable=False)
     options = Column(JSON, nullable=False)  # Stored as JSON list of options
     correct_answer = Column("expected_answer", String, nullable=True)
+    question_type = Column(String, default="mcq")
     difficulty = Column(String, nullable=False)  # easy, medium, hard
     cognitive_level = Column(String, nullable=False)  # remembering, applying, etc.
     

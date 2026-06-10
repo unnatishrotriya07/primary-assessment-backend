@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-in-production-12345")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     # SendGrid configuration
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     SENDGRID_FROM_EMAIL: str = os.getenv("SENDGRID_FROM_EMAIL", "")
+    SKIP_EMAIL: str = os.getenv("SKIP_EMAIL", "true")
 
     class Config:
         case_sensitive = True

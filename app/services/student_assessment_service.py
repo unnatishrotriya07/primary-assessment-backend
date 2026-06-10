@@ -12,6 +12,7 @@ from app.schemas.student_assessment_schema import (
 from app.core.exceptions import EntityNotFoundException
 from app.services.assessment_service import AssessmentService
 from app.services.email_service import EmailService
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,8 @@ class StudentAssessmentService:
 
         # Generate link
         encoded_email = urllib.parse.quote(schema.student_email)
-        link = f"http://localhost:3000/assessment/verify?token={token}&email={encoded_email}"
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+        link = f"{frontend_url}/assessment/verify?token={token}&email={encoded_email}"
 
         # Generate simulated email body
         email_content = (

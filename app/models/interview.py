@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Float
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Float, JSON
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -36,6 +36,7 @@ class Interview(Base):
     improvements = Column(Text, nullable=True)
     admin_note   = Column(Text, nullable=True)
     summary      = Column(Text, nullable=True)
+    evaluated_answers = Column(JSON, nullable=True)
 
     status       = Column(String, default="In Progress")  # In Progress | Completed
     started_at   = Column(DateTime, default=datetime.datetime.utcnow)

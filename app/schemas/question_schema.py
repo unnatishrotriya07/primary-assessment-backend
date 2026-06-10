@@ -6,6 +6,7 @@ class QuestionBase(CamelModel):
     text: str
     options: List[str]
     correct_answer: Optional[str] = None
+    question_type: Optional[str] = "mcq"
     difficulty: str
     cognitive_level: str
     class_id: Optional[int] = None
@@ -31,6 +32,7 @@ class AIQuestionParams(CamelModel):
     regenerate: Optional[bool] = False
     preview_only: Optional[bool] = False
     session: Optional[str] = None
+    question_type: Optional[str] = "mixed"
 
 class QuestionBatchSave(CamelModel):
     questions: List[QuestionCreate]

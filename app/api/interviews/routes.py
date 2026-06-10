@@ -103,4 +103,5 @@ def _build_response(iv) -> InterviewReportResponse:
         status=iv.status,
         started_at=iv.started_at,
         completed_at=iv.completed_at,
+        evaluated_answers=iv.evaluated_answers,
     )

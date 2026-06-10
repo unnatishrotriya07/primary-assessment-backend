@@ -23,6 +23,13 @@ class EmailService:
         Sends assessment invitation email to the student using SendGrid v3 API.
         Falls back to log simulation if credentials are not configured.
         """
+        if str(settings.SKIP_EMAIL).lower() == "true":
+            logger.info(
+                f"[SIMULATION] Email send skipped (SKIP_EMAIL=true). "
+                f"Student: {student_name}, Email: {student_email}, Link: {link}"
+            )
+            return True
+
         if not self.api_key or not self.from_email:
             logger.warning(
                 "SendGrid is not configured (SENDGRID_API_KEY or SENDGRID_FROM_EMAIL is empty). "

@@ -42,7 +42,8 @@ class QuestionGenerator:
         chapter_content: str,
         difficulty: str,
         cognitive_level: str,
-        count: int
+        count: int,
+        question_type: str = "mixed"
     ) -> tuple:
         """
         Generates questions using the hybrid cost-optimized pipeline.
@@ -61,13 +62,14 @@ class QuestionGenerator:
                 chapter_title=chapter_title,
                 chapter_content=chapter_content if chapter_content else "(No text content provided)",
                 difficulty=difficulty,
-                cognitive_level=cognitive_level
+                cognitive_level=cognitive_level,
+                question_type=question_type
             )
         except Exception as e:
             logger.error(f"Error loading prompt template: {e}")
             prompt = f"Generate {count} questions for subject {subject_name} (ID: {subject_id}), chapter {chapter_id}, difficulty {difficulty}, cognitive level {cognitive_level}."
 
-        system_instruction = "You are a helpful assistant that generates multiple-choice questions in JSON format. The root of the JSON response must be a JSON object with a key 'questions' containing the list of questions."
+        system_instruction = "You are a helpful assistant that generates educational questions in JSON format. The root of the JSON response must be a JSON object with a key 'questions' containing the list of questions."
 
         # 1. Try Groq (llama-3.3-70b-versatile)
         if self.groq_prov.is_configured():
@@ -111,35 +113,77 @@ class QuestionGenerator:
 
         # 3. Fallback to Mock Response
         logger.info("No AI providers succeeded or configured. Falling back to mock generator.")
-        return self._get_mock_questions(subject_id, count), "mock"
+        return self._get_mock_questions(subject_id, count, question_type), "mock"
 
-    def _get_mock_questions(self, subject_id: int, count: int) -> list:
-        # Return mock questions depending on count
-        mocks = [
+    def _get_mock_questions(self, subject_id: int, count: int, question_type: str = "mixed") -> list:
+        # Return mock questions depending on type and count
+        mcqs = [
             {
                 "text": "What is the primary function of chlorophyll in plants?",
                 "options": ["Absorb water", "Absorb sunlight", "Release oxygen", "Store glucose"],
-                "correct_answer": "Absorb sunlight"
+                "correct_answer": "Absorb sunlight",
+                "question_type": "mcq"
             },
             {
                 "text": "Which organelle is known as the powerhouse of the cell?",
                 "options": ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"],
-                "correct_answer": "Mitochondria"
+                "correct_answer": "Mitochondria",
+                "question_type": "mcq"
             },
             {
                 "text": "What causes day and night on Earth?",
                 "options": ["The rotation of Earth on its axis", "The revolution of Earth around the Sun", "The moon's phases", "The solar wind"],
-                "correct_answer": "The rotation of Earth on its axis"
+                "correct_answer": "The rotation of Earth on its axis",
+                "question_type": "mcq"
             },
             {
                 "text": "Which of these is a liquid at room temperature?",
                 "options": ["Iron", "Oxygen", "Water", "Wood"],
-                "correct_answer": "Water"
+                "correct_answer": "Water",
+                "question_type": "mcq"
+            }
+        ]
+        titas = [
+            {
+                "text": "Explain why leaves appear green in color.",
+                "options": [],
+                "correct_answer": "Leaves appear green because chlorophyll pigments absorb red and blue light waves and reflect green light.",
+                "question_type": "tita"
+            },
+            {
+                "text": "Describe the main role of the mitochondria in a cell.",
+                "options": [],
+                "correct_answer": "The mitochondria produce ATP (energy) through cellular respiration to power cell functions.",
+                "question_type": "tita"
+            },
+            {
+                "text": "What is the cause of day and night on Earth?",
+                "options": [],
+                "correct_answer": "Day and night is caused by the Earth rotating on its axis, which exposes different halves to the sun.",
+                "question_type": "tita"
+            },
+            {
+                "text": "Identify which common substance is a liquid at room temperature.",
+                "options": [],
+                "correct_answer": "Water is a liquid at room temperature.",
+                "question_type": "tita"
             }
         ]
         
+        if question_type == "mcq":
+            candidates = mcqs
+        elif question_type == "tita":
+            candidates = titas
+        else:
+            candidates = []
+            for i in range(max(len(mcqs), len(titas))):
+                if i < len(mcqs):
+                    candidates.append(mcqs[i])
+                if i < len(titas):
+                    candidates.append(titas[i])
+
         # Return slice matching count
         result = []
         for i in range(count):
-            result.append(mocks[i % len(mocks)])
+            result.append(candidates[i % len(candidates)])
         return result

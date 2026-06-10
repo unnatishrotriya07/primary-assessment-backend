@@ -123,18 +123,7 @@ class InterviewService:
         # Build dynamic list of questions
         dynamic_questions = []
 
-        # 1. Custom Intro
-        dynamic_questions.append({
-            "q": "Hello! How are you today? Can you tell me about yourself and which class you are in?",
-            "skill": "communication",
-            "category": "Introduction"
-        })
-
-        # 2. Basic class-based warm-up questions
-        basic_qs = get_basic_class_questions(sa.student_class)
-        dynamic_questions.extend(basic_qs)
-
-        # 3. Assessment-specific questions
+        # 1. Assessment-specific questions
         subject_name = assessment.subject.name.lower() if assessment.subject else ""
         default_skill = "communication"
         if "math" in subject_name or "num" in subject_name:
@@ -150,12 +139,22 @@ class InterviewService:
             })
 
         # Fallback if no questions are assigned to the assessment
-        if len(dynamic_questions) <= 3:
+        if len(dynamic_questions) == 0:
             dynamic_questions.append({
                 "q": "If you could visit any place in the world, where would you go and why?",
                 "skill": "creativity",
                 "category": "Aspirations"
             })
+
+        # Find subject name and chapter info to return for custom greeting
+        sub_name = assessment.subject.name if assessment.subject else ""
+        ch_number = ""
+        ch_title = ""
+        for q in assessment.questions:
+            if q.chapter:
+                ch_number = q.chapter.number
+                ch_title = q.chapter.title
+                break
 
         return {
             "interview_id": interview.id,
@@ -163,6 +162,9 @@ class InterviewService:
             "student_class": sa.student_class,
             "assessment_title": assessment.title,
             "questions": dynamic_questions,
+            "subject_name": sub_name,
+            "chapter_number": ch_number,
+            "chapter_title": ch_title,
         }
 
     # ── STEP 2: Student finishes → save transcript → call AI ──────────────────
@@ -191,17 +193,52 @@ class InterviewService:
 
         self.db.commit()
 
+        # Load assessment questions to match correct answers
+        assessment = self.db.query(Assessment).filter(Assessment.id == interview.assessment_id).first()
+        db_questions = assessment.questions if assessment else []
+        
+        q_map = {}
+        for q in db_questions:
+            q_map[q.text.strip().lower()] = {
+                "expected": q.correct_answer,
+                "options": q.options,
+                "type": q.question_type or "mcq"
+            }
+            
+        qa_eval_context = []
+        for idx, a in enumerate(payload.answers):
+            q_text = a.get('question', '').strip()
+            q_info = q_map.get(q_text.lower())
+            
+            expected = ""
+            q_type = "mcq"
+            options = []
+            
+            if q_info:
+                expected = q_info["expected"]
+                q_type = q_info["type"]
+                options = q_info["options"]
+            
+            qa_eval_context.append({
+                "index": idx + 1,
+                "question": q_text,
+                "student_answer": a.get('answer', ''),
+                "expected_answer": expected,
+                "options": options,
+                "question_type": q_type
+            })
+
         # Call AI analysis (Groq/OpenAI/Gemini) with fallback support
         report = None
         try:
-            report = self._call_ai_and_parse(interview.student_name, payload.answers)
+            report = self._call_ai_and_parse(interview.student_name, qa_eval_context)
         except Exception as e:
             print(f"[InterviewService] AI analysis failed: {e}", flush=True)
 
         if not report or not isinstance(report, dict):
             try:
                 print("[InterviewService] Using heuristic fallback report...", flush=True)
-                report = self._generate_fallback_report(interview.student_name, payload.answers)
+                report = self._generate_fallback_report(interview.student_name, qa_eval_context)
             except Exception as fe:
                 print(f"[InterviewService] Heuristic fallback failed: {fe}", flush=True)
                 report = {}
@@ -218,6 +255,7 @@ class InterviewService:
 
             interview.grade = report.get("grade") or "B+"
             interview.recommendation = report.get("recommendation") or "Recommended"
+            interview.evaluated_answers = report.get("evaluatedQuestions") or []
             
             skills = report.get("skills") or {}
             
@@ -280,17 +318,27 @@ class InterviewService:
     def _call_ai_and_parse(self, student_name: str, answers: list) -> dict:
         import re
         
-        transcript_text = "\n\n".join(
-            f"Q ({a.get('question_category', '')}): {a.get('question', '')}\nA: {a.get('answer', '')}"
-            for a in answers
-        )
+        transcript_text = ""
+        for item in answers:
+            transcript_text += f"Question {item['index']}:\n"
+            transcript_text += f"Prompt: {item['question']}\n"
+            if item.get('options') and len(item['options']) > 0:
+                transcript_text += f"Options: {', '.join(item['options'])}\n"
+            transcript_text += f"Expected Answer: {item['expected_answer']}\n"
+            transcript_text += f"Question Type: {item['question_type']}\n"
+            transcript_text += f"Student's Answer: {item['student_answer']}\n\n"
         
         prompt = f"""You are an expert child psychologist and primary school admission evaluator.
-Analyse this interview of a young child (age 5-7) applying for primary school admission.
+Analyse this interview of a young child applying for primary school admission.
 
 Student Name: {student_name}
-Interview Transcript:
+Interview Transcript with Stored Expected Answers:
 {transcript_text}
+
+CRITICAL ASSESSMENT RULES FOR STUDENT ANSWERS:
+For each question, compare the Student's Answer against the Expected Answer:
+1. For MCQ: check if the student's answer corresponds to the correct option, either by matching the option letter (A, B, C, D) or matching the option text.
+2. For TITA (Type In The Answer / descriptive): check if the student's answer resonates semantically with the context of the Expected Answer (it does not need to be an exact string match, but conceptual understanding should be present). If it conceptually resonates, mark it as true (isCorrect: true).
 
 Respond ONLY with a valid JSON object. No explanation, no backticks, no text before or after the JSON.
 {{
@@ -306,7 +354,17 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
   "strengths": "<2-3 key strengths observed>",
   "improvements": "<1-2 areas to encourage growth>",
   "recommendation": "<Strongly Recommended / Recommended / Needs Review>",
-  "adminNote": "<brief note for the admissions officer>"
+  "adminNote": "<brief note for the admissions officer>",
+  "evaluatedQuestions": [
+     {{
+       "question": "<question text>",
+       "studentAnswer": "<student answer text>",
+       "expectedAnswer": "<expected correct answer text>",
+       "questionType": "<mcq or tita>",
+       "isCorrect": <true or false>,
+       "explanation": "<1 sentence explanation why it was marked correct or incorrect>"
+     }}
+  ]
 }}"""
 
         system_instruction = "You are a child assessment expert. You always respond with valid raw JSON only, no markdown, no backticks."
@@ -370,12 +428,92 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
 
     def _generate_fallback_report(self, student_name: str, answers: list) -> dict:
         import random
+        import re
+
+        def check_answers_match(student_ans: str, expected_ans: str) -> bool:
+            s_clean = student_ans.lower().strip()
+            e_clean = expected_ans.lower().strip()
+            
+            if not s_clean:
+                return False
+                
+            # 1. Direct match or substring match
+            if s_clean in e_clean or e_clean in s_clean:
+                return True
+                
+            # 2. Normalize common punctuation and abbreviations
+            def normalize_str(text: str) -> str:
+                text = text.replace("a.m.", "am").replace("p.m.", "pm")
+                # Remove punctuation
+                text = re.sub(r"[^\w\s]", "", text)
+                return " ".join(text.split())
+                
+            s_norm = normalize_str(s_clean)
+            e_norm = normalize_str(e_clean)
+            
+            if s_norm in e_norm or e_norm in s_norm:
+                return True
+                
+            # 3. Check for specific numeric values (e.g. "3:30 pm" vs "330" or "8")
+            s_nums = re.findall(r"\d+", s_clean)
+            e_nums = re.findall(r"\d+", e_clean)
+            if e_nums:
+                s_combined = "".join(s_nums)
+                e_combined = "".join(e_nums)
+                if s_combined and e_combined and (s_combined in e_combined or e_combined in s_combined):
+                    return True
+                    
+            # 4. Content words overlap
+            stop_words = {
+                "is", "the", "a", "an", "and", "or", "in", "we", "have", "you", "to", "of", "it", 
+                "that", "this", "for", "with", "on", "at", "by", "from", "between", "here", "there"
+            }
+            
+            def get_content_words(text: str) -> set:
+                words = re.findall(r"\b\w+\b", text)
+                return {w for w in words if w not in stop_words and len(w) > 1}
+                
+            s_words = get_content_words(s_norm)
+            e_words = get_content_words(e_norm)
+            
+            if not e_words:
+                return False
+                
+            overlap = s_words.intersection(e_words)
+            
+            # Match if at least 40% of content words in expected answer are found in student answer,
+            # or if there is a minimum word overlap count.
+            if len(e_words) <= 2:
+                return len(overlap) >= 1
+            else:
+                match_ratio = len(overlap) / len(e_words)
+                return match_ratio >= 0.4 or len(overlap) >= 2
+
         scores = []
+        evaluated_qs = []
         for a in answers:
-            ans = a.get("answer", "")
+            ans = a.get("student_answer", "")
+            expected = a.get("expected_answer", "")
+            q_type = a.get("question_type", "mcq")
             word_count = len(ans.split())
-            q_score = min(50 + word_count * 3, 95)
+            
+            is_correct = check_answers_match(ans, expected)
+
+            # Distinguish score calculation based on correctness
+            if is_correct:
+                q_score = min(80 + word_count * 2, 98)
+            else:
+                q_score = min(40 + word_count * 3, 65)
             scores.append(q_score)
+            
+            evaluated_qs.append({
+                "question": a.get("question", ""),
+                "studentAnswer": ans,
+                "expectedAnswer": expected,
+                "questionType": q_type,
+                "isCorrect": is_correct,
+                "explanation": "Heuristic verification." if is_correct else "Answer did not conceptually resonate with expected guidelines."
+            })
             
         avg_score = sum(scores) / len(scores) if scores else 75.0
         avg_score = round(avg_score, 1)
@@ -411,7 +549,8 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
             "summary": f"{student_name} was highly collaborative and articulated thoughts clearly throughout the session.",
             "strengths": "Articulate speaker, good conceptual foundations, and creative approach.",
             "improvements": "Encourage structured problem solving and peer communication.",
-            "adminNote": "Candidate meets the benchmarks. Recommended for enrollment."
+            "adminNote": "Candidate meets the benchmarks. Recommended for enrollment.",
+            "evaluatedQuestions": evaluated_qs
         }
 
     # ── Private: calls Groq API (free) ────────────────────────────────────────
@@ -420,17 +559,27 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
         if not api_key:
             raise RuntimeError("GROQ_API_KEY is not set.")
             
-        transcript_text = "\n\n".join(
-            f"Q ({a.get('question_category', '')}): {a.get('question', '')}\nA: {a.get('answer', '')}"
-            for a in answers
-        )
+        transcript_text = ""
+        for item in answers:
+            transcript_text += f"Question {item['index']}:\n"
+            transcript_text += f"Prompt: {item['question']}\n"
+            if item.get('options') and len(item['options']) > 0:
+                transcript_text += f"Options: {', '.join(item['options'])}\n"
+            transcript_text += f"Expected Answer: {item['expected_answer']}\n"
+            transcript_text += f"Question Type: {item['question_type']}\n"
+            transcript_text += f"Student's Answer: {item['student_answer']}\n\n"
 
         prompt = f"""You are an expert child psychologist and primary school admission evaluator.
-Analyse this interview of a young child (age 5-7) applying for primary school admission.
+Analyse this interview of a young child applying for primary school admission.
 
 Student Name: {student_name}
-Interview Transcript:
+Interview Transcript with Stored Expected Answers:
 {transcript_text}
+
+CRITICAL ASSESSMENT RULES FOR STUDENT ANSWERS:
+For each question, compare the Student's Answer against the Expected Answer:
+1. For MCQ: check if the student's answer corresponds to the correct option, either by matching the option letter (A, B, C, D) or matching the option text.
+2. For TITA (Type In The Answer / descriptive): check if the student's answer resonates semantically with the context of the Expected Answer (it does not need to be an exact string match, but conceptual understanding should be present). If it conceptually resonates, mark it as true (isCorrect: true).
 
 Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation. Just raw JSON:
 {{
@@ -446,7 +595,17 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation
   "strengths": "<2-3 key strengths observed>",
   "improvements": "<1-2 areas to encourage growth>",
   "recommendation": "<Strongly Recommended / Recommended / Needs Review>",
-  "adminNote": "<brief note for the admissions officer>"
+  "adminNote": "<brief note for the admissions officer>",
+  "evaluatedQuestions": [
+     {{
+       "question": "<question text>",
+       "studentAnswer": "<student answer text>",
+       "expectedAnswer": "<expected correct answer text>",
+       "questionType": "<mcq or tita>",
+       "isCorrect": <true or false>,
+       "explanation": "<1 sentence explanation why it was marked correct or incorrect>"
+     }}
+  ]
 }}"""
 
         response = httpx.post(

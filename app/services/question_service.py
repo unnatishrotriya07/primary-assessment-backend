@@ -64,6 +64,8 @@ class QuestionService:
                 Question.difficulty == params.difficulty,
                 Question.cognitive_level == params.cognitive_level
             )
+            if params.question_type and params.question_type != "mixed":
+                query = query.filter(Question.question_type == params.question_type)
             if params.session:
                 query = query.filter(Question.session == params.session)
             existing = query.all()
@@ -77,6 +79,8 @@ class QuestionService:
                 Question.difficulty == params.difficulty,
                 Question.cognitive_level == params.cognitive_level
             )
+            if params.question_type and params.question_type != "mixed":
+                query = query.filter(Question.question_type == params.question_type)
             if params.session:
                 query = query.filter(Question.session == params.session)
             query.delete()
@@ -104,7 +108,8 @@ class QuestionService:
             chapter_content=chapter_content,
             difficulty=params.difficulty,
             cognitive_level=params.cognitive_level,
-            count=params.count
+            count=params.count,
+            question_type=params.question_type or "mixed"
         )
         
         saved_questions = []
@@ -113,6 +118,7 @@ class QuestionService:
                 text=item["text"],
                 options=item["options"],
                 correct_answer=item["correct_answer"],
+                question_type=item.get("question_type", "mcq"),
                 difficulty=params.difficulty,
                 cognitive_level=params.cognitive_level,
                 class_id=params.class_id,
@@ -148,6 +154,7 @@ class QuestionService:
                 text=q_in.text,
                 options=q_in.options,
                 correct_answer=q_in.correct_answer,
+                question_type=q_in.question_type or "mcq",
                 difficulty=q_in.difficulty,
                 cognitive_level=q_in.cognitive_level,
                 class_id=q_in.class_id,

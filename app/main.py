@@ -27,7 +27,14 @@ try:
             print("Database migration: Added 'session' column to 'questions' table.", flush=True)
         except Exception as qe:
             db.rollback()
-            # Ignore if column already exists
+            pass
+
+        try:
+            db.execute(text("ALTER TABLE questions ADD COLUMN question_type VARCHAR DEFAULT 'mcq'"))
+            db.commit()
+            print("Database migration: Added 'question_type' column to 'questions' table.", flush=True)
+        except Exception as qe:
+            db.rollback()
             pass
             
         # Migrate chapters table
@@ -37,7 +44,15 @@ try:
             print("Database migration: Added 'text_content' column to 'chapters' table.", flush=True)
         except Exception as ce:
             db.rollback()
-            # Ignore if column already exists
+            pass
+
+        # Migrate interviews table
+        try:
+            db.execute(text("ALTER TABLE interviews ADD COLUMN evaluated_answers JSON"))
+            db.commit()
+            print("Database migration: Added 'evaluated_answers' column to 'interviews' table.", flush=True)
+        except Exception as ie:
+            db.rollback()
             pass
     except Exception as me:
         print(f"DEBUG STARTUP: Database migration failed: {me}", flush=True)
