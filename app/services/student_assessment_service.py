@@ -20,7 +20,7 @@ class StudentAssessmentService:
     def __init__(self, db: Session):
         self.db = db
 
-    def assign_assessment(self, schema: StudentAssessmentCreate) -> StudentAssessmentResponse:
+    def assign_assessment(self, schema: StudentAssessmentCreate, frontend_url: str = None) -> StudentAssessmentResponse:
         # Check if the base assessment exists
         asmt = self.db.query(Assessment).filter(Assessment.id == schema.assessment_id).first()
         if not asmt:
@@ -51,8 +51,8 @@ class StudentAssessmentService:
 
         # Generate link
         encoded_email = urllib.parse.quote(schema.student_email)
-        frontend_url = settings.FRONTEND_URL.rstrip("/")
-        link = f"{frontend_url}/assessment/verify?token={token}&email={encoded_email}"
+        base_frontend_url = (frontend_url or settings.FRONTEND_URL).rstrip("/")
+        link = f"{base_frontend_url}/assessment/verify?token={token}&email={encoded_email}"
 
         # Generate simulated email body
         email_content = (

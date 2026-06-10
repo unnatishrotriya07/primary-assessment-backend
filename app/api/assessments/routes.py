@@ -1,6 +1,6 @@
 from typing import List
 import uuid
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.assessment_schema import (
@@ -84,11 +84,20 @@ def submit_answers(params: SubmitAnswersParams, db: Session = Depends(get_db)):
 @router.post("/assign", response_model=StudentAssessmentResponse)
 def assign_assessment(
     payload: StudentAssessmentCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    # Extract calling host scheme and domain dynamically from Origin/Referer headers
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    frontend_url = None
+    if origin and "://" in origin:
+        from urllib.parse import urlparse
+        parsed = urlparse(origin)
+        frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+        
     service = StudentAssessmentService(db)
-    return service.assign_assessment(payload)
+    return service.assign_assessment(payload, frontend_url=frontend_url)
 
 @router.post("/start-by-token")
 def start_assessment_by_token(payload: StudentAssessmentStartRequest, db: Session = Depends(get_db)):
