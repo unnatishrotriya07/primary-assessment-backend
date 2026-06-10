@@ -14,3 +14,8 @@ class Subject(Base):
     school_class = relationship("Class", back_populates="subjects")
     chapters = relationship("Chapter", back_populates="subject", cascade="all, delete-orphan")
     questions = relationship("Question", back_populates="subject", cascade="all, delete-orphan")
+
+    @property
+    def chapters_count(self) -> int:
+        return len(self.chapters) if self.chapters else 0
+
