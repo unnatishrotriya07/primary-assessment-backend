@@ -7,13 +7,19 @@ class AssessmentRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self) -> List[Assessment]:
-        return self.db.query(Assessment).options(
+    def get_all(self, tenant_id: str = None) -> List[Assessment]:
+        query = self.db.query(Assessment)
+        if tenant_id is not None:
+            query = query.filter(Assessment.tenant_id == tenant_id)
+        return query.options(
             selectinload(Assessment.assigned_students).selectinload(StudentAssessment.interview)
         ).all()
 
-    def get_by_id(self, assessment_id: int) -> Assessment:
-        return self.db.query(Assessment).filter(Assessment.id == assessment_id).options(
+    def get_by_id(self, assessment_id: int, tenant_id: str = None) -> Assessment:
+        query = self.db.query(Assessment).filter(Assessment.id == assessment_id)
+        if tenant_id is not None:
+            query = query.filter(Assessment.tenant_id == tenant_id)
+        return query.options(
             selectinload(Assessment.assigned_students).selectinload(StudentAssessment.interview)
         ).first()
 

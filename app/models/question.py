@@ -20,6 +20,7 @@ class Question(Base):
     generated_by = Column(String, nullable=True)  # template, gemini, openai
     session = Column(String, nullable=True)  # academic or batch session identifier
     created_at = Column(DateTime, default=datetime.utcnow)
+    tenant_id = Column(String, nullable=True)
 
     school_class = relationship("Class", back_populates="questions")
     subject = relationship("Subject", back_populates="questions")

@@ -15,23 +15,24 @@ class AssessmentService:
         self.question_repo = QuestionRepository(db)
         self.report_repo = ReportRepository(db)
 
-    def get_all_assessments(self) -> List[Assessment]:
-        return self.assessment_repo.get_all()
+    def get_all_assessments(self, tenant_id: str = None) -> List[Assessment]:
+        return self.assessment_repo.get_all(tenant_id=tenant_id)
 
-    def get_assessment_by_id(self, assessment_id: int) -> Assessment:
-        asmt = self.assessment_repo.get_by_id(assessment_id)
+    def get_assessment_by_id(self, assessment_id: int, tenant_id: str = None) -> Assessment:
+        asmt = self.assessment_repo.get_by_id(assessment_id, tenant_id=tenant_id)
         if not asmt:
             raise EntityNotFoundException("Assessment", str(assessment_id))
         return asmt
 
-    def create_assessment(self, asmt_in: AssessmentCreate) -> Assessment:
+    def create_assessment(self, asmt_in: AssessmentCreate, tenant_id: str = None) -> Assessment:
         asmt = Assessment(
             title=asmt_in.title,
             subject_id=asmt_in.subject_id,
             class_id=asmt_in.class_id,
             status=asmt_in.status,
             date=asmt_in.date,
-            questions_count=asmt_in.questions_count
+            questions_count=asmt_in.questions_count,
+            tenant_id=tenant_id
         )
         if asmt_in.question_ids:
             from app.models.question import Question

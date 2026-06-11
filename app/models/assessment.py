@@ -20,6 +20,7 @@ class Assessment(Base):
     status = Column(String, default="Scheduled")  # Scheduled, Active, Completed
     date = Column(String, nullable=True)
     questions_count = Column(Integer, default=0)
+    tenant_id = Column(String, nullable=True)
 
     subject = relationship("Subject")
     target_class = relationship("Class")

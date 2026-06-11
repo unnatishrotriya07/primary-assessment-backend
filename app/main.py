@@ -54,6 +54,58 @@ try:
         except Exception as ie:
             db.rollback()
             pass
+
+        # Migrate admins table for RBAC & Multi-Tenancy
+        try:
+            db.execute(text("ALTER TABLE admins ADD COLUMN role VARCHAR DEFAULT 'admin'"))
+            db.commit()
+            print("Database migration: Added 'role' column to 'admins' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        try:
+            db.execute(text("ALTER TABLE admins ADD COLUMN allowed_features JSON"))
+            db.commit()
+            print("Database migration: Added 'allowed_features' column to 'admins' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        try:
+            db.execute(text("ALTER TABLE admins ADD COLUMN tenant_id VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'tenant_id' column to 'admins' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        # Migrate assessments table
+        try:
+            db.execute(text("ALTER TABLE assessments ADD COLUMN tenant_id VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'tenant_id' column to 'assessments' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        # Migrate questions table tenant_id (if not already handled or needed)
+        try:
+            db.execute(text("ALTER TABLE questions ADD COLUMN tenant_id VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'tenant_id' column to 'questions' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        # Migrate student_assessments table
+        try:
+            db.execute(text("ALTER TABLE student_assessments ADD COLUMN tenant_id VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'tenant_id' column to 'student_assessments' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
     except Exception as me:
         print(f"DEBUG STARTUP: Database migration failed: {me}", flush=True)
     finally:
@@ -72,6 +124,18 @@ try:
 
     db = SessionLocal()
     try:
+        # Seed default school
+        from app.models.school import School
+        default_school = db.query(School).filter(School.tenant_id == "SCH-SYSTEM").first()
+        if not default_school:
+            default_school = School(
+                tenant_id="SCH-SYSTEM",
+                name="Momentum Central School"
+            )
+            db.add(default_school)
+            db.commit()
+            print("Database successfully seeded with default school: Momentum Central School (SCH-SYSTEM)", flush=True)
+
         print("DEBUG STARTUP: Checking if default admin exists...", flush=True)
         admin_exists = db.query(Admin).filter(Admin.email == "admin@example.com").first()
         if not admin_exists:
@@ -81,13 +145,27 @@ try:
             new_admin = Admin(
                 name="Admin User",
                 email="admin@example.com",
-                hashed_password=hashed
+                hashed_password=hashed,
+                role="admin",
+                allowed_features=["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports"],
+                tenant_id=None
             )
             db.add(new_admin)
             db.commit()
             print("Database successfully seeded with default administrator (admin@example.com / admin123)", flush=True)
         else:
-            print("DEBUG STARTUP: Default admin already exists in the database.", flush=True)
+            print("DEBUG STARTUP: Default admin already exists in the database. Updating attributes if empty...", flush=True)
+            dirty = False
+            if admin_exists.role != "admin":
+                admin_exists.role = "admin"
+                dirty = True
+            if admin_exists.allowed_features is None:
+                admin_exists.allowed_features = ["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports"]
+                dirty = True
+            if dirty:
+                db.add(admin_exists)
+                db.commit()
+                print("Database default admin attributes updated.", flush=True)
 
         # Seed Grade 1-5 NCERT Syllabus classes, subjects, and chapters if empty
         from app.db.seed_ncert import seed_ncert_data

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
 import io
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_db, get_current_user, enforce_super_admin
 from app.schemas.chapter_schema import ChapterCreate, ChapterUpdate, ChapterResponse
 from app.services.chapter_service import ChapterService
 
@@ -30,7 +30,7 @@ def read_chapter(id: int, db: Session = Depends(get_db), current_user: dict = De
     return service.get_chapter_by_id(id)
 
 @router.post("/parse-file")
-def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depends(enforce_super_admin)):
     filename = file.filename.lower()
     if filename.endswith(".pdf"):
         try:
@@ -57,22 +57,22 @@ def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depend
         raise HTTPException(status_code=400, detail="Unsupported file format. Please upload a PDF or plain text (.txt) file.")
 
 @router.post("/", response_model=ChapterResponse, status_code=status.HTTP_201_CREATED)
-def create_chapter(chapter_in: ChapterCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def create_chapter(chapter_in: ChapterCreate, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
     service = ChapterService(db)
     return service.create_chapter(chapter_in)
 
 @router.put("/{id}", response_model=ChapterResponse)
-def update_chapter(id: int, chapter_in: ChapterUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def update_chapter(id: int, chapter_in: ChapterUpdate, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
     service = ChapterService(db)
     return service.update_chapter(id, chapter_in)
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
     service = ChapterService(db)
     service.delete_chapter(id)
     return None
 
 @router.post("/{id}/sync-ncert", response_model=ChapterResponse)
-def sync_ncert_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def sync_ncert_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
     service = ChapterService(db)
     return service.sync_ncert_content(id)

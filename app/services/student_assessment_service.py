@@ -20,9 +20,12 @@ class StudentAssessmentService:
     def __init__(self, db: Session):
         self.db = db
 
-    def assign_assessment(self, schema: StudentAssessmentCreate, frontend_url: str = None) -> StudentAssessmentResponse:
+    def assign_assessment(self, schema: StudentAssessmentCreate, tenant_id: str = None, frontend_url: str = None) -> StudentAssessmentResponse:
         # Check if the base assessment exists
-        asmt = self.db.query(Assessment).filter(Assessment.id == schema.assessment_id).first()
+        asmt_query = self.db.query(Assessment).filter(Assessment.id == schema.assessment_id)
+        if tenant_id is not None:
+            asmt_query = asmt_query.filter(Assessment.tenant_id == tenant_id)
+        asmt = asmt_query.first()
         if not asmt:
             raise EntityNotFoundException("Assessment", str(schema.assessment_id))
 
@@ -43,7 +46,8 @@ class StudentAssessmentService:
             created_at=created_at,
             expires_at=expires_at,
             is_used=False,
-            status="Pending"
+            status="Pending",
+            tenant_id=tenant_id
         )
         self.db.add(sa)
         self.db.commit()

@@ -74,6 +74,14 @@ def get_interviews_for_assessment(
     Admin: get all completed interviews for one assessment.
     Used in the admin reports/dashboard page.
     """
+    from app.models.assessment import Assessment
+    asmt_query = db.query(Assessment).filter(Assessment.id == assessment_id)
+    if current_user.get("tenant_id") is not None:
+        asmt_query = asmt_query.filter(Assessment.tenant_id == current_user.get("tenant_id"))
+    asmt = asmt_query.first()
+    if not asmt:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
     service = InterviewService(db)
     return [_build_response(iv) for iv in service.get_reports_for_assessment(assessment_id)]
 

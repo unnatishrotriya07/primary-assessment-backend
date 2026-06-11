@@ -17,25 +17,31 @@ def read_questions(
     current_user: dict = Depends(get_current_user)
 ):
     service = QuestionService(db)
-    return service.get_questions(class_id=class_id, subject_id=subject_id, chapter_id=chapter_id, session=session)
+    return service.get_questions(
+        class_id=class_id,
+        subject_id=subject_id,
+        chapter_id=chapter_id,
+        session=session,
+        tenant_id=current_user.get("tenant_id")
+    )
 
 @router.post("/", response_model=QuestionResponse, status_code=status.HTTP_201_CREATED)
 def create_question(question_in: QuestionCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = QuestionService(db)
-    return service.create_question(question_in)
+    return service.create_question(question_in, tenant_id=current_user.get("tenant_id"))
 
 @router.post("/generate", response_model=List[QuestionResponse])
 def generate_ai_questions(params: AIQuestionParams, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = QuestionService(db)
-    return service.generate_ai_questions(params)
+    return service.generate_ai_questions(params, tenant_id=current_user.get("tenant_id"))
 
 @router.post("/batch", response_model=List[QuestionResponse])
 def batch_create_questions(batch_in: QuestionBatchSave, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = QuestionService(db)
-    return service.batch_create_questions(batch_in)
+    return service.batch_create_questions(batch_in, tenant_id=current_user.get("tenant_id"))
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_question(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = QuestionService(db)
-    service.delete_question(id)
+    service.delete_question(id, tenant_id=current_user.get("tenant_id"))
     return None

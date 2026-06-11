@@ -19,6 +19,7 @@ class StudentAssessment(Base):
     is_used = Column(Boolean, default=False, nullable=False)
     session_id = Column(String, nullable=True)  # Linked active session ID
     status = Column(String, default="Pending")  # Pending, Started, Completed, Expired
+    tenant_id = Column(String, nullable=True)
 
     assessment = relationship("Assessment", back_populates="assigned_students")
     interview = relationship("Interview", back_populates="student_assessment", uselist=False, cascade="all, delete-orphan")

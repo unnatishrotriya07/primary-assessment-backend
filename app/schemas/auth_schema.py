@@ -15,7 +15,16 @@ class UserInfo(CamelModel):
     name: str
     email: EmailStr
     role: str = "admin"
+    allowed_features: Optional[list[str]] = None
+    tenant_id: Optional[str] = None
+    school_name: Optional[str] = None
 
 class AuthResponse(CamelModel):
     token: str
     user: UserInfo
+
+class SchoolSignupRequest(CamelModel):
+    name: str
+    email: EmailStr
+    password: str
+    school_name: str

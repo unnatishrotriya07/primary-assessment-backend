@@ -14,17 +14,20 @@ class QuestionService:
         self.question_repo = QuestionRepository(db)
         self.ai_generator = QuestionGenerator()
 
-    def get_all_questions(self) -> List[Question]:
-        return self.question_repo.get_all()
+    def get_all_questions(self, tenant_id: str = None) -> List[Question]:
+        return self.question_repo.get_all(tenant_id=tenant_id)
 
     def get_questions(
         self,
         class_id: Optional[int] = None,
         subject_id: Optional[int] = None,
         chapter_id: Optional[int] = None,
-        session: Optional[str] = None
+        session: Optional[str] = None,
+        tenant_id: Optional[str] = None
     ) -> List[Question]:
         query = self.db.query(Question)
+        if tenant_id is not None:
+            query = query.filter(Question.tenant_id == tenant_id)
         if class_id is not None:
             query = query.filter(Question.class_id == class_id)
         if subject_id is not None:
@@ -35,13 +38,13 @@ class QuestionService:
             query = query.filter(Question.session == session)
         return query.all()
 
-    def get_question_by_id(self, question_id: int) -> Question:
-        q = self.question_repo.get_by_id(question_id)
+    def get_question_by_id(self, question_id: int, tenant_id: str = None) -> Question:
+        q = self.question_repo.get_by_id(question_id, tenant_id=tenant_id)
         if not q:
             raise EntityNotFoundException("Question", str(question_id))
         return q
 
-    def create_question(self, question_in: QuestionCreate) -> Question:
+    def create_question(self, question_in: QuestionCreate, tenant_id: str = None) -> Question:
         q = Question(
             text=question_in.text,
             options=question_in.options,
@@ -52,11 +55,12 @@ class QuestionService:
             subject_id=question_in.subject_id,
             chapter_id=question_in.chapter_id,
             generated_by="manual",
-            session=question_in.session
+            session=question_in.session,
+            tenant_id=tenant_id
         )
         return self.question_repo.create(q)
 
-    def generate_ai_questions(self, params: AIQuestionParams) -> List[Question]:
+    def generate_ai_questions(self, params: AIQuestionParams, tenant_id: str = None) -> List[Question]:
         # Caching/DB Check: If not regenerating, check for existing questions
         if not params.regenerate:
             query = self.db.query(Question).filter(
@@ -64,6 +68,8 @@ class QuestionService:
                 Question.difficulty == params.difficulty,
                 Question.cognitive_level == params.cognitive_level
             )
+            if tenant_id is not None:
+                query = query.filter(Question.tenant_id == tenant_id)
             if params.question_type and params.question_type != "mixed":
                 query = query.filter(Question.question_type == params.question_type)
             if params.session:
@@ -79,6 +85,8 @@ class QuestionService:
                 Question.difficulty == params.difficulty,
                 Question.cognitive_level == params.cognitive_level
             )
+            if tenant_id is not None:
+                query = query.filter(Question.tenant_id == tenant_id)
             if params.question_type and params.question_type != "mixed":
                 query = query.filter(Question.question_type == params.question_type)
             if params.session:
@@ -125,7 +133,8 @@ class QuestionService:
                 subject_id=params.subject_id,
                 chapter_id=params.chapter_id,
                 generated_by=provider,
-                session=params.session
+                session=params.session,
+                tenant_id=tenant_id
             )
             if params.preview_only:
                 q.id = 0
@@ -135,10 +144,12 @@ class QuestionService:
             
         return saved_questions
 
-    def batch_create_questions(self, batch_in: QuestionBatchSave) -> List[Question]:
+    def batch_create_questions(self, batch_in: QuestionBatchSave, tenant_id: str = None) -> List[Question]:
         # If clear_existing is True and filters are provided, delete existing ones first
         if batch_in.clear_existing and batch_in.chapter_id:
             query = self.db.query(Question).filter(Question.chapter_id == batch_in.chapter_id)
+            if tenant_id is not None:
+                query = query.filter(Question.tenant_id == tenant_id)
             if batch_in.difficulty:
                 query = query.filter(Question.difficulty == batch_in.difficulty)
             if batch_in.cognitive_level:
@@ -161,12 +172,13 @@ class QuestionService:
                 subject_id=q_in.subject_id,
                 chapter_id=q_in.chapter_id,
                 generated_by=q_in.generated_by or "manual",
-                session=q_in.session
+                session=q_in.session,
+                tenant_id=tenant_id
             )
             saved_questions.append(self.question_repo.create(q))
             
         return saved_questions
 
-    def delete_question(self, question_id: int) -> None:
-        q = self.get_question_by_id(question_id)
+    def delete_question(self, question_id: int, tenant_id: str = None) -> None:
+        q = self.get_question_by_id(question_id, tenant_id=tenant_id)
         self.question_repo.delete(q)
