@@ -24,3 +24,4 @@ class Assessment(Base):
     subject = relationship("Subject")
     target_class = relationship("Class")
     questions = relationship("Question", secondary=assessment_questions, backref="assessments")
+    assigned_students = relationship("StudentAssessment", back_populates="assessment", cascade="all, delete-orphan")

@@ -42,5 +42,5 @@ class Interview(Base):
     started_at   = Column(DateTime, default=datetime.datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 
-    student_assessment = relationship("StudentAssessment")
+    student_assessment = relationship("StudentAssessment", back_populates="interview")
     assessment         = relationship("Assessment")

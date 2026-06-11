@@ -13,9 +13,12 @@ class AssessmentBase(CamelModel):
 class AssessmentCreate(AssessmentBase):
     question_ids: Optional[List[int]] = None
 
+from app.schemas.student_assessment_schema import StudentAssessmentResponse
+
 class AssessmentResponse(AssessmentBase):
     id: int
     questions: Optional[List[QuestionResponse]] = []
+    assigned_students: Optional[List[StudentAssessmentResponse]] = []
 
 class StartSessionResponse(CamelModel):
     session_id: str

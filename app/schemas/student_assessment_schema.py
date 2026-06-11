@@ -10,6 +10,16 @@ class StudentAssessmentCreate(CamelModel):
     student_email: str
     contact: str  # Contact number
 
+class StudentAssessmentInterviewSchema(CamelModel):
+    id: int
+    overall_score: Optional[float] = None
+    grade: Optional[str] = None
+    status: str
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
 class StudentAssessmentResponse(CamelModel):
     id: int
     assessment_id: int
@@ -24,8 +34,9 @@ class StudentAssessmentResponse(CamelModel):
     is_used: bool
     session_id: Optional[str] = None
     status: str
-    assessment_link: str
-    email_content: str
+    assessment_link: Optional[str] = None
+    email_content: Optional[str] = None
+    interview: Optional[StudentAssessmentInterviewSchema] = None
 
     class Config:
         from_attributes = True

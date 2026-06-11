@@ -1,0 +1,4627 @@
+{
+  "class_subjects": {
+    "1": [
+      "English",
+      "Mathematics",
+      "Hindi",
+      "Urdu"
+    ],
+    "2": [
+      "Mathematics",
+      "Hindi",
+      "English",
+      "Urdu"
+    ],
+    "3": [
+      "Mathematics",
+      "Hindi",
+      "English",
+      "Environmental Studies",
+      "Urdu",
+      "Mathematics",
+      "English",
+      "Hindi",
+      "The World Around Us",
+      "Arts",
+      "Physical Education and Well Being",
+      "Urdu"
+    ],
+    "4": [
+      "Mathematics",
+      "Hindi",
+      "English",
+      "The World Around Us",
+      "Arts",
+      "Physical Education and Well Being",
+      "Urdu"
+    ],
+    "5": [
+      "Mathematics",
+      "Hindi",
+      "English",
+      "The World Around Us",
+      "Arts",
+      "Physical Education and Well Being",
+      "Urdu"
+    ],
+    "6": [
+      "Hindi",
+      "English",
+      "Mathematics",
+      "Social Science",
+      "Sanskrit",
+      "Science",
+      "Arts",
+      "Physical Education and Well Being",
+      "Vocational Education",
+      "Urdu"
+    ],
+    "7": [
+      "Hindi",
+      "English",
+      "Mathematics",
+      "Social Science",
+      "Sanskrit",
+      "Science",
+      "Arts",
+      "Physical Education and Well Being",
+      "Vocational Education",
+      "Urdu"
+    ],
+    "8": [
+      "Hindi",
+      "English",
+      "Mathematics",
+      "Social Science",
+      "Sanskrit",
+      "Science",
+      "Arts",
+      "Physical Education and Well Being",
+      "Vocational Education",
+      "Urdu"
+    ],
+    "9": [
+      "English",
+      "Hindi",
+      "Sanskrit",
+      "Mathematics",
+      "Science",
+      "Social Science",
+      "Arts",
+      "Urdu",
+      "Physical Education and Well Being",
+      "ICT",
+      "Skill Education"
+    ],
+    "10": [
+      "Mathematics",
+      "Science",
+      "Hindi",
+      "Social Science",
+      "English",
+      "Sanskrit",
+      "Urdu",
+      "Health and Physical Education"
+    ],
+    "11": [
+      "Sanskrit",
+      "Accountancy",
+      "Chemistry",
+      "Mathematics",
+      "Statistics",
+      "Biology",
+      "Psychology",
+      "Geography",
+      "Physics",
+      "Hindi",
+      "Sociology",
+      "English",
+      "Political Science",
+      "History",
+      "Economics",
+      "Business Studies",
+      "Urdu",
+      "Graphics design",
+      "Computers and Communication Technology",
+      "Home Science",
+      "Creative Writing and Translation",
+      "Fine Art",
+      "Informatics Practices",
+      "Computer Science",
+      "Sanskrit",
+      "Accountancy",
+      "Chemistry",
+      "Mathematics",
+      "Biology",
+      "Psychology",
+      "Geography",
+      "Physics",
+      "Hindi",
+      "Sociology",
+      "English",
+      "Political Science",
+      "History",
+      "Economics",
+      "Business Studies",
+      "Urdu",
+      "Home Science",
+      "Creative Writing and Translation",
+      "Fine Art",
+      "Informatics Practices",
+      "Computer Science",
+      "Health and Physical Education",
+      "Biotechnology",
+      "Sangeet",
+      "Knowledge Traditions Practices of India"
+    ],
+    "12": [
+      "Mathematics",
+      "Physics",
+      "Accountancy",
+      "Sanskrit",
+      "Hindi",
+      "English",
+      "Biology",
+      "History",
+      "Geography",
+      "Psychology",
+      "Sociology",
+      "Chemistry",
+      "Political Science",
+      "Economics",
+      "Business Studies",
+      "Home Science",
+      "Urdu",
+      "Creative Writing & Translation",
+      "Fine Art",
+      "Computer Science",
+      "Informatics Practices",
+      "Biotechnology",
+      "Sangeet"
+    ],
+    "13": [
+      "Hindi",
+      "Sanskrit",
+      "Urdu"
+    ],
+    "14": []
+  },
+  "class_subject_books": [
+    {
+      "class_id": 1,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Joyful-Mathematics (English)",
+          "code": "aejm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Hindi)",
+          "code": "ahjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Marathi)",
+          "code": "amrjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Sindhi)",
+          "code": "asijm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Punjabi)",
+          "code": "apjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Gujarati)",
+          "code": "agjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Malayalam)",
+          "code": "ayjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Konkani)",
+          "code": "akjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Assamese)",
+          "code": "aajm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Maithili)",
+          "code": "aijm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Bodo)",
+          "code": "aojm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Sanskrit)",
+          "code": "askjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Oriya)",
+          "code": "aorjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Bengali)",
+          "code": "abnjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Santhali)",
+          "code": "asnjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Manipuri)",
+          "code": "amnjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Urdu)",
+          "code": "aujm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Nepali)",
+          "code": "anpjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Telugu)",
+          "code": "atljm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Kannada)",
+          "code": "aknjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Tamil)",
+          "code": "atmjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Dogri)",
+          "code": "adgjm1",
+          "range": "0-13"
+        },
+        {
+          "title": "Joyful-Mathematics (Kashmiri)",
+          "code": "aksjm1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 1,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Sarangi",
+          "code": "ahsr1",
+          "range": "0-19"
+        }
+      ]
+    },
+    {
+      "class_id": 1,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Shahnai",
+          "code": "aush1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 2,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Joyful-Mathematics (English)",
+          "code": "bejm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Hindi)",
+          "code": "bhjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Assamese)",
+          "code": "basjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Punjabi)",
+          "code": "bpnjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Gujarati)",
+          "code": "bgjjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Malayalam)",
+          "code": "bmljm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Maithli)",
+          "code": "bmtjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Bodo)",
+          "code": "bbdjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Marathi)",
+          "code": "bmrjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Sindhi)",
+          "code": "bsijm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Bengali)",
+          "code": "bbnjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Sanskrit)",
+          "code": "bskjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Nepali)",
+          "code": "bnpjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Oriya)",
+          "code": "borjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Manipuri)",
+          "code": "bmnjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Urdu)",
+          "code": "bujm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Santhali)",
+          "code": "bsnjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Konkani)",
+          "code": "bkojm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Kannada)",
+          "code": "bknjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Tamil)",
+          "code": "btmjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Telugu)",
+          "code": "btljm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Dogri)",
+          "code": "bdgjm1",
+          "range": "0-11"
+        },
+        {
+          "title": "Joyful-Mathematics (Kashmiri)",
+          "code": "bksjm1",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 2,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Sarangi",
+          "code": "bhsr1",
+          "range": "0-26"
+        }
+      ]
+    },
+    {
+      "class_id": 2,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Mridang",
+          "code": "bemr1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 2,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Shahnai",
+          "code": "bush1",
+          "range": "0-19"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Rimjhim",
+          "code": "chhn1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Environmental Studies",
+      "books": [
+        {
+          "title": "Looking Around",
+          "code": "ceap1",
+          "range": "0-24"
+        },
+        {
+          "title": "Aas-Pass",
+          "code": "chap1",
+          "range": "0-24"
+        },
+        {
+          "title": "Aas-Pass(urdu)",
+          "code": "cuap1",
+          "range": "0-24"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Marigold",
+          "code": "ceen1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Mathematics",
+          "code": "cemh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit",
+          "code": "chmh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi Ka Jadoo-III(Urdu)",
+          "code": "curi1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Ibtedai Urdu",
+          "code": "culb1",
+          "range": "0-20"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Maths Mela",
+          "code": "cemm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit Mela",
+          "code": "chmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi Mela",
+          "code": "cumm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Assamese)",
+          "code": "casmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Bengali)",
+          "code": "cbnmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Bodo)",
+          "code": "cbdmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Dogri)",
+          "code": "cdgmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Gujarati)",
+          "code": "cgjmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Kannada)",
+          "code": "cknmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Maithili)",
+          "code": "cmtmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Malayalam)",
+          "code": "cmlmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Manipuri)",
+          "code": "cmnmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Nepali)",
+          "code": "cnpmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Odia)",
+          "code": "cormm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Punjabi)",
+          "code": "cpnmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Santhali)",
+          "code": "csnmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Tamil)",
+          "code": "ctmmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Telugu)",
+          "code": "ctlmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Sanskrit)",
+          "code": "cskmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Marathi)",
+          "code": "cmrmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Konkani)",
+          "code": "ckomm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Sindhi)",
+          "code": "csimm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Maths Mela (Kashmiri)",
+          "code": "cksmm1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Veena",
+          "code": "chve1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Sitar",
+          "code": "cust1",
+          "range": "0-19"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Santoor",
+          "code": "cesa1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "The World Around Us",
+      "books": [
+        {
+          "title": "Our Wondrous World",
+          "code": "ceev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Hamara Adhbhut Sansar",
+          "code": "chev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Hamari Hairat Angez Duniya",
+          "code": "cuev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Bengali)",
+          "code": "cbnev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Odia)",
+          "code": "corev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Marathi)",
+          "code": "cmrev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Nepali)",
+          "code": "cnpev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Telugu)",
+          "code": "ctlev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Gujrati)",
+          "code": "cgjev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Manipuri)",
+          "code": "cmnev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Sanskrit)",
+          "code": "cskev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Assamese)",
+          "code": "casev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Bodo)",
+          "code": "cbdev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Punjabi)",
+          "code": "cpnev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Malayalam)",
+          "code": "cmlev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Maithili)",
+          "code": "cmtev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Dogri)",
+          "code": "cdgev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Kannada)",
+          "code": "cknev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Santhali)",
+          "code": "csnev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Tamil)",
+          "code": "ctmev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Sindhi)",
+          "code": "csiev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Kashmiri)",
+          "code": "cksev1",
+          "range": "0-12"
+        },
+        {
+          "title": "Our Wondrous World (Konkani)",
+          "code": "ckoev1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Bansuri - I",
+          "code": "cebu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Hindi)",
+          "code": "chbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Urdu)",
+          "code": "cubu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Bengali)",
+          "code": "cbnbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Maithili",
+          "code": "cmtbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Manipuri)",
+          "code": "cmnbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Marathi)",
+          "code": "cmrbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Nepali)",
+          "code": "cnpbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Punjabi)",
+          "code": "cpnbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Bodo)",
+          "code": "cbdbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Gujarati)",
+          "code": "cgjbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Dogri)",
+          "code": "cdgbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Konkani)",
+          "code": "ckobu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Santhali)",
+          "code": "csnbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Tamil)",
+          "code": "ctmbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Telugu)",
+          "code": "ctlbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Assamese)",
+          "code": "casbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Kannada)",
+          "code": "cknbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Sanskrit)",
+          "code": "cskbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Malayalam)",
+          "code": "cmlbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Odia)",
+          "code": "corbu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Sindhi)",
+          "code": "csibu1",
+          "range": "0-20"
+        },
+        {
+          "title": "Bansuri - I (Kashmiri)",
+          "code": "cksbu1",
+          "range": "0-20"
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yoga",
+          "code": "ceky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Hindi)",
+          "code": "chky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Malayalam)",
+          "code": "cmlky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Bengali)",
+          "code": "cbnky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Gujarati)",
+          "code": "cgjky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Kannada)",
+          "code": "cknky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Konkani)",
+          "code": "ckoky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Manipuri)",
+          "code": "cmnky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Nepali)",
+          "code": "cnpky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Odia)",
+          "code": "corky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Assamese)",
+          "code": "casky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Dogri)",
+          "code": "cdgky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Punjabi)",
+          "code": "cpnky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Sanskrit)",
+          "code": "cskky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Santhali)",
+          "code": "csnky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Tamil)",
+          "code": "ctmky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Marathi)",
+          "code": "cmrky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Bodo)",
+          "code": "cbdky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Telugu)",
+          "code": "ctlky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Maithili)",
+          "code": "cmtky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Urdu)",
+          "code": "cuky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Sindhi)",
+          "code": "csiky1",
+          "range": "0-7"
+        },
+        {
+          "title": "Khel Yoga (Kashmiri)",
+          "code": "cksky1",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Math-Mela",
+          "code": "demm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit Mela",
+          "code": "dhmm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi Mela",
+          "code": "dumm1",
+          "range": "0-14"
+        },
+        {
+          "title": "Math-Mela (Maithili)",
+          "code": "dmtmm1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Veena",
+          "code": "dhve1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Environmental Studies",
+      "books": [
+        {
+          "title": "Looking Around(EVS)",
+          "code": "deap1",
+          "range": "0-27"
+        },
+        {
+          "title": "Aas Paas",
+          "code": "dhap1",
+          "range": "0-27"
+        },
+        {
+          "title": "Aas-Paas(Urdu)",
+          "code": "duap1",
+          "range": "0-27"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "The World Around Us",
+      "books": [
+        {
+          "title": "Our Wonderous World",
+          "code": "deev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hamara Adhbhut Sansar",
+          "code": "dhev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hamari Hairatangez Duniya",
+          "code": "duev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wonderous World (Punjabi)",
+          "code": "dpev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wonderous World (Gujarati)",
+          "code": "dgjev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Kannada)",
+          "code": "dknev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Sanskrit)",
+          "code": "dskev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Konkani)",
+          "code": "dkoev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Bengali)",
+          "code": "dbnev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Odia)",
+          "code": "dorev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wondrous World (Marathi)",
+          "code": "dmrev1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Santoor",
+          "code": "desa1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Bansuri",
+          "code": "debu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Hindi)",
+          "code": "dhbu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Urdu)",
+          "code": "dubu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Odia)",
+          "code": "dorbu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Gujarati)",
+          "code": "dgjbu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Punjabi)",
+          "code": "dpnbu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Sindhi)",
+          "code": "dpnbu1",
+          "range": "0-18"
+        },
+        {
+          "title": "Bansuri - I (Tamil)",
+          "code": "dtmbu1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yoga",
+          "code": "deky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Hindi)",
+          "code": "dhky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Odia)",
+          "code": "dorky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Gujarati)",
+          "code": "dgjky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Bengali)",
+          "code": "dbnky1",
+          "range": "0-3"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Ibtedai Urdu-IV",
+          "code": "dulb1",
+          "range": "0-22"
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Sitaar",
+          "code": "dust1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Math-Mela",
+          "code": "eemm1",
+          "range": "0-15"
+        },
+        {
+          "title": "Ganit-Mela",
+          "code": "ehmm1",
+          "range": "0-15"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Veena",
+          "code": "ehve1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Santoor",
+          "code": "eesa1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "The World Around Us",
+      "books": [
+        {
+          "title": "Our Wonderous World",
+          "code": "eeev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hamara Adbhut Sansar",
+          "code": "ehev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hamari Hairatangez Duniya",
+          "code": "euev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wonderous World (Odia)",
+          "code": "eorev1",
+          "range": "0-10"
+        },
+        {
+          "title": "Our Wonderous World (Gujarati)",
+          "code": "egjev1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Bansuri",
+          "code": "eebu1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bansuri (Hindi)",
+          "code": "ehbu1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bansuri (Urdu)",
+          "code": "eubu1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bansuri (Gujarati)",
+          "code": "egjbu1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bansuri (Maithili)",
+          "code": "emtbu1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bansuri (Odia)",
+          "code": "eorbu1",
+          "range": "0-19"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yoga",
+          "code": "eeky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Odia)",
+          "code": "eorky1",
+          "range": "0-3"
+        },
+        {
+          "title": "Khel Yoga(Punjabi)",
+          "code": "epnky1",
+          "range": "0-3"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Sitaar",
+          "code": "eust1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Math-Magic",
+          "code": "eemh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit",
+          "code": "ehmh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi Ka Jadoo(Urdu)",
+          "code": "euma1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Rimjhim",
+          "code": "ehhn1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Marigold",
+          "code": "eeen1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Environmental Studies",
+      "books": [
+        {
+          "title": "Aas-Pass",
+          "code": "ehap1",
+          "range": "0-22"
+        },
+        {
+          "title": "Looking Around",
+          "code": "eeap1",
+          "range": "0-22"
+        },
+        {
+          "title": "Ass Pass(Urdu)",
+          "code": "euev1",
+          "range": "0-22"
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Ibtedai Urdu Class-V",
+          "code": "eulb1",
+          "range": "0-22"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Malhar",
+          "code": "fhml1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Vocational Education",
+      "books": [
+        {
+          "title": "Kaushal Bodh",
+          "code": "fekb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Hindi)",
+          "code": "fhkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Bengali)",
+          "code": "fbnkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Bodo)",
+          "code": "fbdkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Dogri)",
+          "code": "fdgkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Konkani)",
+          "code": "fkokb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Odia)",
+          "code": "forkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Punjabi)",
+          "code": "fpnkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Malayalam)",
+          "code": "fmlkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Kannada)",
+          "code": "fknkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Manipuri)",
+          "code": "fmnkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Tamil)",
+          "code": "ftmkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Gujarati)",
+          "code": "fgjkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Maithili)",
+          "code": "fmtkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Assamese)",
+          "code": "faskb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Nepali)",
+          "code": "fnpkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Sanskrit)",
+          "code": "fskkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Kashmiri)",
+          "code": "fkskb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Marathi)",
+          "code": "fmrkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Telugu)",
+          "code": "ftlkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Santhali)",
+          "code": "fsnkb1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kaushal Bodh (Sindhi)",
+          "code": "fsikb1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yatra",
+          "code": "feky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Hindi)",
+          "code": "fhky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Bengali)",
+          "code": "fbnky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Punjabi)",
+          "code": "fpnky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Assamese)",
+          "code": "fasky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Tamil)",
+          "code": "ftmky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Nepali)",
+          "code": "fnpky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Odia)",
+          "code": "forky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Dogri)",
+          "code": "fdgky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Telugu)",
+          "code": "ftlky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Konkani)",
+          "code": "fkoky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Kannada)",
+          "code": "fknky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Malayalam)",
+          "code": "fmlky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Bodo)",
+          "code": "fbdky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Kashmiri)",
+          "code": "fksky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Manipuri)",
+          "code": "fmnky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Marathi)",
+          "code": "fmrky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Sanskrit)",
+          "code": "fskky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Santhali)",
+          "code": "fsnky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Sindhi)",
+          "code": "fsiky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Maithili)",
+          "code": "fmtky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khel Yatra (Gujarati)",
+          "code": "fgjky1",
+          "range": "0-5"
+        },
+        {
+          "title": "Jismani Taleem aur Tandurusti",
+          "code": "fukl1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Poorvi",
+          "code": "fepr1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Ganita Prakash",
+          "code": "fegp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Hindi)",
+          "code": "fhgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Odia)",
+          "code": "forgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Bodo)",
+          "code": "fbdgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Malayalam)",
+          "code": "fmlgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Punjabi)",
+          "code": "fpngp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Sanskrit)",
+          "code": "fskgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Kannada)",
+          "code": "fkngp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Tamil)",
+          "code": "ftmgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Marathi)",
+          "code": "fmrgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Bengali)",
+          "code": "fbngp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Telugu)",
+          "code": "ftlgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Maithili)",
+          "code": "fmtgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Dogri)",
+          "code": "fdggp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Nepali)",
+          "code": "fnpgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Urdu)",
+          "code": "fugp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Assamese)",
+          "code": "fasgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Gujarati)",
+          "code": "fgjgp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Manipuri)",
+          "code": "fmngp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Konkani)",
+          "code": "fkogp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Santhali)",
+          "code": "fsngp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Sindhi)",
+          "code": "fsigp1",
+          "range": "0-10"
+        },
+        {
+          "title": "Ganita Prakash (Kashmiri)",
+          "code": "fksgp1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Social Science",
+      "books": [
+        {
+          "title": "Exploring Society India and Beyond",
+          "code": "fees1",
+          "range": "0-14"
+        },
+        {
+          "title": "Samaj Ka Aadhyan: Bharat or uske aage",
+          "code": "fhes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Kannada)",
+          "code": "fknes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Kashmiri)",
+          "code": "fkses1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Odia)",
+          "code": "fores1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Manipuri)",
+          "code": "fmnes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Marathi)",
+          "code": "fmres1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Punjabi)",
+          "code": "fpnes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Dogri)",
+          "code": "fdges1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Gujrati)",
+          "code": "fgjes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Malayalam)",
+          "code": "fmles1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Sanskrit)",
+          "code": "fskes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Bengali)",
+          "code": "fbnes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Bodo)",
+          "code": "fbdes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Maithili)",
+          "code": "fmtes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Nepali)",
+          "code": "fnpes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Tamil)",
+          "code": "ftmes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Telugu)",
+          "code": "ftles1",
+          "range": "0-14"
+        },
+        {
+          "title": "Muashre Ki Daryaft Hindustan aur Us Se Aage (Urdu)",
+          "code": "fues1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Santhali)",
+          "code": "fsnes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Assamese)",
+          "code": "fases1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Konkani)",
+          "code": "fkoes1",
+          "range": "0-14"
+        },
+        {
+          "title": "Exploring Society India and Beyond (Sindhi)",
+          "code": "fsies1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Deepakam",
+          "code": "fsde1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Curiosity",
+          "code": "fecu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Jigyasa",
+          "code": "fhcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Tajassus",
+          "code": "fucu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Malayalam)",
+          "code": "fmlcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Tamil)",
+          "code": "ftmcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Kannada)",
+          "code": "fkncu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Maithili)",
+          "code": "fmtcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Punjabi)",
+          "code": "fpncu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Bengali)",
+          "code": "fbncu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Odia)",
+          "code": "forcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Konkani)",
+          "code": "fkocu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Manipuri)",
+          "code": "fmncu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Nepali)",
+          "code": "fnpcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Sanskrit)",
+          "code": "fskcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Telugu)",
+          "code": "ftlcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Assamese)",
+          "code": "fascu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Marathi)",
+          "code": "fmrcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Bodo)",
+          "code": "fbdcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Dogri)",
+          "code": "fdgcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Gujarati)",
+          "code": "fgjcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Santhali)",
+          "code": "fsncu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Kashmiri)",
+          "code": "fkscu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Curiosity (Sindhi)",
+          "code": "fsicu1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Kriti-I",
+          "code": "fekr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Hindi)",
+          "code": "fhkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Bengali)",
+          "code": "fbnkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Konkani)",
+          "code": "fkokr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Bodo)",
+          "code": "fbdkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Maithili)",
+          "code": "fmtkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Manipuri)",
+          "code": "fmnkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Assamese)",
+          "code": "faskr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Dogri)",
+          "code": "fdgkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Odia)",
+          "code": "forkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Tamil)",
+          "code": "ftmkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Gujarati)",
+          "code": "fgjkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Kannada)",
+          "code": "fknkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Malayalam)",
+          "code": "fmlkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Marathi)",
+          "code": "fmrkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Sanskrit)",
+          "code": "fskkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Nepali)",
+          "code": "fnpkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Punjabi)",
+          "code": "fpnkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Telugu)",
+          "code": "ftlkr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Kashmiri)",
+          "code": "fkskr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Sindhi)",
+          "code": "fsikr1",
+          "range": "0-22"
+        },
+        {
+          "title": "Kriti-I (Santhali)",
+          "code": "fsnkr1",
+          "range": "0-22"
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Khayal",
+          "code": "fuky1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Ganita Prakash",
+          "code": "gegp1",
+          "range": "0-8"
+        },
+        {
+          "title": "Ganita Prakash-II",
+          "code": "gegp2",
+          "range": "0-7"
+        },
+        {
+          "title": "Ganita Prakash(Hindi)",
+          "code": "ghgp1",
+          "range": "0-8"
+        },
+        {
+          "title": "Ganita Prakash(Urdu)",
+          "code": "gugp1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Kriti",
+          "code": "gekr1",
+          "range": "0-20"
+        },
+        {
+          "title": "Kriti-I (Hindi)",
+          "code": "ghkr1",
+          "range": "0-20"
+        },
+        {
+          "title": "Kriti-I (Bengali)",
+          "code": "gbnkr1",
+          "range": "0-20"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Malhar",
+          "code": "ghml1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Deepakam",
+          "code": "gsde1",
+          "range": "0-15"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Curiosity",
+          "code": "gecu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Jigyasa",
+          "code": "ghcu1",
+          "range": "0-12"
+        },
+        {
+          "title": "Tajassus",
+          "code": "gucu1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Poorvi",
+          "code": "gepr1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Social Science",
+      "books": [
+        {
+          "title": "Exploring Society India and Beyond Part-I",
+          "code": "gees1",
+          "range": "0-12"
+        },
+        {
+          "title": "Samaj Ka Aadhyan: Bharat or uske aage Part-I",
+          "code": "ghes1",
+          "range": "0-12"
+        },
+        {
+          "title": "Exploring Society India and Beyond Part-II",
+          "code": "gees2",
+          "range": "0-8"
+        },
+        {
+          "title": "Muashrey ki Daryaft - Hindustan aur Uske age Part-I",
+          "code": "gues1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yatra",
+          "code": "geky1",
+          "range": "0-6"
+        },
+        {
+          "title": "Khel Yatra (Urdu)",
+          "code": "gukl1",
+          "range": "0-6"
+        },
+        {
+          "title": "Khel Yatra (Hindi)",
+          "code": "ghky1",
+          "range": "0-6"
+        },
+        {
+          "title": "Khel Yatra (Punjabi)",
+          "code": "gpnky1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Vocational Education",
+      "books": [
+        {
+          "title": "Kaushal Bodh",
+          "code": "gekb1",
+          "range": "0-7"
+        },
+        {
+          "title": "Kaushal Bodh(Hindi)",
+          "code": "ghkb1",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Khayal",
+          "code": "guky1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Ganita Prakash Part-I",
+          "code": "hegp1",
+          "range": "0-7"
+        },
+        {
+          "title": "Ganita Prakash Part-II",
+          "code": "hegp2",
+          "range": "0-7"
+        },
+        {
+          "title": "Ganita Prakash (Hindi)",
+          "code": "hhgp1",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Kriti",
+          "code": "hekr1",
+          "range": "0-19"
+        },
+        {
+          "title": "Kriti (Urdu)",
+          "code": "hukr1",
+          "range": "0-19"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Malhar",
+          "code": "hhml1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Deepakam",
+          "code": "hsde1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Curiosity",
+          "code": "hecu1",
+          "range": "0-13"
+        },
+        {
+          "title": "Jigyasa",
+          "code": "hhcu1",
+          "range": "0-13"
+        },
+        {
+          "title": "Tajassus",
+          "code": "hucu1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Poorvi",
+          "code": "hepr1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Social Science",
+      "books": [
+        {
+          "title": "Exploring Society India and Beyond Part-I",
+          "code": "hees1",
+          "range": "0-7"
+        },
+        {
+          "title": "Samaj Ka Aadhyan: Bharat or uske aage Part-I",
+          "code": "hhes1",
+          "range": "0-7"
+        },
+        {
+          "title": "Muashrey ki Daryaft - Hindustan Aur Uske Age Part-I",
+          "code": "hues1",
+          "range": "0-7"
+        },
+        {
+          "title": "Exploring Society India and Beyond Part-I (Odia)",
+          "code": "hores1",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Yatra",
+          "code": "heky1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Vocational Education",
+      "books": [
+        {
+          "title": "Kaushal Bodh",
+          "code": "hekb1",
+          "range": "0-8"
+        },
+        {
+          "title": "Kaushal Bodh(Gujarati)",
+          "code": "hgjkb1",
+          "range": "0-8"
+        },
+        {
+          "title": "Kaushal Bodh(Bengali)",
+          "code": "hbnkb1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Khayal",
+          "code": "huky1",
+          "range": "0-21"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Class 8",
+      "books": [
+        {
+          "title": "Class 8",
+          "code": "class4",
+          "range": "0-1"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Honeydew",
+          "code": "hehd1",
+          "range": "0-8"
+        },
+        {
+          "title": "It So Happend",
+          "code": "heih1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Mathematics",
+          "code": "hemh1",
+          "range": "0-13"
+        },
+        {
+          "title": "Ganit",
+          "code": "hhmh1",
+          "range": "0-13"
+        },
+        {
+          "title": "Riyazi(Urdu)",
+          "code": "huhi1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Ruchira",
+          "code": "hhsk1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Vasant",
+          "code": "hhvs1",
+          "range": "0-13"
+        },
+        {
+          "title": "Durva",
+          "code": "hhdv1",
+          "range": "0-19"
+        },
+        {
+          "title": "Bharat Ki Khoj",
+          "code": "hhbk1",
+          "range": "0-9"
+        },
+        {
+          "title": "Sanshipt Budhcharit",
+          "code": "hhsb1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Science",
+          "code": "hesc1",
+          "range": "0-13"
+        },
+        {
+          "title": "Vigyan",
+          "code": "hhsc1",
+          "range": "0-13"
+        },
+        {
+          "title": "Science(Urdu)",
+          "code": "huse1",
+          "range": "0-18"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Social Science",
+      "books": [
+        {
+          "title": "Resource And Development(Geography)",
+          "code": "hess4",
+          "range": "0-5"
+        },
+        {
+          "title": "Sansadhan Avam Vikas(Bhugol)",
+          "code": "hhss4",
+          "range": "0-5"
+        },
+        {
+          "title": "Social And Political Life",
+          "code": "hess3",
+          "range": "0-8"
+        },
+        {
+          "title": "Samajik Avam Rajnatik Jeevan",
+          "code": "hhss3",
+          "range": "0-8"
+        },
+        {
+          "title": "Our-Pasts-III",
+          "code": "hess2",
+          "range": "0-8"
+        },
+        {
+          "title": "Wasayel aur Taraqqui(Urdu)",
+          "code": "hugy1",
+          "range": "0-6"
+        },
+        {
+          "title": "Samaji Aur Siyasi Zindagi(Urdu)",
+          "code": "huss1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hamare Maazi-III (Urdu)",
+          "code": "huhm1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Apni Zaban",
+          "code": "huaz1",
+          "range": "0-22"
+        },
+        {
+          "title": "Urdu Guldasta (Supl)",
+          "code": "huug1",
+          "range": "0-9"
+        },
+        {
+          "title": "Door-Pass",
+          "code": "hudp1",
+          "range": "0-20"
+        },
+        {
+          "title": "Jaan Pahechan",
+          "code": "hujp1",
+          "range": "0-20"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Kaveri",
+          "code": "iebe1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Ganga",
+          "code": "ihga1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Sharada",
+          "code": "ihsh1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Ganita Manjari (English)",
+          "code": "iemh1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Exploration",
+          "code": "iesc1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Jamuna",
+          "code": "iuju1",
+          "range": "0-15"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Environmental Education",
+      "books": [
+        {
+          "title": "Project Books",
+          "code": "iepb1",
+          "range": "pp-0"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Physical Education and Well Being",
+      "books": [
+        {
+          "title": "Khel Praveen",
+          "code": "iehp1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Skill Education",
+      "books": [
+        {
+          "title": "Kaushal Vikas",
+          "code": "iekv1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Vocational",
+      "books": [
+        {
+          "title": "Cashier",
+          "code": "ievc1",
+          "range": "0-5"
+        },
+        {
+          "title": "Store Operations Assistant",
+          "code": "ieva1",
+          "range": "0-4"
+        },
+        {
+          "title": "Solanceous Crop Cultivator",
+          "code": "ievs1",
+          "range": "0-5"
+        },
+        {
+          "title": "Assistant Beauty Therapist",
+          "code": "ievt1",
+          "range": "0-3"
+        },
+        {
+          "title": "Animal Health Workers (Agriculture)",
+          "code": "ievw1",
+          "range": "0-4"
+        },
+        {
+          "title": "Hand Embroiderer (Addawala)",
+          "code": "ieve1",
+          "range": "0-5"
+        },
+        {
+          "title": "Hand Embroiderer",
+          "code": "ievh1",
+          "range": "0-5"
+        },
+        {
+          "title": "Plumber General",
+          "code": "iepg1",
+          "range": "0-5"
+        },
+        {
+          "title": "IT Domestic Data Entry Operator",
+          "code": "ieeo1",
+          "range": "0-5"
+        },
+        {
+          "title": "Employability Skill",
+          "code": "iees1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "subject": "Arts",
+      "books": [
+        {
+          "title": "Madhurima",
+          "code": "iemr1",
+          "range": "0-17"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Mathematics",
+          "code": "jemh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit",
+          "code": "jhmh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi",
+          "code": "jumh1",
+          "range": "0-15"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Science",
+      "books": [
+        {
+          "title": "Science",
+          "code": "jesc1",
+          "range": "0-13"
+        },
+        {
+          "title": "Vigyan",
+          "code": "jhsc1",
+          "range": "0-13"
+        },
+        {
+          "title": "Science(Urdu)",
+          "code": "jusc1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Kshitij-2",
+          "code": "jhks1",
+          "range": "0-12"
+        },
+        {
+          "title": "Sparsh",
+          "code": "jhsp1",
+          "range": "0-14"
+        },
+        {
+          "title": "Sanchayan Bhag-2",
+          "code": "jhsy1",
+          "range": "0-3"
+        },
+        {
+          "title": "Kritika",
+          "code": "jhkr1",
+          "range": "0-3"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "English",
+      "books": [
+        {
+          "title": "First Flight",
+          "code": "jeff1",
+          "range": "0-9"
+        },
+        {
+          "title": "Foot Prints Without feet Supp. Reader",
+          "code": "jefp1",
+          "range": "0-9"
+        },
+        {
+          "title": "Words and Expressions  2",
+          "code": "jewe2",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Social Science",
+      "books": [
+        {
+          "title": "Contemporary India",
+          "code": "jess1",
+          "range": "0-7"
+        },
+        {
+          "title": "Samkalin Bharat",
+          "code": "jhss1",
+          "range": "0-7"
+        },
+        {
+          "title": "Aasri Hindustan-II",
+          "code": "juss1",
+          "range": "0-7"
+        },
+        {
+          "title": "Understanding Economic Development",
+          "code": "jess2",
+          "range": "0-5"
+        },
+        {
+          "title": "Arthik Vikas ki Samajh",
+          "code": "jhss2",
+          "range": "0-5"
+        },
+        {
+          "title": "Maashi Taraqqui Ki Samajh",
+          "code": "juss2",
+          "range": "0-5"
+        },
+        {
+          "title": "India and the Contemporary World-II",
+          "code": "jess3",
+          "range": "0-5"
+        },
+        {
+          "title": "Bharat Aur Samakalin Vishav-2",
+          "code": "jhss3",
+          "range": "0-5"
+        },
+        {
+          "title": "Hindustan Aur Asri Duniya",
+          "code": "juss3",
+          "range": "0-5"
+        },
+        {
+          "title": "Democratic Politics",
+          "code": "jess4",
+          "range": "0-5"
+        },
+        {
+          "title": "Loktantrik Rajniti",
+          "code": "jhss4",
+          "range": "0-5"
+        },
+        {
+          "title": "Jamhuri Siyasat-II",
+          "code": "juss4",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Shemushi",
+          "code": "jhsk1",
+          "range": "0-10"
+        },
+        {
+          "title": "Vyakaranavithi",
+          "code": "jhva1",
+          "range": "0-12"
+        },
+        {
+          "title": "Abhyaswaan Bhav-II",
+          "code": "jsab1",
+          "range": "0-14"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Gulzar-e-Urdu",
+          "code": "juge1",
+          "range": "0-12"
+        },
+        {
+          "title": "Nawa-e-Urdu",
+          "code": "june1",
+          "range": "0-14"
+        },
+        {
+          "title": "Jaan Pahechan",
+          "code": "jujp1",
+          "range": "0-22"
+        },
+        {
+          "title": "Door-Paas",
+          "code": "judp1",
+          "range": "0-19"
+        },
+        {
+          "title": "Sab Rang",
+          "code": "jusr1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "subject": "Health and Physical Education",
+      "books": [
+        {
+          "title": "Health and Physical Education",
+          "code": "jehp1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Bhaswati",
+          "code": "khsk1",
+          "range": "0-11"
+        },
+        {
+          "title": "Shashwati",
+          "code": "khsk2",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Accountancy",
+      "books": [
+        {
+          "title": "Financial Accounting-I",
+          "code": "keac1",
+          "range": "0-7"
+        },
+        {
+          "title": "Lekhashastra-I",
+          "code": "khac1",
+          "range": "0-7"
+        },
+        {
+          "title": "Accountancy-II",
+          "code": "keac2",
+          "range": "0-2"
+        },
+        {
+          "title": "Lekhashastra-II",
+          "code": "khac2",
+          "range": "0-2"
+        },
+        {
+          "title": "Khatadari-I(Urdu)",
+          "code": "kuac1",
+          "range": "0-8"
+        },
+        {
+          "title": "Khatadari-II(Urdu)",
+          "code": "kuac2",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Business Studies",
+      "books": [
+        {
+          "title": "Business Studies",
+          "code": "kebs1",
+          "range": "0-11"
+        },
+        {
+          "title": "Vyavsay Adhyanan",
+          "code": "khbs1",
+          "range": "0-11"
+        },
+        {
+          "title": "Karobari Mutalah I",
+          "code": "kubs1",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Chemistry",
+      "books": [
+        {
+          "title": "Chemistry Part-I",
+          "code": "kech1",
+          "range": "0-6"
+        },
+        {
+          "title": "Rasayan Vigyan bhag-I",
+          "code": "khch1",
+          "range": "0-6"
+        },
+        {
+          "title": "Keemiya I",
+          "code": "kuch1",
+          "range": "0-7"
+        },
+        {
+          "title": "Chemistry Part II",
+          "code": "kech2",
+          "range": "0-3"
+        },
+        {
+          "title": "Rasayan Vigyan bhag-II",
+          "code": "khch2",
+          "range": "0-3"
+        },
+        {
+          "title": "Keemiya II",
+          "code": "kuch2",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Mathematics",
+          "code": "kemh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Ganit",
+          "code": "khmh1",
+          "range": "0-14"
+        },
+        {
+          "title": "Riyazi I",
+          "code": "kumh1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Vocational",
+      "books": [
+        {
+          "title": "Floriculturist- Protected Cultivation",
+          "code": "kepc1",
+          "range": "0-5"
+        },
+        {
+          "title": "Vision Technician",
+          "code": "kevt1",
+          "range": "0-7"
+        },
+        {
+          "title": "Floriculturist",
+          "code": "keoc1",
+          "range": "0-6"
+        },
+        {
+          "title": "General Duty Assistant",
+          "code": "keda1",
+          "range": "0-5"
+        },
+        {
+          "title": "Dairy Farmer Enterpreneur",
+          "code": "kedf1",
+          "range": "0-4"
+        },
+        {
+          "title": "Floriculturist",
+          "code": "kefc1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Biology",
+      "books": [
+        {
+          "title": "Biology",
+          "code": "kebo1",
+          "range": "0-19"
+        },
+        {
+          "title": "Jeev Vigyan",
+          "code": "khbo1",
+          "range": "0-19"
+        },
+        {
+          "title": "Hayatiyaat",
+          "code": "kubo1",
+          "range": "0-22"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Home Science",
+      "books": [
+        {
+          "title": "Human Ecology and Family Sciences Part I",
+          "code": "kehe1",
+          "range": "0-7"
+        },
+        {
+          "title": "Human Ecology and Family Sciences Part II",
+          "code": "kehe2",
+          "range": "0-4"
+        },
+        {
+          "title": "Manav Paristhitiki evm pariwar vigyan Bhag-I",
+          "code": "khhe1",
+          "range": "0-7"
+        },
+        {
+          "title": "Manav Paristhitiki evm pariwar vigyan Bhag-II",
+          "code": "khhe2",
+          "range": "0-5"
+        },
+        {
+          "title": "Insani Mahauliyat aur Uloom e Khandandari-I",
+          "code": "kuim1",
+          "range": "0-10"
+        },
+        {
+          "title": "Insani Mahauliyat aur Uloom e Khandandari Part-II",
+          "code": "kuim2",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Psychology",
+      "books": [
+        {
+          "title": "Introduction to Psychology",
+          "code": "kepy1",
+          "range": "0-8"
+        },
+        {
+          "title": "Manovigyan",
+          "code": "khpy1",
+          "range": "0-8"
+        },
+        {
+          "title": "Nafsiyaat",
+          "code": "kupy1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Economics",
+      "books": [
+        {
+          "title": "Indian Economic Development",
+          "code": "keec1",
+          "range": "0-8"
+        },
+        {
+          "title": "Statistics for Economics",
+          "code": "kest1",
+          "range": "0-8"
+        },
+        {
+          "title": "Sankhyiki",
+          "code": "khst1",
+          "range": "0-8"
+        },
+        {
+          "title": "Bhartiya Airthryavstha Ka Vikas",
+          "code": "khec1",
+          "range": "0-8"
+        },
+        {
+          "title": "Hindustan Ki Moaashi Tarraqqi(Urdu)",
+          "code": "kuec1",
+          "range": "0-10"
+        },
+        {
+          "title": "Shumariyaat Bar-e-Mushiyat(Urdu)",
+          "code": "kusc1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Geography",
+      "books": [
+        {
+          "title": "Fundamental of Physical Geography",
+          "code": "kegy2",
+          "range": "0-14"
+        },
+        {
+          "title": "Bhautique Bhugol ke Mool Sidhant",
+          "code": "khgy2",
+          "range": "0-14"
+        },
+        {
+          "title": "Hindustan Tabi'i Mahaul (Urdu)",
+          "code": "kugy1",
+          "range": "0-7"
+        },
+        {
+          "title": "Pratical Work in Geography",
+          "code": "kegy3",
+          "range": "0-6"
+        },
+        {
+          "title": "Bhugol Main Prayogatmak Karya",
+          "code": "khgy3",
+          "range": "0-6"
+        },
+        {
+          "title": "India Physical Environment",
+          "code": "kegy1",
+          "range": "0-6"
+        },
+        {
+          "title": "Bhart Bhautik Paryabaran",
+          "code": "khgy1",
+          "range": "0-6"
+        },
+        {
+          "title": "Jughrafia Mein Aamli Kam (Urdu)",
+          "code": "kugy3",
+          "range": "0-8"
+        },
+        {
+          "title": "Tabi'i Jughraiya Ka Mubadiyat (Urdu)",
+          "code": "kugm1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Physics",
+      "books": [
+        {
+          "title": "Physics Part-I",
+          "code": "keph1",
+          "range": "0-7"
+        },
+        {
+          "title": "Bhautiki-I",
+          "code": "khph1",
+          "range": "0-7"
+        },
+        {
+          "title": "Tabiyaat-I",
+          "code": "kuph1",
+          "range": "0-8"
+        },
+        {
+          "title": "Physics Part-II",
+          "code": "keph2",
+          "range": "0-7"
+        },
+        {
+          "title": "Bhautiki-II",
+          "code": "khph2",
+          "range": "0-7"
+        },
+        {
+          "title": "Tabiyaat-II",
+          "code": "kuph2",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Antra",
+          "code": "khat1",
+          "range": "0-16"
+        },
+        {
+          "title": "Aroh",
+          "code": "khar1",
+          "range": "0-16"
+        },
+        {
+          "title": "Vitan",
+          "code": "khvt1",
+          "range": "0-5"
+        },
+        {
+          "title": "Antral",
+          "code": "khan1",
+          "range": "0-2"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Sociology",
+      "books": [
+        {
+          "title": "Introducing Sociology",
+          "code": "kesy1",
+          "range": "0-5"
+        },
+        {
+          "title": "Samaj Shastra Parichay-I",
+          "code": "khsy1",
+          "range": "0-5"
+        },
+        {
+          "title": "Samajiyaat Ka Tarf",
+          "code": "kusy1",
+          "range": "0-5"
+        },
+        {
+          "title": "Understanding Society",
+          "code": "kesy2",
+          "range": "0-5"
+        },
+        {
+          "title": "Samaj ka Bodh",
+          "code": "khsy2",
+          "range": "0-5"
+        },
+        {
+          "title": "Mutala-e-Muashira",
+          "code": "kusy2",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Woven Words",
+          "code": "keww1",
+          "range": "0-27"
+        },
+        {
+          "title": "Hornbill",
+          "code": "kehb1",
+          "range": "0-14"
+        },
+        {
+          "title": "Snapshots Suppl.Reader English",
+          "code": "kesp1",
+          "range": "0-5"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Political Science",
+      "books": [
+        {
+          "title": "Political Theory",
+          "code": "keps1",
+          "range": "0-8"
+        },
+        {
+          "title": "Raajneeti Sidhant",
+          "code": "khps1",
+          "range": "0-8"
+        },
+        {
+          "title": "Hindustani Aain aur Kaam",
+          "code": "kups1",
+          "range": "0-10"
+        },
+        {
+          "title": "India Constitution at Work",
+          "code": "keps2",
+          "range": "0-10"
+        },
+        {
+          "title": "Bharat ka Samvidhan Sidhant aur Vyavhar",
+          "code": "khps2",
+          "range": "0-10"
+        },
+        {
+          "title": "Siyasi Nazaria",
+          "code": "kups2",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "History",
+      "books": [
+        {
+          "title": "Themes in World History",
+          "code": "kehs1",
+          "range": "0-7"
+        },
+        {
+          "title": "Vishwa Itihas Ke Kuch Vishay",
+          "code": "khhs1",
+          "range": "0-7"
+        },
+        {
+          "title": "Tareekh-e-Alam per Mabni Mauzuaat Part I",
+          "code": "kuta1",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Heritage Crafts",
+      "books": [
+        {
+          "title": "Living Craft Traditions of India",
+          "code": "kehc1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hindustan me Dastkari Ki Riwayat",
+          "code": "kuhc1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Graphics design",
+      "books": [
+        {
+          "title": "The story of graphic design",
+          "code": "kegd1",
+          "range": "0-8"
+        },
+        {
+          "title": "graphic design ek kahani",
+          "code": "khgd1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Computers and Communication Technology",
+      "books": [
+        {
+          "title": "CCT Part-I",
+          "code": "kect1",
+          "range": "0-8"
+        },
+        {
+          "title": "CCT Part-II",
+          "code": "kect2",
+          "range": "0-6"
+        },
+        {
+          "title": "Computer aur Sanchar Prodhogiki Part-I",
+          "code": "khct1",
+          "range": "0-8"
+        },
+        {
+          "title": "Computer aur Sanchar Prodhogiki Part-II",
+          "code": "khct2",
+          "range": "0-6"
+        },
+        {
+          "title": "Computer Aur Muwaslati Technology I",
+          "code": "kuct1",
+          "range": "0-8"
+        },
+        {
+          "title": "Computer Aur Muwaslati Technology II",
+          "code": "kuct2",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Fine Art",
+      "books": [
+        {
+          "title": "An Introduction to Indian Art Part-I",
+          "code": "kefa1",
+          "range": "0-8"
+        },
+        {
+          "title": "Bhartiya Kala ka parichay",
+          "code": "khfa1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Nai Awaz",
+          "code": "kuna1",
+          "range": "0-20"
+        },
+        {
+          "title": "Dhanak",
+          "code": "kudh1",
+          "range": "0-27"
+        },
+        {
+          "title": "Gulistan e Adab",
+          "code": "kuga1",
+          "range": "0-22"
+        },
+        {
+          "title": "Khyabane Urdu",
+          "code": "kuku1",
+          "range": "0-15"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Creative Writing and Translation",
+      "books": [
+        {
+          "title": "Srijan",
+          "code": "khsr1",
+          "range": "0-4"
+        },
+        {
+          "title": "Takhleequi Jauhar",
+          "code": "kucw1",
+          "range": "0-4"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Informatics Practices",
+      "books": [
+        {
+          "title": "Informatics Practices",
+          "code": "keip1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Biotechnology",
+      "books": [
+        {
+          "title": "Biotechnology",
+          "code": "kebt1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Computer Science",
+      "books": [
+        {
+          "title": "Computer Science",
+          "code": "kecs1",
+          "range": "0-11"
+        },
+        {
+          "title": "Computer Science - Urdu",
+          "code": "kucs1",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Health and Physical Education",
+      "books": [
+        {
+          "title": "Health and Physical Education",
+          "code": "kehp1",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Knowledge Traditions Practices of India",
+      "books": [
+        {
+          "title": "Knowledge Traditions Practices of India",
+          "code": "keks1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "subject": "Sangeet",
+      "books": [
+        {
+          "title": "Tabla evam Pakhawaj",
+          "code": "khtp1",
+          "range": "0-8"
+        },
+        {
+          "title": "Hindustani Sangeet Gayan Evam Vadan",
+          "code": "khgv1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Accountancy",
+      "books": [
+        {
+          "title": "Accountancy-I",
+          "code": "leac1",
+          "range": "0-4"
+        },
+        {
+          "title": "Accountancy Part-II",
+          "code": "leac2",
+          "range": "0-6"
+        },
+        {
+          "title": "Lekhashastra Part-I",
+          "code": "lhac1",
+          "range": "0-4"
+        },
+        {
+          "title": "Lekhashastra Part-II",
+          "code": "lhac2",
+          "range": "0-5"
+        },
+        {
+          "title": "Computerised Accounting System",
+          "code": "leca1",
+          "range": "0-4"
+        },
+        {
+          "title": "Khatadari-I(Urdu)",
+          "code": "luac1",
+          "range": "0-5"
+        },
+        {
+          "title": "Khatadari-II(Urdu)",
+          "code": "luac2",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Mathematics",
+      "books": [
+        {
+          "title": "Mathematics Part-I",
+          "code": "lemh1",
+          "range": "0-6"
+        },
+        {
+          "title": "Mathematics Part-II",
+          "code": "lemh2",
+          "range": "0-7"
+        },
+        {
+          "title": "Ganit-I",
+          "code": "lhmh1",
+          "range": "0-6"
+        },
+        {
+          "title": "Ganit-II",
+          "code": "lhmh2",
+          "range": "0-7"
+        },
+        {
+          "title": "Riyazi-I",
+          "code": "lumh1",
+          "range": "0-6"
+        },
+        {
+          "title": "Riyazi-II",
+          "code": "lumh2",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Physics",
+      "books": [
+        {
+          "title": "Physics Part-I",
+          "code": "leph1",
+          "range": "0-8"
+        },
+        {
+          "title": "Physics Part-II",
+          "code": "leph2",
+          "range": "0-6"
+        },
+        {
+          "title": "Bhautiki-I",
+          "code": "lhph1",
+          "range": "0-8"
+        },
+        {
+          "title": "Bhautiki-II",
+          "code": "lhph2",
+          "range": "0-6"
+        },
+        {
+          "title": "Tabiyaat-I",
+          "code": "luph1",
+          "range": "0-8"
+        },
+        {
+          "title": "Tabiyaat-II",
+          "code": "luph2",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Antra",
+          "code": "lhat1",
+          "range": "0-21"
+        },
+        {
+          "title": "Aroh",
+          "code": "lhar1",
+          "range": "0-15"
+        },
+        {
+          "title": "Vitan",
+          "code": "lhvt1",
+          "range": "0-3"
+        },
+        {
+          "title": "Antral Bhag 2",
+          "code": "lhan1",
+          "range": "0-3"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "English",
+      "books": [
+        {
+          "title": "Kaliedoscope",
+          "code": "lekl1",
+          "range": "0-21"
+        },
+        {
+          "title": "Flamingo",
+          "code": "lefl1",
+          "range": "0-13"
+        },
+        {
+          "title": "Vistas",
+          "code": "levt1",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Biotechnology",
+      "books": [
+        {
+          "title": "Biotechnology",
+          "code": "lebt1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Biology",
+      "books": [
+        {
+          "title": "Biology",
+          "code": "lebo1",
+          "range": "0-13"
+        },
+        {
+          "title": "Jeev Vigyan",
+          "code": "lhbo1",
+          "range": "0-13"
+        },
+        {
+          "title": "Hayatiyaat",
+          "code": "lubo1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "History",
+      "books": [
+        {
+          "title": "Themes in Indian History-I",
+          "code": "lehs1",
+          "range": "0-4"
+        },
+        {
+          "title": "Bharatiya Itihas ke kuchh Vishay-I",
+          "code": "lhhs1",
+          "range": "0-4"
+        },
+        {
+          "title": "Themes in Indian History-II",
+          "code": "lehs2",
+          "range": "0-4"
+        },
+        {
+          "title": "Bharatiya Itihas ke kuchh Vishay-II",
+          "code": "lhhs2",
+          "range": "0-4"
+        },
+        {
+          "title": "Themes in Indian History-III",
+          "code": "lehs3",
+          "range": "0-4"
+        },
+        {
+          "title": "Bharatiya Itihas ke kuchh Vishay-III",
+          "code": "lhhs3",
+          "range": "0-4"
+        },
+        {
+          "title": "Tareekh-e-Hind ke Mauzuaat-I(Urdu)",
+          "code": "luth1",
+          "range": "0-4"
+        },
+        {
+          "title": "Tareekh-e-Hind ke Mauzuaat-II(Urdu)",
+          "code": "luth2",
+          "range": "0-4"
+        },
+        {
+          "title": "Tareekh-e-Hind ke Mauzuaat-III(Urdu)",
+          "code": "luth3",
+          "range": "0-4"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Geography",
+      "books": [
+        {
+          "title": "Fundamentals of Human Geography",
+          "code": "legy1",
+          "range": "0-8"
+        },
+        {
+          "title": "Practical Work in Geography Part II",
+          "code": "legy3",
+          "range": "0-4"
+        },
+        {
+          "title": "Manav Bhugol Ke Mool Sidhant",
+          "code": "lhgy1",
+          "range": "0-8"
+        },
+        {
+          "title": "Bhugol main peryojnatmak pryogatmak karye",
+          "code": "lhgy3",
+          "range": "0-4"
+        },
+        {
+          "title": "India -People And Economy",
+          "code": "legy2",
+          "range": "0-9"
+        },
+        {
+          "title": "Bharat log aur arthvyasastha(Bhugol)",
+          "code": "lhgy2",
+          "range": "0-9"
+        },
+        {
+          "title": "Insani Jughrafia Ke Buniyadi Usool(Urdu)",
+          "code": "lufh1",
+          "range": "0-10"
+        },
+        {
+          "title": "Hindustan Awam Aur Maishat(Urdu)",
+          "code": "lugy1",
+          "range": "0-12"
+        },
+        {
+          "title": "Jughrafia Mein Aamli Kam(Urdu)",
+          "code": "lugy3",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Psychology",
+      "books": [
+        {
+          "title": "Psychology",
+          "code": "lepy1",
+          "range": "0-7"
+        },
+        {
+          "title": "Manovigyan",
+          "code": "lhpy1",
+          "range": "0-7"
+        },
+        {
+          "title": "Nafsiat(Urdu)",
+          "code": "lupy1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Sociology",
+      "books": [
+        {
+          "title": "Indian Society",
+          "code": "lesy1",
+          "range": "0-7"
+        },
+        {
+          "title": "Bhartiya Samaj",
+          "code": "lhsy1",
+          "range": "0-7"
+        },
+        {
+          "title": "Social Change and Development in India",
+          "code": "lesy2",
+          "range": "0-8"
+        },
+        {
+          "title": "Bharat main Samajik Parivartan aur Vikas",
+          "code": "lhsy2",
+          "range": "0-8"
+        },
+        {
+          "title": "Hindustani Samaj(Urdu)",
+          "code": "luis1",
+          "range": "0-7"
+        },
+        {
+          "title": "Hindustan Mein Samaji Tabdili Aur Taraqqi(Urdu)",
+          "code": "lusy2",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Chemistry",
+      "books": [
+        {
+          "title": "Chemistry-I",
+          "code": "lech1",
+          "range": "0-5"
+        },
+        {
+          "title": "Chemistry-II",
+          "code": "lech2",
+          "range": "0-5"
+        },
+        {
+          "title": "Rasayan vigyan bhag I",
+          "code": "lhch1",
+          "range": "0-5"
+        },
+        {
+          "title": "Rasayan vigyan bhag II",
+          "code": "lhch2",
+          "range": "0-5"
+        },
+        {
+          "title": "Keemiya-I",
+          "code": "luch1",
+          "range": "0-9"
+        },
+        {
+          "title": "Keemiya-II",
+          "code": "luch2",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Bhaswati",
+          "code": "lhsk1",
+          "range": "0-10"
+        },
+        {
+          "title": "Shaswati",
+          "code": "lhsk2",
+          "range": "0-11"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Political Science",
+      "books": [
+        {
+          "title": "Contemporary World Politics",
+          "code": "leps1",
+          "range": "0-7"
+        },
+        {
+          "title": "Samkalin Vishwa Rajniti",
+          "code": "lhps1",
+          "range": "0-7"
+        },
+        {
+          "title": "Politics in India Since Independence",
+          "code": "leps2",
+          "range": "0-8"
+        },
+        {
+          "title": "Swatantra Bharat Mein Rajniti-II",
+          "code": "lhps2",
+          "range": "0-8"
+        },
+        {
+          "title": "Aasri Alami Siyasat(Urdu)",
+          "code": "lups1",
+          "range": "0-9"
+        },
+        {
+          "title": "Azadi Ke Baad Hindustan Ki Siyasat(Urdu)",
+          "code": "luab1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Home Science",
+      "books": [
+        {
+          "title": "Human Ecology and Family Sciences Part I",
+          "code": "lehe1",
+          "range": "0-7"
+        },
+        {
+          "title": "Human Ecology and Family Sciences Part II",
+          "code": "lehe2",
+          "range": "0-7"
+        },
+        {
+          "title": "Manav Paristhitik avam Parivar Vigyan Bhag 1",
+          "code": "lehh1",
+          "range": "0-7"
+        },
+        {
+          "title": "Manav Paristhitiki avam Parivar Vigyan Bhag 2",
+          "code": "lehh2",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Economics",
+      "books": [
+        {
+          "title": "Introductory Microeconomics",
+          "code": "leec2",
+          "range": "0-5"
+        },
+        {
+          "title": "Introductory Macroeconomics",
+          "code": "leec1",
+          "range": "0-6"
+        },
+        {
+          "title": "Vyashthi Arthshasrta",
+          "code": "lhec2",
+          "range": "0-5"
+        },
+        {
+          "title": "Samashty Arthshastra Ek Parichay",
+          "code": "lhec1",
+          "range": "0-6"
+        },
+        {
+          "title": "Juzvi Maashiyat ka Taruf(Urdu)",
+          "code": "lume1",
+          "range": "0-6"
+        },
+        {
+          "title": "Kulli Maashiyat Ka Taruf(Urdu)",
+          "code": "lume2",
+          "range": "0-6"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Business Studies",
+      "books": [
+        {
+          "title": "Business Studies-I",
+          "code": "lebs1",
+          "range": "0-8"
+        },
+        {
+          "title": "Vyavasai Adhyan-I",
+          "code": "lhbs1",
+          "range": "0-8"
+        },
+        {
+          "title": "Business Studies-II",
+          "code": "lebs2",
+          "range": "0-3"
+        },
+        {
+          "title": "Vyavasai Adhyan-II",
+          "code": "lhbs2",
+          "range": "0-3"
+        },
+        {
+          "title": "Karobari Uloom I(Urdu)",
+          "code": "lubs1",
+          "range": "0-8"
+        },
+        {
+          "title": "Karobari Uloom II(Urdu)",
+          "code": "lubs2",
+          "range": "0-4"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Gulistan-e- Adab",
+          "code": "luga1",
+          "range": "0-12"
+        },
+        {
+          "title": "Khayaban-e-Urdu",
+          "code": "luku1",
+          "range": "0-6"
+        },
+        {
+          "title": "Nai Awaz",
+          "code": "luna1",
+          "range": "0-16"
+        },
+        {
+          "title": "Dhanak",
+          "code": "ludh1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Heritage Crafts",
+      "books": [
+        {
+          "title": "Hindustan me Dastkari Ki Riwayat",
+          "code": "luhc1",
+          "range": "0-9"
+        },
+        {
+          "title": "Craft Tradition of India",
+          "code": "lehc1",
+          "range": "0-9"
+        },
+        {
+          "title": "Bharatiya Hastkla Ki Paramparayen",
+          "code": "lhhc1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "New Age Graphics Design",
+      "books": [
+        {
+          "title": "New Age Graphics Design",
+          "code": "legd1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Creative Writing & Translation",
+      "books": [
+        {
+          "title": "Takhleequi Jauhar",
+          "code": "lucw1",
+          "range": "0-11"
+        },
+        {
+          "title": "Srijan-II",
+          "code": "khsr2",
+          "range": "0-4"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Fine Art",
+      "books": [
+        {
+          "title": "An Introduction to Indian Art Part-II",
+          "code": "lefa1",
+          "range": "0-8"
+        },
+        {
+          "title": "Bhartiya Kala ka Itihaas Bhag 2",
+          "code": "lhfa1",
+          "range": "0-8"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Computer Science",
+      "books": [
+        {
+          "title": "Computer Science",
+          "code": "lecs1",
+          "range": "0-13"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Informatics Practices",
+      "books": [
+        {
+          "title": "Informatics Practices",
+          "code": "leip1",
+          "range": "0-7"
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "subject": "Sangeet",
+      "books": [
+        {
+          "title": "Tabla evam Pakhawaj",
+          "code": "lstp1",
+          "range": "0-7"
+        },
+        {
+          "title": "Hindustani Sangeet Gayan Evam Vaadan",
+          "code": "lsgv1",
+          "range": "0-9"
+        }
+      ]
+    },
+    {
+      "class_id": 13,
+      "subject": "Hindi",
+      "books": [
+        {
+          "title": "Abhivyakti Aur Madhyam",
+          "code": "kham1",
+          "range": "0-16"
+        }
+      ]
+    },
+    {
+      "class_id": 13,
+      "subject": "Sanskrit",
+      "books": [
+        {
+          "title": "Sanskrit Sahitya parichay",
+          "code": "klss1",
+          "range": "0-12"
+        }
+      ]
+    },
+    {
+      "class_id": 13,
+      "subject": "Heritage Crafts",
+      "books": [
+        {
+          "title": "Exploring Craft Tradition of India",
+          "code": "mehc1",
+          "range": "0-10"
+        },
+        {
+          "title": "Bhartiya Hastkala Parmparaon ki Khoj",
+          "code": "khhc1",
+          "range": "0-10"
+        }
+      ]
+    },
+    {
+      "class_id": 13,
+      "subject": "Urdu",
+      "books": [
+        {
+          "title": "Zuban-O-Adab ki Tareekh",
+          "code": "kuza1",
+          "range": "0-23"
+        },
+        {
+          "title": "Urdu Qwaid aur Insha",
+          "code": "juuq1",
+          "range": "0-24"
+        },
+        {
+          "title": "Izhar Aur Zara-e-Izhar",
+          "code": "kuiz1",
+          "range": "0-4"
+        }
+      ]
+    },
+    {
+      "class_id": 14,
+      "subject": "Vocational",
+      "books": [
+        {
+          "title": "Organic Farming",
+          "code": "geof1",
+          "range": "0-5"
+        }
+      ]
+    }
+  ]
+}
