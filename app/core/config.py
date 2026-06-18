@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     SENDGRID_FROM_EMAIL: str = os.getenv("SENDGRID_FROM_EMAIL", "")
     SKIP_EMAIL: str = os.getenv("SKIP_EMAIL", "true")
 
+    # AWS S3 Configurations
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
+    AWS_STORAGE_BUCKET_NAME: str = os.getenv("AWS_STORAGE_BUCKET_NAME", "student-assessment-pictures-primary")
+
     class Config:
         case_sensitive = True
         env_file = ".env"

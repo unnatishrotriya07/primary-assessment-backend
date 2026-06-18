@@ -87,7 +87,7 @@ class AuthService:
             email=payload.email,
             hashed_password=hashed_pwd,
             role="director",
-            allowed_features=["dashboard", "questions", "assessments", "reports"],  # default features for director
+            allowed_features=["dashboard", "students", "classes", "subjects", "chapters", "questions", "assessments", "reports"],  # default features for director
             tenant_id=tenant_id
         )
         

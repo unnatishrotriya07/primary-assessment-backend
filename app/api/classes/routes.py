@@ -10,12 +10,12 @@ router = APIRouter()
 @router.get("/", response_model=List[ClassResponse])
 def read_classes(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ClassService(db)
-    return service.get_all_classes()
+    return service.get_all_classes(tenant_id=current_user.get("tenant_id"))
 
 @router.get("/{id}", response_model=ClassResponse)
 def read_class(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ClassService(db)
-    return service.get_class_by_id(id)
+    return service.get_class_by_id(id, tenant_id=current_user.get("tenant_id"))
 
 @router.post("/", response_model=ClassResponse, status_code=status.HTTP_201_CREATED)
 def create_class(class_in: ClassCreate, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):

@@ -11,3 +11,5 @@ from app.models.assessment import Assessment
 from app.models.report import Report
 from app.models.student_assessment import StudentAssessment
 from app.models.interview import Interview  
+from app.models.student import Student
+

@@ -147,7 +147,7 @@ try:
                 email="admin@example.com",
                 hashed_password=hashed,
                 role="admin",
-                allowed_features=["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports"],
+                allowed_features=["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports", "students"],
                 tenant_id=None
             )
             db.add(new_admin)
@@ -160,7 +160,7 @@ try:
                 admin_exists.role = "admin"
                 dirty = True
             if admin_exists.allowed_features is None:
-                admin_exists.allowed_features = ["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports"]
+                admin_exists.allowed_features = ["dashboard", "classes", "subjects", "chapters", "questions", "assessments", "reports", "students"]
                 dirty = True
             if dirty:
                 db.add(admin_exists)

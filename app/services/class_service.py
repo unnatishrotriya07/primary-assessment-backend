@@ -9,13 +9,25 @@ class ClassService:
     def __init__(self, db: Session):
         self.class_repo = ClassRepository(db)
 
-    def get_all_classes(self) -> List[Class]:
-        return self.class_repo.get_all()
+    def get_all_classes(self, tenant_id: str = None) -> List[Class]:
+        classes = self.class_repo.get_all()
+        from app.models.student import Student
+        for cls in classes:
+            query = self.class_repo.db.query(Student).filter(Student.class_id == cls.id)
+            if tenant_id:
+                query = query.filter(Student.tenant_id == tenant_id)
+            cls.students_count = query.count()
+        return classes
 
-    def get_class_by_id(self, class_id: int) -> Class:
+    def get_class_by_id(self, class_id: int, tenant_id: str = None) -> Class:
         cls = self.class_repo.get_by_id(class_id)
         if not cls:
             raise EntityNotFoundException("Class", str(class_id))
+        from app.models.student import Student
+        query = self.class_repo.db.query(Student).filter(Student.class_id == cls.id)
+        if tenant_id:
+            query = query.filter(Student.tenant_id == tenant_id)
+        cls.students_count = query.count()
         return cls
 
     def create_class(self, class_in: ClassCreate) -> Class:
