@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Table
+import datetime
+from sqlalchemy import Column, String, Integer, ForeignKey, Table, DateTime
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -21,6 +22,8 @@ class Assessment(Base):
     date = Column(String, nullable=True)
     questions_count = Column(Integer, default=0)
     tenant_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
+    questions_to_ask = Column(Integer, default=5, nullable=True)
 
     subject = relationship("Subject")
     target_class = relationship("Class")

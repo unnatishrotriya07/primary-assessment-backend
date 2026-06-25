@@ -5,12 +5,12 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.assessment_schema import (
     AssessmentCreate, AssessmentResponse, StartSessionResponse,
-    SubmitAnswersParams, SubmissionResultResponse
+    SubmitAnswersParams, SubmissionResultResponse, AssessmentJoinInfoResponse, StudentJoinVerifyRequest
 )
 from app.services.assessment_service import AssessmentService
 from app.schemas.student_assessment_schema import (
     StudentAssessmentCreate, StudentAssessmentResponse,
-    StudentAssessmentVerifyResponse, StudentAssessmentStartRequest
+    StudentAssessmentVerifyResponse, StudentAssessmentStartRequest, StudentAssessmentBulkCreate
 )
 from app.services.student_assessment_service import StudentAssessmentService
 
@@ -99,10 +99,52 @@ def assign_assessment(
     service = StudentAssessmentService(db)
     return service.assign_assessment(payload, tenant_id=current_user.get("tenant_id"), frontend_url=frontend_url)
 
+@router.post("/assign-bulk", response_model=List[StudentAssessmentResponse])
+def assign_assessment_bulk(
+    payload: StudentAssessmentBulkCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    # Extract calling host scheme and domain dynamically from Origin/Referer headers
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    frontend_url = None
+    if origin and "://" in origin:
+        from urllib.parse import urlparse
+        parsed = urlparse(origin)
+        frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+        
+    service = StudentAssessmentService(db)
+    return service.assign_assessment_bulk(payload, tenant_id=current_user.get("tenant_id"), frontend_url=frontend_url)
+
 @router.post("/start-by-token")
 def start_assessment_by_token(payload: StudentAssessmentStartRequest, db: Session = Depends(get_db)):
     service = StudentAssessmentService(db)
     try:
         return service.start_session_by_token(payload.token, payload.email)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{id}/join-info", response_model=AssessmentJoinInfoResponse)
+def get_assessment_join_info(id: int, db: Session = Depends(get_db)):
+    service = AssessmentService(db)
+    return service.get_join_info(id)
+
+@router.post("/join-verify", response_model=StudentAssessmentResponse)
+def verify_student_join(
+    payload: StudentJoinVerifyRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    frontend_url = None
+    if origin and "://" in origin:
+        from urllib.parse import urlparse
+        parsed = urlparse(origin)
+        frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+        
+    service = StudentAssessmentService(db)
+    try:
+        return service.join_verify(payload, frontend_url=frontend_url)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

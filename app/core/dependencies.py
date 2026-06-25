@@ -71,8 +71,8 @@ def check_permission(feature_name: str):
         if current_user.get("role") == "admin" and current_user.get("tenant_id") is None:
             return current_user
         
-        # Admin of a tenant also has full rights within their tenant
-        if current_user.get("role") == "admin":
+        # Admin or Director of a tenant also has full rights within their tenant
+        if current_user.get("role") in ("admin", "director"):
             return current_user
             
         allowed = current_user.get("allowed_features", [])

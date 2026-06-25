@@ -5,7 +5,6 @@ Chapter Number: {chapter_number}
 Chapter Title: {chapter_title}
 Difficulty Level: {difficulty}
 Cognitive Level: {cognitive_level}
-Requested Question Type: {question_type}
 
 ---
 Reference Chapter Content:
@@ -14,15 +13,13 @@ Reference Chapter Content:
 
 CRITICAL INSTRUCTIONS:
 1. If Reference Chapter Content is not empty/not "(No text content provided)", you MUST base all generated questions strictly and directly on the provided Reference Chapter Content. Do not introduce outside concepts or facts not mentioned in the reference content.
-2. The questions should be of the requested type:
-   - "mcq": Multiple Choice Question with 4 options and the correct option as correct_answer.
-   - "tita": "Type In The Answer" (Descriptive/subjective/fill-in-the-blank) question with NO options (set "options": []) and a clear, complete correct answer sentence/phrase in "correct_answer".
-   - "mixed": A balance of MCQ and TITA questions.
-3. Every question must include a complete and detailed answer in the "correct_answer" field. For TITA, make the "correct_answer" a complete descriptive sentence or phrase that the student should cover in their answer.
+2. All generated questions must be open-ended/descriptive questions (TITA style). Do NOT generate multiple choice questions.
+3. The options list for each question must always be an empty array [].
+4. Every question must include a complete and detailed answer in the "correct_answer" field. Make the "correct_answer" a complete descriptive sentence or phrase that the student should cover in their answer.
 
 Output must be in JSON list format where each item contains:
 - "text": The question prompt string.
-- "options": An array of 4 option strings (for MCQ) or an empty array [] (for TITA).
-- "correct_answer": The exact correct option string (for MCQ) or the complete correct descriptive answer text (for TITA).
-- "question_type": The string "mcq" or "tita".
+- "options": An empty array [] (must always be []).
+- "correct_answer": The complete correct descriptive answer text/sentence.
+- "question_type": The string "tita".
 Do not wrap in markdown or any other wrapper.

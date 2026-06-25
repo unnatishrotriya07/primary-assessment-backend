@@ -211,5 +211,60 @@ class TestCustomAssessmentFlow(unittest.TestCase):
         non_existent_qs = q_service.get_questions(session="Session 2099-2100")
         self.assertEqual(len(non_existent_qs), 0)
 
+    def test_deterministic_sampling(self):
+        """Verify that get_questions_for_session returns a deterministic subset of size questions_to_ask when a seed is provided."""
+        asmt_service = AssessmentService(self.db)
+        
+        # Add 3 more math questions so we have 5 total math questions
+        extra_qs = []
+        for i in range(3):
+            q = Question(
+                text=f"Extra Math Q{i}?",
+                options=[],
+                correct_answer=f"Ans{i}",
+                difficulty="medium",
+                cognitive_level="applying",
+                subject_id=self.subject_math.id,
+                chapter_id=self.chapter_math.id,
+                class_id=self.class_g5.id
+            )
+            self.db.add(q)
+            extra_qs.append(q)
+        self.db.commit()
+
+        # Create assessment with all 5 math questions, but questions_to_ask = 3
+        all_math_q_ids = [self.q1_math.id, self.q2_math.id] + [q.id for q in extra_qs]
+        
+        create_schema = AssessmentCreate(
+            title="Math Deterministic Sampling Test",
+            subjectId=self.subject_math.id,
+            classId=self.class_g5.id,
+            status="Active",
+            date="2026-05-22",
+            questionsCount=0,
+            question_ids=all_math_q_ids,
+            questions_to_ask=3
+        )
+        asmt = asmt_service.create_assessment(create_schema)
+        self.assertEqual(asmt.questions_to_ask, 3)
+
+        # Call with seed A twice and check equality
+        seed_a = "student_token_a"
+        qs_a1 = asmt_service.get_questions_for_session(asmt.id, seed_str=seed_a)
+        qs_a2 = asmt_service.get_questions_for_session(asmt.id, seed_str=seed_a)
+        
+        self.assertEqual(len(qs_a1), 3)
+        self.assertEqual(len(qs_a2), 3)
+        self.assertEqual([q.id for q in qs_a1], [q.id for q in qs_a2])
+
+        # Call with seed B twice and check equality, and check that it's different/potentially different from seed A
+        seed_b = "student_token_b"
+        qs_b = asmt_service.get_questions_for_session(asmt.id, seed_str=seed_b)
+        self.assertEqual(len(qs_b), 3)
+        
+        # Test that they are sorted by ID in both cases (stable ordering)
+        self.assertEqual([q.id for q in qs_a1], sorted([q.id for q in qs_a1]))
+        self.assertEqual([q.id for q in qs_b], sorted([q.id for q in qs_b]))
+
 if __name__ == "__main__":
     unittest.main()

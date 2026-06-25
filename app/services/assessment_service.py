@@ -32,6 +32,7 @@ class AssessmentService:
             status=asmt_in.status,
             date=asmt_in.date,
             questions_count=asmt_in.questions_count,
+            questions_to_ask=asmt_in.questions_to_ask,
             tenant_id=tenant_id
         )
         if asmt_in.question_ids:
@@ -41,13 +42,32 @@ class AssessmentService:
             asmt.questions_count = len(questions)
         return self.assessment_repo.create(asmt)
 
-    def get_questions_for_session(self, assessment_id: int) -> list:
+    def get_questions_for_session(self, assessment_id: int, seed_str: str = None) -> list:
         asmt = self.get_assessment_by_id(assessment_id)
         if asmt.questions:
-            return asmt.questions
-        # Pull questions for subject
-        all_q = self.question_repo.get_by_subject(asmt.subject_id)
-        return all_q[:asmt.questions_count]
+            questions = list(asmt.questions)
+        else:
+            # Pull questions for subject
+            all_q = self.question_repo.get_by_subject(asmt.subject_id)
+            questions = list(all_q[:asmt.questions_count])
+
+        # Sort questions by ID to ensure stable ordering before sampling
+        questions.sort(key=lambda q: q.id)
+
+        # Deterministically sample questions if questions_to_ask is set
+        to_ask = asmt.questions_to_ask
+        if to_ask and to_ask > 0 and len(questions) > to_ask:
+            if seed_str:
+                import random
+                # Seed the random number generator deterministically with seed_str
+                rng = random.Random(seed_str)
+                questions = rng.sample(questions, to_ask)
+                # Sort back by ID to present in stable order
+                questions.sort(key=lambda q: q.id)
+            else:
+                # Fallback if no seed is provided
+                questions = questions[:to_ask]
+        return questions
 
     def submit_session_answers(self, params: SubmitAnswersParams, db: Session) -> SubmissionResultResponse:
         # Mock parsing sessionId to find assessment
@@ -56,7 +76,13 @@ class AssessmentService:
         asmt_id = int(parts[1]) if len(parts) > 1 else 1
         
         asmt = self.get_assessment_by_id(asmt_id)
-        questions = self.get_questions_for_session(asmt_id)
+
+        # Look up if this session is associated with an assigned StudentAssessment
+        from app.models.student_assessment import StudentAssessment
+        sa = db.query(StudentAssessment).filter(StudentAssessment.session_id == params.session_id).first()
+
+        seed_str = sa.token if sa else None
+        questions = self.get_questions_for_session(asmt_id, seed_str=seed_str)
         
         from app.ai.answer_evaluator import AnswerEvaluator
         from app.ai.report_generator import ReportGenerator
@@ -82,10 +108,6 @@ class AssessmentService:
         elif score >= 70: grade = "C"
         elif score >= 60: grade = "D"
         else: grade = "F"
-        
-        # Look up if this session is associated with an assigned StudentAssessment
-        from app.models.student_assessment import StudentAssessment
-        sa = db.query(StudentAssessment).filter(StudentAssessment.session_id == params.session_id).first()
         
         student_name = "Student User"
         student_email = None
@@ -139,3 +161,25 @@ class AssessmentService:
             score=score,
             result_id=f"rep_{report.id}"
         )
+
+    def get_join_info(self, assessment_id: int) -> dict:
+        asmt = self.get_assessment_by_id(assessment_id)
+        
+        is_expired = False
+        if asmt.created_at:
+            import datetime
+            time_elapsed = datetime.datetime.utcnow() - asmt.created_at
+            if time_elapsed.total_seconds() > 24 * 3600:
+                is_expired = True
+
+        subject_name = asmt.subject.name if asmt.subject else "Unknown"
+        class_name = f"{asmt.target_class.name} ({asmt.target_class.section})" if asmt.target_class else "Unknown Class"
+
+        return {
+            "id": asmt.id,
+            "title": asmt.title,
+            "subject_name": subject_name,
+            "class_name": class_name,
+            "is_expired": is_expired,
+            "questions_count": asmt.questions_count
+        }

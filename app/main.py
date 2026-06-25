@@ -46,6 +46,14 @@ try:
             db.rollback()
             pass
 
+        try:
+            db.execute(text("ALTER TABLE chapters ADD COLUMN tenant_id VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'tenant_id' column to 'chapters' table.", flush=True)
+        except Exception as ce:
+            db.rollback()
+            pass
+
         # Migrate interviews table
         try:
             db.execute(text("ALTER TABLE interviews ADD COLUMN evaluated_answers JSON"))
@@ -85,6 +93,22 @@ try:
             db.execute(text("ALTER TABLE assessments ADD COLUMN tenant_id VARCHAR"))
             db.commit()
             print("Database migration: Added 'tenant_id' column to 'assessments' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        try:
+            db.execute(text("ALTER TABLE assessments ADD COLUMN created_at TIMESTAMP"))
+            db.commit()
+            print("Database migration: Added 'created_at' column to 'assessments' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        try:
+            db.execute(text("ALTER TABLE assessments ADD COLUMN questions_to_ask INTEGER DEFAULT 5"))
+            db.commit()
+            print("Database migration: Added 'questions_to_ask' column to 'assessments' table.", flush=True)
         except Exception as me:
             db.rollback()
             pass

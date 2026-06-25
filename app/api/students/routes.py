@@ -107,3 +107,81 @@ async def upload_student_picture(
     # Save URL in DB
     student_update = StudentUpdate(picture_url=picture_url)
     return service.update_student(id, student_update, tenant_id=current_user.get("tenant_id"))
+
+
+@router.post("/upload-multiple-sections", status_code=status.HTTP_201_CREATED)
+async def upload_multiple_sections(
+    base_class_id: int = Form(...),
+    sections_map: str = Form(...),  # JSON string mapping filename -> section name
+    files: List[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    import json
+    from app.services.class_service import ClassService
+    
+    try:
+        data_map = json.loads(sections_map)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid sections_map JSON format. It must be a valid JSON dictionary mapping filenames to section names."
+        )
+    
+    class_service = ClassService(db)
+    student_service = StudentService(db)
+    
+    results = []
+    total_count = 0
+    
+    for file in files:
+        filename = file.filename
+        # Find section name mapping
+        section_name = data_map.get(filename)
+        if not section_name:
+            # Fallback check if filename matches slightly differently
+            for key, val in data_map.items():
+                if key in filename or filename in key:
+                    section_name = val
+                    break
+        
+        if not section_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No section mapping provided for file: {filename}"
+            )
+            
+        section_name = section_name.strip()
+        if not section_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Section name for file '{filename}' cannot be empty."
+            )
+            
+        # Get or create the class section
+        target_class = class_service.get_or_create_class_section(base_class_id, section_name)
+        
+        # Read Excel / CSV content
+        content = await file.read()
+        
+        # Import students
+        count = student_service.import_students_excel(
+            class_id=target_class.id,
+            file_content=content,
+            filename=filename,
+            tenant_id=current_user.get("tenant_id")
+        )
+        
+        results.append({
+            "filename": filename,
+            "section": section_name,
+            "classId": target_class.id,
+            "count": count
+        })
+        total_count += count
+        
+    return {
+        "message": f"Successfully imported {total_count} students across {len(files)} sections.",
+        "results": results,
+        "count": total_count
+    }

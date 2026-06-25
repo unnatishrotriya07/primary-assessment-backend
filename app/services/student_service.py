@@ -84,23 +84,80 @@ class StudentService:
     def get_student_results(self, student_id: int, tenant_id: Optional[str] = None) -> List[dict]:
         student = self.get_student_by_id(student_id, tenant_id)
         
-        # Query reports matching student email
-        reports = self.db.query(Report).filter(Report.student_email == student.email).all()
+        # Query reports matching student email case-insensitively
+        from sqlalchemy import func
+        from app.models.interview import Interview
+        from datetime import datetime
+
+        reports = self.db.query(Report).filter(func.lower(Report.student_email) == func.lower(student.email)).all()
         
-        results = []
+        # Query completed interviews matching student email case-insensitively
+        interviews = self.db.query(Interview).join(
+            StudentAssessment, Interview.student_assessment_id == StudentAssessment.id
+        ).filter(
+            func.lower(StudentAssessment.student_email) == func.lower(student.email),
+            Interview.status == "Completed"
+        ).all()
+
+        combined = []
+
+        # Map Reports
         for r in reports:
-            results.append({
-                "id": r.id,
-                "assessmentId": r.assessment_id,
-                "assessmentTitle": r.assessment.title if r.assessment else "Assessment",
-                "score": r.score,
-                "grade": r.grade,
-                "duration": r.duration,
-                "accuracy": r.accuracy,
-                "completedAt": r.completed_at,
-                "feedback": r.feedback
+            # Try to parse completed_at for sorting. If it is "Just now", use current time.
+            dt = None
+            if r.completed_at:
+                if r.completed_at == "Just now":
+                    dt = datetime.utcnow()
+                else:
+                    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+                        try:
+                            dt = datetime.strptime(r.completed_at, fmt)
+                            break
+                        except ValueError:
+                            continue
+            if not dt:
+                dt = datetime.min
+
+            combined.append({
+                "dt": dt,
+                "data": {
+                    "id": r.id,
+                    "assessmentId": r.assessment_id,
+                    "assessmentTitle": r.assessment.title if r.assessment else "Assessment",
+                    "score": r.score,
+                    "grade": r.grade,
+                    "duration": r.duration,
+                    "accuracy": r.accuracy,
+                    "completedAt": r.completed_at,
+                    "feedback": r.feedback
+                }
             })
-        return results
+
+        # Map Interviews
+        for iv in interviews:
+            dt = iv.completed_at or datetime.min
+            completed_at_str = iv.completed_at.strftime("%Y-%m-%d %H:%M:%S") if iv.completed_at else "Just now"
+            feedback_str = iv.summary or iv.strengths or "No feedback available."
+
+            combined.append({
+                "dt": dt,
+                "data": {
+                    "id": iv.id + 1000000,  # Offset to prevent ID collisions with reports table in React keys
+                    "assessmentId": iv.assessment_id,
+                    "assessmentTitle": iv.assessment.title if iv.assessment else "Interview Assessment",
+                    "score": iv.overall_score or 0.0,
+                    "grade": iv.grade or "N/A",
+                    "duration": "15 mins",  # Interview default duration
+                    "accuracy": iv.overall_score or 0.0,
+                    "completedAt": completed_at_str,
+                    "feedback": feedback_str
+                }
+            })
+
+        # Sort by datetime descending
+        combined.sort(key=lambda x: x["dt"], reverse=True)
+
+        return [item["data"] for item in combined]
 
     def import_students_excel(self, class_id: int, file_content: bytes, filename: str, tenant_id: Optional[str] = None) -> int:
         # Check if class exists

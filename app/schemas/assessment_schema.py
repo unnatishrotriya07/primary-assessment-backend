@@ -9,6 +9,7 @@ class AssessmentBase(CamelModel):
     status: Optional[str] = "Scheduled"
     date: Optional[str] = None
     questions_count: int
+    questions_to_ask: Optional[int] = 5
 
 class AssessmentCreate(AssessmentBase):
     question_ids: Optional[List[int]] = None
@@ -31,3 +32,17 @@ class SubmitAnswersParams(CamelModel):
 class SubmissionResultResponse(CamelModel):
     score: float
     result_id: str
+
+class AssessmentJoinInfoResponse(CamelModel):
+    id: int
+    title: str
+    subject_name: str
+    class_name: str
+    is_expired: bool
+    questions_count: int
+
+class StudentJoinVerifyRequest(CamelModel):
+    assessment_id: int
+    scholar_number: str
+    student_name: str
+

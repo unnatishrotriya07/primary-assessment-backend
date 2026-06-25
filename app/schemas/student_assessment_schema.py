@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from app.schemas.base_schema import CamelModel
 
@@ -9,6 +9,10 @@ class StudentAssessmentCreate(CamelModel):
     date_of_birth: str  # YYYY-MM-DD
     student_email: str
     contact: str  # Contact number
+
+class StudentAssessmentBulkCreate(CamelModel):
+    assessment_id: int
+    student_ids: List[int]
 
 class StudentAssessmentInterviewSchema(CamelModel):
     id: int

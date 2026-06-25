@@ -10,8 +10,8 @@ class ChapterService:
         self.db = db
         self.chapter_repo = ChapterRepository(db)
 
-    def get_all_chapters(self, class_id: int = None, subject_id: int = None) -> List[Chapter]:
-        return self.chapter_repo.get_filtered(class_id, subject_id)
+    def get_all_chapters(self, class_id: int = None, subject_id: int = None, tenant_id: str = None) -> List[Chapter]:
+        return self.chapter_repo.get_filtered(class_id, subject_id, tenant_id)
 
     def get_chapter_by_id(self, chapter_id: int) -> Chapter:
         chap = self.chapter_repo.get_by_id(chapter_id)
@@ -19,8 +19,8 @@ class ChapterService:
             raise EntityNotFoundException("Chapter", str(chapter_id))
         return chap
 
-    def get_chapters_by_subject(self, subject_id: int) -> List[Chapter]:
-        return self.chapter_repo.get_by_subject(subject_id)
+    def get_chapters_by_subject(self, subject_id: int, tenant_id: str = None) -> List[Chapter]:
+        return self.chapter_repo.get_by_subject(subject_id, tenant_id)
 
     def create_chapter(self, chapter_in: ChapterCreate) -> Chapter:
         chap = Chapter(
@@ -28,7 +28,8 @@ class ChapterService:
             title=chapter_in.title,
             subject_id=chapter_in.subject_id,
             content=chapter_in.content,
-            text_content=chapter_in.text_content
+            text_content=chapter_in.text_content,
+            tenant_id=chapter_in.tenant_id
         )
         return self.chapter_repo.create(chap)
 

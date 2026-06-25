@@ -47,3 +47,68 @@ class ClassService:
     def delete_class(self, class_id: int) -> None:
         cls = self.get_class_by_id(class_id)
         self.class_repo.delete(cls)
+
+    def get_or_create_class_section(self, base_class_id: int, section_name: str) -> Class:
+        from app.models.class_model import Class
+        from app.models.subject import Subject
+        from app.models.chapter import Chapter
+
+        # 1. Fetch base class
+        base_cls = self.class_repo.get_by_id(base_class_id)
+        if not base_cls:
+            raise EntityNotFoundException("Class", str(base_class_id))
+
+        # 2. Check if class with same name, grade, and section already exists
+        existing_cls = self.class_repo.db.query(Class).filter(
+            Class.name == base_cls.name,
+            Class.grade == base_cls.grade,
+            Class.section == section_name
+        ).first()
+
+        if existing_cls:
+            return existing_cls
+
+        # 3. Create new section class
+        new_cls = Class(
+            name=base_cls.name,
+            grade=base_cls.grade,
+            section=section_name
+        )
+        self.class_repo.db.add(new_cls)
+        self.class_repo.db.commit()
+        self.class_repo.db.refresh(new_cls)
+
+        # 4. Copy subjects & chapters
+        for subj in base_cls.subjects:
+            new_code = f"{subj.code}_{section_name}"
+            # Ensure unique code globally by appending index if duplicate exists
+            base_code = new_code
+            counter = 1
+            while self.class_repo.db.query(Subject).filter(Subject.code == new_code).first() is not None:
+                new_code = f"{base_code}_{counter}"
+                counter += 1
+            
+            new_subj = Subject(
+                name=subj.name,
+                code=new_code,
+                class_id=new_cls.id,
+                status=subj.status
+            )
+            self.class_repo.db.add(new_subj)
+            self.class_repo.db.commit()
+            self.class_repo.db.refresh(new_subj)
+
+            # Copy chapters
+            for chap in subj.chapters:
+                new_chap = Chapter(
+                    number=chap.number,
+                    title=chap.title,
+                    subject_id=new_subj.id,
+                    content=chap.content
+                )
+                self.class_repo.db.add(new_chap)
+            
+            self.class_repo.db.commit()
+
+        # Re-fetch new class to load relationships
+        return self.get_class_by_id(new_cls.id)

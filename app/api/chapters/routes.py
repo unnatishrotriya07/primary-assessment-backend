@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
 import io
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user, enforce_super_admin
+from app.core.dependencies import get_db, get_current_user, enforce_super_admin, check_admin_role
 from app.schemas.chapter_schema import ChapterCreate, ChapterUpdate, ChapterResponse
 from app.services.chapter_service import ChapterService
 
@@ -17,20 +17,27 @@ def read_chapters(
     current_user: dict = Depends(get_current_user)
 ):
     service = ChapterService(db)
-    return service.get_all_chapters(class_id=class_id, subject_id=subject_id)
+    return service.get_all_chapters(class_id=class_id, subject_id=subject_id, tenant_id=current_user.get("tenant_id"))
 
 @router.get("/subject/{subject_id}", response_model=List[ChapterResponse])
 def read_subject_chapters(subject_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ChapterService(db)
-    return service.get_chapters_by_subject(subject_id)
+    return service.get_chapters_by_subject(subject_id, tenant_id=current_user.get("tenant_id"))
 
 @router.get("/{id}", response_model=ChapterResponse)
 def read_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ChapterService(db)
-    return service.get_chapter_by_id(id)
+    chap = service.get_chapter_by_id(id)
+    
+    # Permission check for viewing individual chapter
+    is_super_admin = (current_user.get("role") == "admin" and not current_user.get("tenant_id"))
+    if not is_super_admin and chap.tenant_id and chap.tenant_id != current_user.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Access denied.")
+        
+    return chap
 
 @router.post("/parse-file")
-def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depends(enforce_super_admin)):
+def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depends(check_admin_role)):
     filename = file.filename.lower()
     if filename.endswith(".pdf"):
         try:
@@ -57,18 +64,37 @@ def parse_chapter_file(file: UploadFile = File(...), current_user: dict = Depend
         raise HTTPException(status_code=400, detail="Unsupported file format. Please upload a PDF or plain text (.txt) file.")
 
 @router.post("/", response_model=ChapterResponse, status_code=status.HTTP_201_CREATED)
-def create_chapter(chapter_in: ChapterCreate, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
+def create_chapter(chapter_in: ChapterCreate, db: Session = Depends(get_db), current_user: dict = Depends(check_admin_role)):
+    # Bind tenant_id to the created chapter if the user has a tenant_id
+    if current_user.get("tenant_id"):
+        chapter_in.tenant_id = current_user.get("tenant_id")
     service = ChapterService(db)
     return service.create_chapter(chapter_in)
 
 @router.put("/{id}", response_model=ChapterResponse)
-def update_chapter(id: int, chapter_in: ChapterUpdate, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
+def update_chapter(id: int, chapter_in: ChapterUpdate, db: Session = Depends(get_db), current_user: dict = Depends(check_admin_role)):
     service = ChapterService(db)
+    chap = service.get_chapter_by_id(id)
+    
+    # Permission check: Directors can only modify their own tenant's chapters. Global chapters require super-admin.
+    is_super_admin = (current_user.get("role") == "admin" and not current_user.get("tenant_id"))
+    if not is_super_admin:
+        if chap.tenant_id != current_user.get("tenant_id"):
+            raise HTTPException(status_code=403, detail="Access denied: Cannot modify this chapter.")
+            
     return service.update_chapter(id, chapter_in)
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(enforce_super_admin)):
+def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(check_admin_role)):
     service = ChapterService(db)
+    chap = service.get_chapter_by_id(id)
+    
+    # Permission check
+    is_super_admin = (current_user.get("role") == "admin" and not current_user.get("tenant_id"))
+    if not is_super_admin:
+        if chap.tenant_id != current_user.get("tenant_id"):
+            raise HTTPException(status_code=403, detail="Access denied: Cannot delete this chapter.")
+            
     service.delete_chapter(id)
     return None
 
