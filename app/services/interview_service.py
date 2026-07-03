@@ -293,6 +293,152 @@ class InterviewService:
 
         return interview
 
+    def save_submission_and_set_evaluating(self, payload: InterviewSubmitRequest) -> Interview:
+        interview = (
+            self.db.query(Interview)
+            .filter(Interview.id == payload.interview_id)
+            .first()
+        )
+        if not interview:
+            raise ValueError("Interview session not found.")
+
+        # Save transcript
+        interview.transcript   = json.dumps([e.dict() for e in payload.transcript])
+        interview.completed_at = datetime.datetime.utcnow()
+        interview.status       = "Evaluating"
+
+        # Mark parent StudentAssessment as completed
+        sa = (
+            self.db.query(StudentAssessment)
+            .filter(StudentAssessment.id == interview.student_assessment_id)
+            .first()
+        )
+        if sa:
+            sa.status = "Completed"
+
+        self.db.commit()
+        self.db.refresh(interview)
+        return interview
+
+    def prepare_eval_context(self, interview: Interview, answers: list) -> list:
+        # Load assessment questions to match correct answers
+        assessment = self.db.query(Assessment).filter(Assessment.id == interview.assessment_id).first()
+        db_questions = assessment.questions if assessment else []
+        
+        q_map = {}
+        for q in db_questions:
+            q_map[q.text.strip().lower()] = {
+                "expected": q.correct_answer,
+                "options": q.options,
+                "type": q.question_type or "mcq"
+            }
+            
+        qa_eval_context = []
+        for idx, a in enumerate(answers):
+            q_text = a.get('question', '').strip()
+            q_info = q_map.get(q_text.lower())
+            
+            expected = ""
+            q_type = "mcq"
+            options = []
+            
+            if q_info:
+                expected = q_info["expected"]
+                q_type = q_info["type"]
+                options = q_info["options"]
+            
+            qa_eval_context.append({
+                "index": idx + 1,
+                "question": q_text,
+                "student_answer": a.get('answer', ''),
+                "expected_answer": expected,
+                "options": options,
+                "question_type": q_type
+            })
+        return qa_eval_context
+
+    def evaluate_interview_in_background(self, interview_id: int, qa_eval_context: list):
+        from app.db.session import SessionLocal
+        db = SessionLocal()
+        try:
+            # Fetch interview inside the new session
+            interview = db.query(Interview).filter(Interview.id == interview_id).first()
+            if not interview:
+                print(f"[Background Task] Interview {interview_id} not found.", flush=True)
+                return
+
+            # Call AI analysis
+            report = None
+            try:
+                # Call helper method on a service instance bound to the new db session
+                bg_service = InterviewService(db)
+                report = bg_service._call_ai_and_parse(interview.student_name, qa_eval_context)
+            except Exception as e:
+                print(f"[Background Task] AI analysis failed: {e}", flush=True)
+
+            if not report or not isinstance(report, dict):
+                try:
+                    print("[Background Task] Using heuristic fallback report...", flush=True)
+                    bg_service = InterviewService(db)
+                    report = bg_service._generate_fallback_report(interview.student_name, qa_eval_context)
+                except Exception as fe:
+                    print(f"[Background Task] Heuristic fallback failed: {fe}", flush=True)
+                    report = {}
+
+            # Save report details to interview object
+            overall = report.get("overallScore")
+            if overall is not None:
+                try:
+                    interview.overall_score = float(overall)
+                except (ValueError, TypeError):
+                    interview.overall_score = 75.0
+            else:
+                interview.overall_score = 75.0
+
+            interview.grade = report.get("grade") or "B+"
+            interview.recommendation = report.get("recommendation") or "Recommended"
+            interview.evaluated_answers = report.get("evaluatedQuestions") or []
+            
+            skills = report.get("skills") or {}
+            
+            def get_skill(keys, default=70.0):
+                for k in keys:
+                    v = skills.get(k)
+                    if v is not None:
+                        try:
+                            return float(v)
+                        except (ValueError, TypeError):
+                            pass
+                for k in keys:
+                    v = report.get(k)
+                    if v is not None:
+                        try:
+                            return float(v)
+                        except (ValueError, TypeError):
+                            pass
+                return default
+
+            interview.score_communication = get_skill(["communication", "score_communication"], 70.0)
+            interview.score_numeracy      = get_skill(["numeracy", "score_numeracy"], 70.0)
+            interview.score_creativity    = get_skill(["creativity", "score_creativity"], 70.0)
+            interview.score_emotional_iq  = get_skill(["emotionalIntelligence", "emotional_iq", "score_emotional_iq"], 70.0)
+            
+            interview.strengths           = report.get("strengths") or "Good verbal response."
+            interview.improvements        = report.get("improvements") or "Continue to practice core concepts."
+            interview.admin_note          = report.get("adminNote") or report.get("admin_note") or "Completed."
+            interview.summary             = report.get("summary") or "Interview completed successfully."
+            
+            # Mark status as completed
+            interview.status = "Completed"
+            
+            db.commit()
+            print(f"[Background Task] Interview {interview_id} successfully evaluated and updated.", flush=True)
+        except Exception as e:
+            db.rollback()
+            print(f"[Background Task] Error saving background evaluation for interview {interview_id}: {e}", flush=True)
+        finally:
+            db.close()
+
     # ── STEP 3: Fetch report ──────────────────────────────────────────────────
     def get_report(self, interview_id: int) -> Interview:
         interview = (

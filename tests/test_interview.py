@@ -160,5 +160,60 @@ class TestInterviewService(unittest.TestCase):
         report = service.get_report(interview_id)
         self.assertEqual(report.overall_score, 85)
 
+    @patch("app.services.interview_service.InterviewService._call_groq")
+    def test_submit_and_analyse_background_flow(self, mock_call_groq):
+        """test_submit_and_analyse_background_flow: background evaluation sets status correctly."""
+        service = InterviewService(self.db)
+        
+        # Set up a started interview
+        start_res = service.start_interview("token_valid", "charlie@example.com")
+        interview_id = start_res["interview_id"]
+
+        # Mock Groq API response
+        mock_call_groq.return_value = {
+            "overallScore": 95,
+            "grade": "A+",
+            "summary": "Excellent evaluation.",
+            "skills": {
+                "communication": 95,
+                "numeracy": 95,
+                "creativity": 95,
+                "emotionalIntelligence": 95
+            },
+            "strengths": "Everything.",
+            "improvements": "None.",
+            "recommendation": "Strongly Recommended",
+            "adminNote": "Superb."
+        }
+
+        # Build payload
+        payload = InterviewSubmitRequest(
+            interview_id=interview_id,
+            transcript=[
+                TranscriptEntry(role="ai", text="Hello!", question_category="Introduction"),
+                TranscriptEntry(role="student", text="Hi.", question_category="Introduction")
+            ],
+            answers=[
+                {"question_category": "Introduction", "question": "Hello!", "answer": "Hi."}
+            ]
+        )
+
+        # 1. Step 1: Set status to evaluating and save transcript
+        iv = service.save_submission_and_set_evaluating(payload)
+        self.assertEqual(iv.status, "Evaluating")
+
+        # 2. Step 2: Prepare context
+        context = service.prepare_eval_context(iv, payload.answers)
+        self.assertEqual(len(context), 1)
+
+        # 3. Step 3: Run the background job
+        service.evaluate_interview_in_background(interview_id, context)
+
+        # 4. Verify DB fields updated after background execution
+        self.db.refresh(iv)
+        self.assertEqual(iv.status, "Completed")
+        self.assertEqual(iv.overall_score, 95)
+        self.assertEqual(iv.grade, "A+")
+
 if __name__ == "__main__":
     unittest.main()

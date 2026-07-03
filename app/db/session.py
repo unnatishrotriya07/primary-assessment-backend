@@ -12,7 +12,12 @@ if db_url.startswith("sqlite"):
         db_url, connect_args={"check_same_thread": False}
     )
 else:
-    engine = create_engine(db_url, pool_pre_ping=True)
+    engine = create_engine(
+        db_url,
+        pool_size=50,
+        max_overflow=10,
+        pool_pre_ping=True
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

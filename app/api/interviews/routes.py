@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db, get_current_user
@@ -31,17 +31,27 @@ def start_interview(payload: InterviewStartRequest, db: Session = Depends(get_db
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/submit", response_model=InterviewReportResponse)
-def submit_interview(payload: InterviewSubmitRequest, db: Session = Depends(get_db)):
+@router.post("/submit", response_model=InterviewReportResponse, status_code=202)
+def submit_interview(
+    payload: InterviewSubmitRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     """
     Called when the student finishes all 7 questions.
-    Saves the transcript and calls Claude API to generate the report.
-    Returns the full scored report immediately.
+    Saves the transcript and starts evaluation in the background.
+    Returns the report immediately in 'Evaluating' status.
     """
     service = InterviewService(db)
     try:
-        iv = service.submit_and_analyse(payload)
-        return _build_response(iv)
+        interview = service.save_submission_and_set_evaluating(payload)
+        qa_eval_context = service.prepare_eval_context(interview, payload.answers)
+        background_tasks.add_task(
+            service.evaluate_interview_in_background,
+            interview.id,
+            qa_eval_context
+        )
+        return _build_response(interview)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
