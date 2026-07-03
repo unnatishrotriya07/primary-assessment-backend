@@ -11,6 +11,7 @@ from app.api.interviews.routes import router as interviews_router
 from app.api.dashboard.routes import router as dashboard_router
 from app.api.team.routes import router as team_router
 from app.api.students.routes import router as students_router
+from app.api.control_panel.routes import router as control_panel_router
 
 api_router = APIRouter()
 
@@ -24,5 +25,6 @@ api_router.include_router(reports_router, prefix="/reports", tags=["reports"], d
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"], dependencies=[Depends(check_permission("dashboard"))])
 api_router.include_router(team_router, prefix="/team", tags=["team"])
 api_router.include_router(students_router, prefix="/students", tags=["students"], dependencies=[Depends(check_permission("students"))])
+api_router.include_router(control_panel_router, prefix="/control-panel", tags=["control-panel"])
 
 api_router.include_router(interviews_router, prefix="/interviews", tags=["interviews"])

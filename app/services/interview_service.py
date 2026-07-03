@@ -474,11 +474,11 @@ class InterviewService:
             transcript_text += f"Question Type: {item['question_type']}\n"
             transcript_text += f"Student's Answer: {item['student_answer']}\n\n"
         
-        prompt = f"""You are an expert child psychologist and primary school admission evaluator.
-Analyse this interview of a young child applying for primary school admission.
+        prompt = f"""You are an expert primary school educator and class teacher.
+Analyse this oral assessment of a student for their class chapter review.
 
 Student Name: {student_name}
-Interview Transcript with Stored Expected Answers:
+Assessment Transcript with Stored Expected Answers:
 {transcript_text}
 
 CRITICAL ASSESSMENT RULES FOR STUDENT ANSWERS:
@@ -490,17 +490,17 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
 {{
   "overallScore": <number 0-100>,
   "grade": "<A+/A/B+/B/C>",
-  "summary": "<2 sentence overall summary>",
+  "summary": "<2 sentence pedagogical summary of student understanding>",
   "skills": {{
     "communication": <0-100>,
     "numeracy": <0-100>,
     "creativity": <0-100>,
     "emotionalIntelligence": <0-100>
   }},
-  "strengths": "<2-3 key strengths observed>",
-  "improvements": "<1-2 areas to encourage growth>",
-  "recommendation": "<Strongly Recommended / Recommended / Needs Review>",
-  "adminNote": "<brief note for the admissions officer>",
+  "strengths": "<2-3 key concept strengths observed>",
+  "improvements": "<1-2 growth areas to practice>",
+  "recommendation": "<Excellent Comprehension / Good Understanding / Needs Review>",
+  "adminNote": "<brief observational note for the class teacher regarding student comprehension>",
   "evaluatedQuestions": [
      {{
        "question": "<question text>",
@@ -666,13 +666,13 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
         
         if avg_score >= 90:
             grade = "A+"
-            rec = "Strongly Recommended"
+            rec = "Excellent Comprehension"
         elif avg_score >= 80:
             grade = "A"
-            rec = "Recommended"
+            rec = "Good Understanding"
         elif avg_score >= 70:
             grade = "B+"
-            rec = "Recommended"
+            rec = "Good Understanding"
         else:
             grade = "B"
             rec = "Needs Review"
@@ -692,10 +692,10 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
                 "creativity": creat,
                 "emotionalIntelligence": eq
             },
-            "summary": f"{student_name} was highly collaborative and articulated thoughts clearly throughout the session.",
-            "strengths": "Articulate speaker, good conceptual foundations, and creative approach.",
-            "improvements": "Encourage structured problem solving and peer communication.",
-            "adminNote": "Candidate meets the benchmarks. Recommended for enrollment.",
+            "summary": f"{student_name} was highly collaborative and active during the assessment.",
+            "strengths": "Good conceptual understanding and creative approach.",
+            "improvements": "Encourage structured problem solving and regular practice.",
+            "adminNote": "Student demonstrated good comprehension of the chapter content.",
             "evaluatedQuestions": evaluated_qs
         }
 
@@ -715,11 +715,11 @@ Respond ONLY with a valid JSON object. No explanation, no backticks, no text bef
             transcript_text += f"Question Type: {item['question_type']}\n"
             transcript_text += f"Student's Answer: {item['student_answer']}\n\n"
 
-        prompt = f"""You are an expert child psychologist and primary school admission evaluator.
-Analyse this interview of a young child applying for primary school admission.
+        prompt = f"""You are an expert primary school educator and class teacher.
+Analyse this oral assessment of a student for their class chapter review.
 
 Student Name: {student_name}
-Interview Transcript with Stored Expected Answers:
+Assessment Transcript with Stored Expected Answers:
 {transcript_text}
 
 CRITICAL ASSESSMENT RULES FOR STUDENT ANSWERS:
@@ -731,17 +731,17 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation
 {{
   "overallScore": <number 0-100>,
   "grade": "<A+/A/B+/B/C>",
-  "summary": "<2 sentence overall summary>",
+  "summary": "<2 sentence pedagogical summary of student understanding>",
   "skills": {{
     "communication": <0-100>,
     "numeracy": <0-100>,
     "creativity": <0-100>,
     "emotionalIntelligence": <0-100>
   }},
-  "strengths": "<2-3 key strengths observed>",
-  "improvements": "<1-2 areas to encourage growth>",
-  "recommendation": "<Strongly Recommended / Recommended / Needs Review>",
-  "adminNote": "<brief note for the admissions officer>",
+  "strengths": "<2-3 key concept strengths observed>",
+  "improvements": "<1-2 growth areas to practice>",
+  "recommendation": "<Excellent Comprehension / Good Understanding / Needs Review>",
+  "adminNote": "<brief observational note for the class teacher regarding student comprehension>",
   "evaluatedQuestions": [
      {{
        "question": "<question text>",
