@@ -108,10 +108,18 @@ class TestChaptersAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Unsupported file format", response.json()["detail"])
 
-    @unittest.mock.patch("app.utils.ncert_sync.fetch_ncert_chapter_text")
-    def test_sync_ncert_chapter_success(self, mock_fetch):
+    @unittest.mock.patch("sync_content.sync_chapter")
+    def test_sync_ncert_chapter_success(self, mock_sync):
         """Test successfully syncing NCERT content for a chapter."""
-        mock_fetch.return_value = "This is verified NCERT textbook chapter text."
+        def fake_sync(db, book, chap_num, book_code, title, content):
+            # Update the tenant chapter's text content
+            from app.models.chapter import Chapter
+            tenant_chap = db.query(Chapter).filter(Chapter.number == str(chap_num)).first()
+            if tenant_chap:
+                tenant_chap.text_content = "This is verified NCERT textbook chapter text."
+                db.add(tenant_chap)
+                db.commit()
+        mock_sync.side_effect = fake_sync
         
         # Setup class and subject in DB
         from app.models.class_model import Class

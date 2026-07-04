@@ -23,7 +23,13 @@ class ChapterRepository:
         return query.all()
 
     def get_by_id(self, chapter_id: int) -> Chapter:
-        return self.db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        from sqlalchemy.orm import selectinload
+        from app.models.book import BookChapter, ChapterSection
+        return self.db.query(Chapter).filter(Chapter.id == chapter_id).options(
+            selectinload(Chapter.book_chapter)
+            .selectinload(BookChapter.sections)
+            .selectinload(ChapterSection.assets)
+        ).first()
 
     def get_by_subject(self, subject_id: int, tenant_id: str = None) -> List[Chapter]:
         query = self.db.query(Chapter).filter(Chapter.subject_id == subject_id)

@@ -29,7 +29,8 @@ class ChapterService:
             subject_id=chapter_in.subject_id,
             content=chapter_in.content,
             text_content=chapter_in.text_content,
-            tenant_id=chapter_in.tenant_id
+            tenant_id=chapter_in.tenant_id,
+            book_chapter_id=chapter_in.book_chapter_id
         )
         return self.chapter_repo.create(chap)
 
@@ -45,6 +46,8 @@ class ChapterService:
             chap.content = chapter_in.content
         if chapter_in.text_content is not None:
             chap.text_content = chapter_in.text_content
+        if chapter_in.book_chapter_id is not None:
+            chap.book_chapter_id = chapter_in.book_chapter_id
         return self.chapter_repo.update(chap)
 
     def delete_chapter(self, chapter_id: int) -> None:
@@ -52,9 +55,10 @@ class ChapterService:
         self.chapter_repo.delete(chap)
 
     def sync_ncert_content(self, chapter_id: int) -> Chapter:
-        from app.utils.ncert_sync import fetch_ncert_chapter_text
         from app.models.class_model import Class
         from app.models.subject import Subject
+        from app.models.book import Book
+        from sync_content import sync_chapter
         
         chap = self.get_chapter_by_id(chapter_id)
         
@@ -66,9 +70,31 @@ class ChapterService:
         if not cls:
             raise EntityNotFoundException("Class", str(subject.class_id))
             
-        text_content = fetch_ncert_chapter_text(cls.name, subject.name, chap.number)
-        if text_content:
-            chap.text_content = text_content
-            self.chapter_repo.update(chap)
+        # Find or create Book
+        book = self.db.query(Book).filter(Book.class_ == cls.name, Book.subject == subject.name).first()
+        if not book:
+            from app.db.ncert_mapping import get_ncert_book_code
+            book_code = get_ncert_book_code(cls.name, subject.name)
+            if not book_code:
+                raise ValueError(f"No NCERT book code found for Class: {cls.name}, Subject: {subject.name}")
+            book = Book(
+                class_=cls.name,
+                subject=subject.name,
+                title=f"{subject.name} for {cls.name}",
+                language="Hindi" if subject.name.lower() == "hindi" else "English",
+                edition="2026-27",
+                source="NCERT"
+            )
+            self.db.add(book)
+            self.db.commit()
+            self.db.refresh(book)
             
+        from app.db.ncert_mapping import get_ncert_book_code
+        book_code = get_ncert_book_code(cls.name, subject.name)
+        if not book_code:
+            raise ValueError(f"No NCERT book code found for Class: {cls.name}, Subject: {subject.name}")
+            
+        sync_chapter(self.db, book, int(chap.number), book_code, chap.title, chap.content)
+        
+        self.db.refresh(chap)
         return chap

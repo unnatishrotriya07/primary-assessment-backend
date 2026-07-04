@@ -22,6 +22,12 @@ class Question(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     tenant_id = Column(String, nullable=True)
 
+    source = Column(String, nullable=True)
+    section = Column(String, nullable=True)
+    page = Column(String, nullable=True)
+    confidence = Column(Integer, nullable=True)
+    reference_text = Column(String, nullable=True)
+
     school_class = relationship("Class", back_populates="questions")
     subject = relationship("Subject", back_populates="questions")
     chapter = relationship("Chapter", back_populates="questions")

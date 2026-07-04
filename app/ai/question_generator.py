@@ -43,7 +43,8 @@ class QuestionGenerator:
         difficulty: str,
         cognitive_level: str,
         count: int,
-        question_type: str = "mixed"
+        question_type: str = "mixed",
+        selected_text: str = None
     ) -> tuple:
         """
         Generates questions using the hybrid cost-optimized pipeline.
@@ -63,7 +64,8 @@ class QuestionGenerator:
                 chapter_content=chapter_content if chapter_content else "(No text content provided)",
                 difficulty=difficulty,
                 cognitive_level=cognitive_level,
-                question_type=question_type
+                question_type=question_type,
+                selected_text=selected_text if selected_text else ""
             )
         except Exception as e:
             logger.error(f"Error loading prompt template: {e}")
@@ -122,25 +124,45 @@ class QuestionGenerator:
                 "text": "What is the primary function of chlorophyll in plants?",
                 "options": ["Absorb water", "Absorb sunlight", "Release oxygen", "Store glucose"],
                 "correct_answer": "Absorb sunlight",
-                "question_type": "mcq"
+                "question_type": "mcq",
+                "source": "NCERT Textbook",
+                "section": "Introduction",
+                "page": "Page 1",
+                "confidence": 98,
+                "reference_text": "Chlorophyll pigments absorb sunlight to perform photosynthesis."
             },
             {
                 "text": "Which organelle is known as the powerhouse of the cell?",
                 "options": ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"],
                 "correct_answer": "Mitochondria",
-                "question_type": "mcq"
+                "question_type": "mcq",
+                "source": "NCERT Textbook",
+                "section": "Introduction",
+                "page": "Page 2",
+                "confidence": 99,
+                "reference_text": "Mitochondria release energy in the form of ATP from cells."
             },
             {
                 "text": "What causes day and night on Earth?",
                 "options": ["The rotation of Earth on its axis", "The revolution of Earth around the Sun", "The moon's phases", "The solar wind"],
                 "correct_answer": "The rotation of Earth on its axis",
-                "question_type": "mcq"
+                "question_type": "mcq",
+                "source": "NCERT Textbook",
+                "section": "Let us Play",
+                "page": "Page 5",
+                "confidence": 95,
+                "reference_text": "The Earth rotates around its axis once every 24 hours causing day and night."
             },
             {
                 "text": "Which of these is a liquid at room temperature?",
                 "options": ["Iron", "Oxygen", "Water", "Wood"],
                 "correct_answer": "Water",
-                "question_type": "mcq"
+                "question_type": "mcq",
+                "source": "NCERT Textbook",
+                "section": "Exercises",
+                "page": "Page 8",
+                "confidence": 96,
+                "reference_text": "Water is a liquid at room temperature."
             }
         ]
         titas = [
@@ -148,25 +170,45 @@ class QuestionGenerator:
                 "text": "Explain why leaves appear green in color.",
                 "options": [],
                 "correct_answer": "Leaves appear green because chlorophyll pigments absorb red and blue light waves and reflect green light.",
-                "question_type": "tita"
+                "question_type": "tita",
+                "source": "NCERT Textbook",
+                "section": "Introduction",
+                "page": "Page 1",
+                "confidence": 98,
+                "reference_text": "Chlorophyll reflects green light, making the leaf look green."
             },
             {
                 "text": "Describe the main role of the mitochondria in a cell.",
                 "options": [],
                 "correct_answer": "The mitochondria produce ATP (energy) through cellular respiration to power cell functions.",
-                "question_type": "tita"
+                "question_type": "tita",
+                "source": "NCERT Textbook",
+                "section": "Introduction",
+                "page": "Page 2",
+                "confidence": 99,
+                "reference_text": "The mitochondria produce energy for the cell."
             },
             {
                 "text": "What is the cause of day and night on Earth?",
                 "options": [],
                 "correct_answer": "Day and night is caused by the Earth rotating on its axis, which exposes different halves to the sun.",
-                "question_type": "tita"
+                "question_type": "tita",
+                "source": "NCERT Textbook",
+                "section": "Let us Play",
+                "page": "Page 5",
+                "confidence": 95,
+                "reference_text": "The Earth rotates on its axis."
             },
             {
                 "text": "Identify which common substance is a liquid at room temperature.",
                 "options": [],
                 "correct_answer": "Water is a liquid at room temperature.",
-                "question_type": "tita"
+                "question_type": "tita",
+                "source": "NCERT Textbook",
+                "section": "Exercises",
+                "page": "Page 8",
+                "confidence": 96,
+                "reference_text": "Water is a liquid."
             }
         ]
         

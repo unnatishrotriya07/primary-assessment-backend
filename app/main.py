@@ -54,6 +54,15 @@ try:
             db.rollback()
             pass
 
+        try:
+            db.execute(text("ALTER TABLE chapters ADD COLUMN book_chapter_id INTEGER"))
+            db.commit()
+            print("Database migration: Added 'book_chapter_id' column to 'chapters' table.", flush=True)
+        except Exception as ce:
+            db.rollback()
+            pass
+
+
         # Migrate interviews table
         try:
             db.execute(text("ALTER TABLE interviews ADD COLUMN evaluated_answers JSON"))
@@ -113,11 +122,37 @@ try:
             db.rollback()
             pass
 
+        try:
+            db.execute(text("ALTER TABLE assessments ADD COLUMN type VARCHAR DEFAULT 'Assessment'"))
+            db.commit()
+            print("Database migration: Added 'type' column to 'assessments' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+
         # Migrate questions table tenant_id (if not already handled or needed)
         try:
             db.execute(text("ALTER TABLE questions ADD COLUMN tenant_id VARCHAR"))
             db.commit()
             print("Database migration: Added 'tenant_id' column to 'questions' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
+
+        # Migrate verification columns for questions table
+        for col_name in ["source", "section", "page", "reference_text"]:
+            try:
+                db.execute(text(f"ALTER TABLE questions ADD COLUMN {col_name} VARCHAR"))
+                db.commit()
+                print(f"Database migration: Added '{col_name}' column to 'questions' table.", flush=True)
+            except Exception as me:
+                db.rollback()
+                pass
+        try:
+            db.execute(text("ALTER TABLE questions ADD COLUMN confidence INTEGER"))
+            db.commit()
+            print("Database migration: Added 'confidence' column to 'questions' table.", flush=True)
         except Exception as me:
             db.rollback()
             pass
@@ -223,6 +258,13 @@ if settings.BACKEND_CORS_ORIGINS:
 
 # Register API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Mount static folder for Content Engine textbook images
+from fastapi.staticfiles import StaticFiles
+import os
+os.makedirs("static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/")
 def root_health_check():

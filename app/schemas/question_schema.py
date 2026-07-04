@@ -15,6 +15,11 @@ class QuestionBase(CamelModel):
     generated_by: Optional[str] = None
     session: Optional[str] = None
     created_at: Optional[datetime] = None
+    source: Optional[str] = None
+    section: Optional[str] = None
+    page: Optional[str] = None
+    confidence: Optional[int] = None
+    reference_text: Optional[str] = None
 
 class QuestionCreate(QuestionBase):
     pass
@@ -33,6 +38,8 @@ class AIQuestionParams(CamelModel):
     preview_only: Optional[bool] = False
     session: Optional[str] = None
     question_type: Optional[str] = "mixed"
+    section_ids: Optional[List[int]] = None
+    selected_text: Optional[str] = None
 
 class QuestionBatchSave(CamelModel):
     questions: List[QuestionCreate]

@@ -103,7 +103,22 @@ class QuestionService:
         chapter = self.db.query(Chapter).filter(Chapter.id == params.chapter_id).first()
         chapter_number = chapter.number if chapter else "Unknown"
         chapter_title = chapter.title if chapter else "Unknown"
-        chapter_content = (chapter.text_content or chapter.content) if chapter else None
+        
+        chapter_content = None
+        if chapter:
+            # If section_ids are specified, fetch only their content
+            if params.section_ids:
+                from app.models.book import ChapterSection
+                sections = self.db.query(ChapterSection).filter(
+                    ChapterSection.id.in_(params.section_ids),
+                    ChapterSection.chapter_id == chapter.book_chapter_id
+                ).order_by(ChapterSection.order).all()
+                if sections:
+                    chapter_content = "\n\n".join([f"## {s.heading}\n{s.plain_text}" for s in sections])
+            
+            # Fallback to chapter text_content or content
+            if not chapter_content:
+                chapter_content = chapter.text_content or chapter.content
 
         # Invoke LLM/AI question generator component
         generated_data, provider = self.ai_generator.generate_questions(
@@ -117,7 +132,8 @@ class QuestionService:
             difficulty=params.difficulty,
             cognitive_level=params.cognitive_level,
             count=params.count,
-            question_type=params.question_type or "mixed"
+            question_type=params.question_type or "mixed",
+            selected_text=params.selected_text
         )
         
         saved_questions = []
@@ -134,7 +150,12 @@ class QuestionService:
                 chapter_id=params.chapter_id,
                 generated_by=provider,
                 session=params.session,
-                tenant_id=tenant_id
+                tenant_id=tenant_id,
+                source=item.get("source"),
+                section=item.get("section"),
+                page=item.get("page"),
+                confidence=item.get("confidence"),
+                reference_text=item.get("reference_text")
             )
             if params.preview_only:
                 q.id = 0
@@ -173,7 +194,12 @@ class QuestionService:
                 chapter_id=q_in.chapter_id,
                 generated_by=q_in.generated_by or "manual",
                 session=q_in.session,
-                tenant_id=tenant_id
+                tenant_id=tenant_id,
+                source=q_in.source,
+                section=q_in.section,
+                page=q_in.page,
+                confidence=q_in.confidence,
+                reference_text=q_in.reference_text
             )
             saved_questions.append(self.question_repo.create(q))
             

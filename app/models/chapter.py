@@ -13,5 +13,9 @@ class Chapter(Base):
     text_content = Column(String, nullable=True)
     tenant_id = Column(String, nullable=True, index=True)
 
+    book_chapter_id = Column(Integer, ForeignKey("book_chapters.id", ondelete="SET NULL"), nullable=True)
+
     subject = relationship("Subject", back_populates="chapters")
     questions = relationship("Question", back_populates="chapter", cascade="all, delete-orphan")
+    book_chapter = relationship("BookChapter", back_populates="tenant_chapters")
+

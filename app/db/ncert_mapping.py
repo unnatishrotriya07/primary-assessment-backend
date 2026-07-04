@@ -3,6 +3,7 @@
 NCERT_BOOK_MAPPING = {
     "1_Mathematics": "aejm1",
     "1_Hindi": "ahsr1",
+    "1_English": "aemr1",
     "1_Urdu": "aush1",
     "2_Mathematics": "bejm1",
     "2_Hindi": "bhsr1",

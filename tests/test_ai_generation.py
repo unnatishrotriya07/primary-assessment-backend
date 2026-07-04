@@ -81,8 +81,12 @@ def test_ai_generation_pipeline(mock_openai, mock_gemini, mock_groq):
             assert q.class_id == test_class.id
             assert q.subject_id == math_sub.id
             assert q.chapter_id == math_ch.id
-            assert len(q.options) == 4
-            assert q.correct_answer in q.options
+            if q.question_type == "mcq":
+                assert len(q.options) == 4
+                assert q.correct_answer in q.options
+            else:
+                assert len(q.options) == 0
+                assert q.correct_answer is not None
             print(f"Generated Question: {q.text} (Options: {q.options}, Correct: {q.correct_answer})")
 
         math_ids = [q.id for q in math_questions]
