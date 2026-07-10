@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.schemas.student_schema import StudentResponse, StudentUpdate, StudentReportResponse
+from app.schemas.student_schema import StudentResponse, StudentUpdate, StudentReportResponse, StudentJourneyResponse
 from app.services.student_service import StudentService
 from app.utils.s3 import upload_to_s3
 
@@ -185,3 +185,13 @@ async def upload_multiple_sections(
         "results": results,
         "count": total_count
     }
+
+
+@router.get("/{id}/journey", response_model=StudentJourneyResponse)
+def read_student_journey(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    service = StudentService(db)
+    return service.get_student_journey(id, tenant_id=current_user.get("tenant_id"))

@@ -10,7 +10,7 @@ router = APIRouter()
 @router.get("/overview", response_model=ReportOverviewResponse)
 def read_reports_overview(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ReportService(db)
-    stats = service.get_overview_statistics()
+    stats = service.get_overview_statistics(tenant_id=current_user.get("tenant_id"))
     return ReportOverviewResponse(
         total_students=stats["total_students"],
         passing_rate=stats["passing_rate"]
@@ -19,7 +19,7 @@ def read_reports_overview(db: Session = Depends(get_db), current_user: dict = De
 @router.get("/class/{class_id}", response_model=List[ReportResponse])
 def read_class_reports(class_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = ReportService(db)
-    return service.get_class_reports(class_id)
+    return service.get_class_reports(class_id, tenant_id=current_user.get("tenant_id"))
 
 @router.get("/{id}", response_model=ReportResponse)
 def read_report(id: int, db: Session = Depends(get_db)):

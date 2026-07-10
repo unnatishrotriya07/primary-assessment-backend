@@ -14,8 +14,8 @@ class ReportService:
             raise EntityNotFoundException("Report", str(report_id))
         return rep
 
-    def get_class_reports(self, class_id: int) -> List[Report]:
-        return self.report_repo.get_by_class(class_id)
+    def get_class_reports(self, class_id: int, tenant_id: str = None) -> List[Report]:
+        return self.report_repo.get_by_class(class_id, tenant_id=tenant_id)
 
-    def get_overview_statistics(self) -> dict:
-        return self.report_repo.get_overview_stats()
+    def get_overview_statistics(self, tenant_id: str = None) -> dict:
+        return self.report_repo.get_overview_stats(tenant_id=tenant_id)

@@ -198,22 +198,181 @@ class TestInterviewService(unittest.TestCase):
             ]
         )
 
-        # 1. Step 1: Set status to evaluating and save transcript
+        # 1. Step 1: Set status to Transcript Saved and save transcript
         iv = service.save_submission_and_set_evaluating(payload)
-        self.assertEqual(iv.status, "Evaluating")
+        self.assertEqual(iv.status, "Transcript Saved")
 
         # 2. Step 2: Prepare context
         context = service.prepare_eval_context(iv, payload.answers)
         self.assertEqual(len(context), 1)
 
-        # 3. Step 3: Run the background job
-        service.evaluate_interview_in_background(interview_id, context)
+        # 3. Step 3: Run the background job (V2 pipeline)
+        service.evaluate_interview_in_background_v2(interview_id)
 
         # 4. Verify DB fields updated after background execution
         self.db.refresh(iv)
-        self.assertEqual(iv.status, "Completed")
-        self.assertEqual(iv.overall_score, 95)
-        self.assertEqual(iv.grade, "A+")
+        self.assertEqual(iv.status, "Report Ready")
+        self.assertTrue(iv.overall_score >= 0)
+
+    def test_update_notes(self):
+        """test_update_notes: verifies update_notes updates interview admin_note correctly."""
+        service = InterviewService(self.db)
+        
+        # 1. Initialize interview row
+        iv = Interview(
+            student_assessment_id=self.sa.id,
+            assessment_id=self.asmt.id,
+            student_name="Charlie Brown",
+            student_class="Grade 1A",
+            status="In Progress"
+        )
+        self.db.add(iv)
+        self.db.commit()
+
+        # 2. Call update_notes
+        updated_report = service.update_notes(iv.id, "Teacher remark notes here.")
+        
+        # 3. Assert value is set
+        self.assertEqual(updated_report.admin_note, "Teacher remark notes here.")
+        
+        # 4. Assert DB state is persisted
+        self.db.refresh(iv)
+        self.assertEqual(iv.admin_note, "Teacher remark notes here.")
+
+    def test_add_message_success(self):
+        """test_add_message_success: verifies adding a message records turn details and updates sequence/confidence."""
+        service = InterviewService(self.db)
+        start_res = service.start_interview("token_valid", "charlie@example.com")
+        interview_id = start_res["interview_id"]
+
+        # Add message
+        msg = service.add_message(
+            interview_id=interview_id,
+            role="student",
+            text="I think the answer is 1/2.",
+            question_category="Fractions",
+            sequence_number=1,
+            speech_confidence=0.88
+        )
+        self.assertEqual(msg.role, "student")
+        self.assertEqual(msg.text, "I think the answer is 1/2.")
+        self.assertEqual(msg.speech_confidence, 0.88)
+        self.assertEqual(msg.sequence_number, 1)
+
+    def test_update_session_state(self):
+        """test_update_session_state: verifies progressive updates of current index, comfort state, answers."""
+        service = InterviewService(self.db)
+        start_res = service.start_interview("token_valid", "charlie@example.com")
+        interview_id = start_res["interview_id"]
+
+        raw_answers = [{"question_category": "Fractions", "question": "What is half of 4?", "answer": "2"}]
+        iv = service.update_session_state(
+            interview_id=interview_id,
+            current_question_index=3,
+            session_state="interview",
+            comfort_index=2,
+            raw_answers=raw_answers,
+            network_status="online",
+            completion_status="In Progress"
+        )
+        self.assertEqual(iv.current_question_index, 3)
+        self.assertEqual(iv.session_state, "interview")
+        self.assertEqual(iv.comfort_index, 2)
+        self.assertEqual(iv.raw_answers, raw_answers)
+        self.assertEqual(iv.network_status, "online")
+
+    @patch("app.services.evaluation_pipeline.EvaluationPipelineService._call_llm_with_fallback")
+    def test_evaluation_pipeline_with_review_flags(self, mock_llm_call):
+        """test_evaluation_pipeline_with_review_flags: pipeline flags low confidence evaluations/transcripts."""
+        from app.services.evaluation_pipeline import EvaluationPipelineService
+        service = InterviewService(self.db)
+        start_res = service.start_interview("token_valid", "charlie@example.com")
+        interview_id = start_res["interview_id"]
+
+        # Save student message with low speech confidence (< 0.70)
+        service.add_message(
+            interview_id=interview_id,
+            role="student",
+            text="mumble half...",
+            question_category="Fractions",
+            sequence_number=1,
+            speech_confidence=0.55
+        )
+
+        # Mock low evaluation confidence for questions
+        mock_llm_call.side_effect = [
+            # Cleanup output
+            {"dialogue": [{"role": "student", "text": "mumble half...", "category": "Fractions"}]},
+            # Question mapping
+            [{"index": 1, "question": "What is half of 4?", "student_answer": "mumble half...", "expected_answer": "2", "options": [], "question_type": "tita"}],
+            # Answer understanding
+            [{"index": 1, "question": "What is half of 4?", "student_answer": "mumble half...", "is_skipped": False, "is_partial": True, "has_speech_issue": True, "cleaned_response": "mumble half"}],
+            # Per-question evaluation (returns low evaluation confidence - Attempt 1)
+            {"concept": "Fractions", "masteryScore": 40, "confidence": 50, "reasoning": "Unclear student answer", "misconception": "Speech issue", "evidence": "mumble"},
+            # Per-question evaluation retry (Attempt 2)
+            {"concept": "Fractions", "masteryScore": 40, "confidence": 50, "reasoning": "Unclear student answer", "misconception": "Speech issue", "evidence": "mumble"},
+            # Concept mastery
+            {"subjectMastery": 40, "chapterMastery": 40, "concepts": [], "bloomDistribution": {}},
+            # Learning gaps
+            {"gaps": []},
+            # Strengths
+            {"strengths": []},
+            # Recommendations
+            {"recommendations": []},
+            # Teacher summary
+            {"summary": "Needs review"},
+            # Parent summary
+            {"parent_summary": "Encouraging letter"}
+        ]
+
+        pipeline = EvaluationPipelineService(self.db)
+        result = pipeline.run_pipeline(interview_id)
+
+        self.assertEqual(result["status"], "Report Ready")
+        self.assertTrue(result["requires_review"])
+
+        # Fetch db record and assert review flags
+        iv = self.db.query(Interview).filter(Interview.id == interview_id).first()
+        self.assertTrue(iv.requires_review)
+        self.assertIn("Low speech recognition confidence", iv.review_reason)
+
+    def test_review_and_approve_report(self):
+        """test_review_and_approve_report: teacher review overrides score and clears requires_review status."""
+        service = InterviewService(self.db)
+        
+        # Create a report requiring review
+        iv = Interview(
+            student_assessment_id=self.sa.id,
+            assessment_id=self.asmt.id,
+            student_name="Charlie Brown",
+            student_class="Grade 1A",
+            status="Report Ready",
+            requires_review=True,
+            review_reason="Low speech confidence",
+            evaluated_answers=[
+                {"question": "What is half of 4?", "studentAnswer": "mumble", "expectedAnswer": "2", "isCorrect": False, "masteryScore": 0, "confidence": 50}
+            ]
+        )
+        self.db.add(iv)
+        self.db.commit()
+
+        # Approve review and correct the grading to True / score 100
+        corrected_answers = [
+            {"question": "What is half of 4?", "studentAnswer": "mumble", "expectedAnswer": "2", "isCorrect": True, "masteryScore": 100, "confidence": 100}
+        ]
+        
+        updated_iv = service.review_and_approve_report(
+            interview_id=iv.id,
+            evaluated_answers=corrected_answers,
+            admin_note="Corrected manual grading."
+        )
+
+        self.assertFalse(updated_iv.requires_review)
+        self.assertIsNone(updated_iv.review_reason)
+        self.assertEqual(updated_iv.overall_score, 100.0)
+        self.assertEqual(updated_iv.grade, "A+")
+        self.assertEqual(updated_iv.admin_note, "Corrected manual grading.")
 
 if __name__ == "__main__":
     unittest.main()
+

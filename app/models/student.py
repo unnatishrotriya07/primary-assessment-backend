@@ -13,5 +13,6 @@ class Student(Base):
     picture_url = Column(String, nullable=True)
     class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
     tenant_id = Column(String, ForeignKey("schools.tenant_id", ondelete="SET NULL"), nullable=True)
+    teacher_notes = Column(String, nullable=True)
 
     school_class = relationship("Class", backref="students")

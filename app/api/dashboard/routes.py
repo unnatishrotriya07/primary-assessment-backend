@@ -60,9 +60,41 @@ def get_dashboard_stats(
             "accuracy": float(r.accuracy)
         })
         
-    # Teacher workloads & activity (dynamic query of teachers in tenant)
+    # Calculate active_teachers
     from app.models.admin import Admin
-    
+    if tenant_id:
+        active_teachers = db.query(Admin).filter(Admin.tenant_id == tenant_id, Admin.role == "teacher").count()
+    else:
+        active_teachers = db.query(Admin).filter(Admin.role == "teacher").count()
+
+    # Calculate class_performance
+    class_performance = []
+    if tenant_id is not None:
+        grouped_performances = db.query(
+            Report.student_class,
+            func.avg(Report.score).label("avg_score")
+        ).join(Assessment).filter(Assessment.tenant_id == tenant_id).group_by(Report.student_class).all()
+        
+        for gp in grouped_performances:
+            if gp[0]:
+                score_val = round(float(gp[1]), 1) if gp[1] else 0.0
+                if score_val >= 85:
+                    status = "High Mastery"
+                    color_type = "success"
+                elif score_val >= 70:
+                    status = "Awaiting Review"
+                    color_type = "warning"
+                else:
+                    status = "Needs Support"
+                    color_type = "error"
+                class_performance.append({
+                    "class_name": gp[0],
+                    "topic": "Syllabus Unit Assessment",
+                    "status": f"{int(score_val)}% {status}",
+                    "color_type": color_type
+                })
+
+    # Teacher workloads & activity (dynamic query of teachers in tenant)
     teacher_workloads = []
     if tenant_id:
         teachers = db.query(Admin).filter(Admin.tenant_id == tenant_id, Admin.role == "teacher").all()
@@ -93,13 +125,6 @@ def get_dashboard_stats(
                 "status": status
             })
             
-    if not teacher_workloads:
-        teacher_workloads = [
-            {"name": "Ms. Sandra Collins", "course_class": "Grade 3 Math", "recent_action": "Assigned Division Quiz", "time": "2 hours ago", "status": "Active"},
-            {"name": "Mr. David John", "course_class": "Grade 5 Science", "recent_action": "Reviewed 8 Oral Audits", "time": "1 day ago", "status": "Active"},
-            {"name": "Ms. Anita Sharma", "course_class": "Grade 4 English", "recent_action": "Created 12 Saved Questions", "time": "3 days ago", "status": "Idle"}
-        ]
-        
     return {
         "total_classes": total_classes,
         "active_students": active_students,
@@ -108,5 +133,7 @@ def get_dashboard_stats(
         "average_score": avg_score,
         "average_accuracy": avg_accuracy,
         "recent_activity": recent_activity,
-        "teacher_workloads": teacher_workloads
+        "teacher_workloads": teacher_workloads,
+        "active_teachers": active_teachers,
+        "class_performance": class_performance
     }

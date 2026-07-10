@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, status, File, UploadFile, HTTPException, BackgroundTasks
 import io
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
@@ -99,6 +99,39 @@ def delete_chapter(id: int, db: Session = Depends(get_db), current_user: dict = 
     return None
 
 @router.post("/{id}/sync-ncert", response_model=ChapterResponse)
-def sync_ncert_chapter(id: int, db: Session = Depends(get_db), current_user: dict = Depends(check_admin_role)):
+def sync_ncert_chapter(
+    id: int,
+    background_tasks: BackgroundTasks,
+    background: bool = False,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(check_admin_role)
+):
     service = ChapterService(db)
-    return service.sync_ncert_content(id)
+    if background:
+        # Async Celery pipeline trigger
+        try:
+            from app.tasks.sync_tasks import sync_ncert_chapter_task
+            sync_ncert_chapter_task.delay(id)
+            print(f"[Routes] Enqueued sync task via Celery for chapter {id}", flush=True)
+        except Exception as celery_err:
+            print(f"[Routes] Celery connection failed: {celery_err}. Falling back to BackgroundTasks.", flush=True)
+            
+            # Use dedicated session in background thread
+            def run_sync_in_background(chapter_id: int):
+                from app.db.session import SessionLocal
+                bg_db = SessionLocal()
+                try:
+                    bg_service = ChapterService(bg_db)
+                    bg_service.sync_ncert_content(chapter_id)
+                    print(f"[Background Task] Successfully synced NCERT content for chapter {chapter_id}", flush=True)
+                except Exception as e:
+                    print(f"[Background Task] NCERT sync failed for chapter {chapter_id}: {e}", flush=True)
+                finally:
+                    bg_db.close()
+            
+            background_tasks.add_task(run_sync_in_background, id)
+            
+        chap = service.get_chapter_by_id(id)
+        return chap
+    else:
+        return service.sync_ncert_content(id)

@@ -1,3 +1,4 @@
+import os
 import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
@@ -68,3 +69,37 @@ def upload_to_s3(file_bytes: bytes, filename: str, content_type: str = "image/pn
     except Exception as e:
         print(f"S3: Failed to upload file '{filename}' to S3. Error: {e}", flush=True)
         return None
+
+def s3_file_exists(filename: str) -> bool:
+    """Checks if a file exists in the S3 bucket."""
+    if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+        return False
+    s3 = get_s3_client()
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    try:
+        s3.head_object(Bucket=bucket, Key=filename)
+        return True
+    except ClientError as e:
+        error_code = e.response.get("Error", {}).get("Code")
+        if error_code == "404":
+            return False
+        print(f"S3: Head object returned error code {error_code} for {filename}: {e}", flush=True)
+        return False
+    except Exception as e:
+        print(f"S3: Failed to check if {filename} exists on S3. Error: {e}", flush=True)
+        return False
+
+def download_from_s3(filename: str, dest_path: str) -> bool:
+    """Downloads a file from S3 to dest_path."""
+    if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+        return False
+    s3 = get_s3_client()
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    try:
+        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+        s3.download_file(bucket, filename, dest_path)
+        print(f"S3: Successfully downloaded '{filename}' to '{dest_path}'.", flush=True)
+        return True
+    except Exception as e:
+        print(f"S3: Failed to download '{filename}' from S3. Error: {e}", flush=True)
+        return False

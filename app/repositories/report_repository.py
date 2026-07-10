@@ -13,10 +13,13 @@ class ReportRepository:
     def get_by_id(self, report_id: int) -> Report:
         return self.db.query(Report).filter(Report.id == report_id).first()
 
-    def get_by_class(self, class_id: int) -> List[Report]:
+    def get_by_class(self, class_id: int, tenant_id: str = None) -> List[Report]:
         # Connects through assessment target class
         from app.models.assessment import Assessment
-        return self.db.query(Report).join(Assessment).filter(Assessment.class_id == class_id).all()
+        query = self.db.query(Report).join(Assessment).filter(Assessment.class_id == class_id)
+        if tenant_id is not None:
+            query = query.filter(Assessment.tenant_id == tenant_id)
+        return query.all()
 
     def create(self, report_obj: Report) -> Report:
         self.db.add(report_obj)
@@ -24,11 +27,18 @@ class ReportRepository:
         self.db.refresh(report_obj)
         return report_obj
 
-    def get_overview_stats(self) -> dict:
-        total_students = self.db.query(func.count(Report.id)).scalar() or 0
+    def get_overview_stats(self, tenant_id: str = None) -> dict:
+        from app.models.assessment import Assessment
         
-        # Calculate passing rate (score >= 40.0)
-        passing_students = self.db.query(func.count(Report.id)).filter(Report.score >= 40.0).scalar() or 0
+        query_total = self.db.query(func.count(Report.id))
+        query_passing = self.db.query(func.count(Report.id)).filter(Report.score >= 40.0)
+        
+        if tenant_id is not None:
+            query_total = query_total.join(Assessment).filter(Assessment.tenant_id == tenant_id)
+            query_passing = query_passing.join(Assessment).filter(Assessment.tenant_id == tenant_id)
+            
+        total_students = query_total.scalar() or 0
+        passing_students = query_passing.scalar() or 0
         passing_rate = (passing_students / total_students * 100) if total_students > 0 else 0.0
 
         return {

@@ -4,7 +4,7 @@ import os
 import httpx
 from sqlalchemy.orm import Session
 
-from app.models.interview import Interview
+from app.models.interview import Interview, InterviewMessage
 from app.models.student_assessment import StudentAssessment
 from app.models.assessment import Assessment
 from app.schemas.interview_schema import InterviewSubmitRequest
@@ -131,11 +131,33 @@ class InterviewService:
         elif "art" in subject_name or "creat" in subject_name:
             default_skill = "creativity"
 
-        for q in assessment.questions:
+        from app.services.assessment_service import AssessmentService
+        asmt_service = AssessmentService(self.db)
+        questions_to_use = asmt_service.get_questions_for_session(assessment.id, seed_str=token)
+
+        for q in questions_to_use:
+            # Generate or fetch hint
+            hint_val = getattr(q, 'hint', None)
+            if not hint_val:
+                text_lower = q.text.lower()
+                if "numerator" in text_lower:
+                    hint_val = "In a fraction, the numerator is the number on the top, which tells us how many parts we are taking."
+                elif "denominator" in text_lower:
+                    hint_val = "In a fraction, the denominator is the bottom number, which tells us the total number of equal parts."
+                elif "equivalent" in text_lower:
+                    hint_val = "To find equivalent fractions, think about multiplying or dividing both top and bottom numbers by the same number."
+                elif " राहुल" in text_lower or "rahul" in text_lower or "pizza" in text_lower:
+                    hint_val = "Think about the total number of slices as the bottom number, and the slices eaten as the top number."
+                elif "shaded" in text_lower or "visual" in text_lower or "circle" in text_lower:
+                    hint_val = "Count how many parts are colored blue compared to the total number of parts in the shape."
+                else:
+                    hint_val = "Let's think together. Can you break the question down or explain what you think it means?"
+            
             dynamic_questions.append({
                 "q": q.text,
                 "skill": default_skill,
-                "category": q.chapter.title if q.chapter else "Assessment Content"
+                "category": q.chapter.title if q.chapter else "Assessment Content",
+                "hint": hint_val
             })
 
         # Fallback if no questions are assigned to the assessment
@@ -293,6 +315,137 @@ class InterviewService:
 
         return interview
 
+    def add_message(
+        self,
+        interview_id: int,
+        role: str,
+        text: str,
+        question_category: str = None,
+        sequence_number: int = None,
+        question_id: int = None,
+        student_response: str = None,
+        buddy_response: str = None,
+        audio_url: str = None,
+        speech_confidence: float = None,
+    ) -> InterviewMessage:
+        interview = self.db.query(Interview).filter(Interview.id == interview_id).first()
+        if not interview:
+            raise ValueError("Interview session not found.")
+        
+        msg = InterviewMessage(
+            interview_id=interview_id,
+            role=role,
+            text=text,
+            question_category=question_category,
+            sequence_number=sequence_number,
+            question_id=question_id,
+            student_response=student_response,
+            buddy_response=buddy_response,
+            audio_url=audio_url,
+            speech_confidence=speech_confidence,
+        )
+        self.db.add(msg)
+        self.db.commit()
+        self.db.refresh(msg)
+
+        # Re-build progressive raw_transcript turn list
+        messages = (
+            self.db.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview_id)
+            .order_by(InterviewMessage.id.asc())
+            .all()
+        )
+        raw_list = []
+        for m in messages:
+            raw_list.append({
+                "role": m.role,
+                "text": m.text,
+                "category": m.question_category,
+                "sequence_number": m.sequence_number,
+                "speech_confidence": m.speech_confidence,
+            })
+        interview.raw_transcript = json.dumps(raw_list)
+        self.db.commit()
+        return msg
+
+    def update_session_state(
+        self,
+        interview_id: int,
+        current_question_index: int,
+        session_state: str,
+        comfort_index: int,
+        raw_answers: list = None,
+        network_status: str = "online",
+        completion_status: str = "In Progress",
+    ) -> Interview:
+        interview = self.db.query(Interview).filter(Interview.id == interview_id).first()
+        if not interview:
+            raise ValueError("Interview session not found.")
+        
+        interview.current_question_index = current_question_index
+        interview.session_state = session_state
+        interview.comfort_index = comfort_index
+        if raw_answers is not None:
+            interview.raw_answers = raw_answers
+        interview.network_status = network_status
+        interview.completion_status = completion_status
+        
+        self.db.commit()
+        self.db.refresh(interview)
+        return interview
+
+    def review_and_approve_report(
+        self,
+        interview_id: int,
+        evaluated_answers: list,
+        admin_note: str = None,
+        reviewed_by: str = "Teacher"
+    ) -> Interview:
+        interview = self.db.query(Interview).filter(Interview.id == interview_id).first()
+        if not interview:
+            raise ValueError("Interview session not found.")
+        
+        # Recalculate score based on evaluated_answers edits
+        total = len(evaluated_answers)
+        correct = sum(1 for a in evaluated_answers if a.get("isCorrect"))
+        score = (correct / total * 100) if total > 0 else 75.0
+        score = round(score, 1)
+
+        # Grade scale
+        if score >= 90:
+            grade = "A+"
+            rec = "Excellent Comprehension"
+        elif score >= 80:
+            grade = "A"
+            rec = "Good Understanding"
+        elif score >= 70:
+            grade = "B+"
+            rec = "Good Understanding"
+        elif score >= 60:
+            grade = "B"
+            rec = "Needs Review"
+        else:
+            grade = "C"
+            rec = "Needs Review"
+
+        interview.evaluated_answers = evaluated_answers
+        interview.overall_score = score
+        interview.grade = grade
+        interview.recommendation = rec
+        if admin_note is not None:
+            interview.admin_note = admin_note
+        
+        interview.requires_review = False
+        interview.review_reason = None
+        interview.reviewed_by = reviewed_by
+        interview.reviewed_at = datetime.datetime.utcnow()
+        interview.status = "Report Ready"
+        
+        self.db.commit()
+        self.db.refresh(interview)
+        return interview
+
+
     def save_submission_and_set_evaluating(self, payload: InterviewSubmitRequest) -> Interview:
         interview = (
             self.db.query(Interview)
@@ -302,10 +455,14 @@ class InterviewService:
         if not interview:
             raise ValueError("Interview session not found.")
 
-        # Save transcript
+        # Save transcript & V2 engine metadata
         interview.transcript   = json.dumps([e.dict() for e in payload.transcript])
         interview.completed_at = datetime.datetime.utcnow()
-        interview.status       = "Evaluating"
+        interview.status       = "Transcript Saved"
+        interview.language     = "en-US"
+        interview.confidence   = 0.95
+        interview.audio_references = json.dumps([])
+        interview.report_version = "2.0.0"
 
         # Mark parent StudentAssessment as completed
         sa = (
@@ -319,6 +476,18 @@ class InterviewService:
         self.db.commit()
         self.db.refresh(interview)
         return interview
+
+    def evaluate_interview_in_background_v2(self, interview_id: int):
+        from app.db.session import SessionLocal
+        from app.services.evaluation_pipeline import EvaluationPipelineService
+        db = SessionLocal()
+        try:
+            pipeline = EvaluationPipelineService(db)
+            pipeline.run_pipeline(interview_id)
+        except Exception as e:
+            print(f"[Background Task V2] Evaluation failed: {e}", flush=True)
+        finally:
+            db.close()
 
     def prepare_eval_context(self, interview: Interview, answers: list) -> list:
         # Load assessment questions to match correct answers
@@ -459,6 +628,19 @@ class InterviewService:
             )
             .all()
         )
+
+    def update_notes(self, interview_id: int, admin_note: str) -> Interview:
+        interview = (
+            self.db.query(Interview)
+            .filter(Interview.id == interview_id)
+            .first()
+        )
+        if not interview:
+            raise ValueError("Interview session not found.")
+        interview.admin_note = admin_note
+        self.db.commit()
+        self.db.refresh(interview)
+        return interview
 
     # ── Private: calls AI with Multi-Provider Fallbacks & Robust JSON Parser ──
     def _call_ai_and_parse(self, student_name: str, answers: list) -> dict:
@@ -773,7 +955,7 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation
                     }
                 ],
                 "temperature": 0.3,
-                "max_tokens": 1000,
+                "max_tokens": 4000,
             },
             timeout=30,
         )

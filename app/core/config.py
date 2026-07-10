@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # Groq configuration
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
+    # Celery & Redis
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
     # SendGrid configuration
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     SENDGRID_FROM_EMAIL: str = os.getenv("SENDGRID_FROM_EMAIL", "")
@@ -39,6 +43,7 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"
 
     def __init__(self, **values):
         if "BACKEND_CORS_ORIGINS" in os.environ:

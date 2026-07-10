@@ -72,6 +72,51 @@ try:
             db.rollback()
             pass
 
+        for col_name, col_type in [
+            ("language", "VARCHAR"),
+            ("confidence", "FLOAT"),
+            ("audio_references", "JSON"),
+            ("report_version", "VARCHAR"),
+            ("current_question_index", "INTEGER DEFAULT 0"),
+            ("session_state", "VARCHAR DEFAULT 'meet_buddy'"),
+            ("comfort_index", "INTEGER DEFAULT 0"),
+            ("raw_answers", "JSON"),
+            ("network_status", "VARCHAR DEFAULT 'online'"),
+            ("completion_status", "VARCHAR DEFAULT 'In Progress'"),
+            ("requires_review", "BOOLEAN DEFAULT FALSE"),
+            ("review_reason", "VARCHAR"),
+            ("reviewed_by", "VARCHAR"),
+            ("reviewed_at", "TIMESTAMP"),
+            ("raw_transcript", "VARCHAR"),
+            ("clean_transcript", "VARCHAR"),
+            ("validated_transcript", "VARCHAR"),
+        ]:
+            try:
+                db.execute(text(f"ALTER TABLE interviews ADD COLUMN {col_name} {col_type}"))
+                db.commit()
+                print(f"Database migration: Added '{col_name}' column to 'interviews' table.", flush=True)
+            except Exception as ie:
+                db.rollback()
+                pass
+
+        # Migrate interview_messages table for V2
+        for col_name, col_type in [
+            ("sequence_number", "INTEGER"),
+            ("question_id", "INTEGER"),
+            ("student_response", "VARCHAR"),
+            ("buddy_response", "VARCHAR"),
+            ("audio_url", "VARCHAR"),
+            ("speech_confidence", "FLOAT"),
+        ]:
+            try:
+                db.execute(text(f"ALTER TABLE interview_messages ADD COLUMN {col_name} {col_type}"))
+                db.commit()
+                print(f"Database migration: Added '{col_name}' column to 'interview_messages' table.", flush=True)
+            except Exception as me:
+                db.rollback()
+                pass
+
+
         # Migrate admins table for RBAC & Multi-Tenancy
         try:
             db.execute(text("ALTER TABLE admins ADD COLUMN role VARCHAR DEFAULT 'admin'"))
@@ -165,6 +210,15 @@ try:
         except Exception as me:
             db.rollback()
             pass
+
+        # Migrate students table
+        try:
+            db.execute(text("ALTER TABLE students ADD COLUMN teacher_notes VARCHAR"))
+            db.commit()
+            print("Database migration: Added 'teacher_notes' column to 'students' table.", flush=True)
+        except Exception as me:
+            db.rollback()
+            pass
     except Exception as me:
         print(f"DEBUG STARTUP: Database migration failed: {me}", flush=True)
     finally:
@@ -250,7 +304,10 @@ app = FastAPI(
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS] + [
+            "http://192.168.1.12:3000"
+        ],
+        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+)(:\d+)?",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

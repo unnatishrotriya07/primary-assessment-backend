@@ -139,7 +139,7 @@ def list_schools(
     
     from app.models.school import School
     from app.models.admin import Admin
-    schools = db.query(School).all()
+    schools = db.query(School).filter(School.tenant_id != "SCH-SYSTEM").all()
     results = []
     for s in schools:
         director = db.query(Admin).filter(Admin.tenant_id == s.tenant_id, Admin.role == "director").first()

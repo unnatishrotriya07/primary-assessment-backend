@@ -23,6 +23,8 @@ from app.models.chapter import Chapter
 from app.models.subject import Subject
 from app.models.class_model import Class
 from app.ai.openai_provider import OpenAIProvider
+from app.utils.s3 import upload_to_s3, s3_file_exists, download_from_s3
+from app.core.config import settings
 
 # List of NCERT textbooks for Classes 1-5 (English, Math, EVS, Hindi)
 SUPPORTED_BOOKS = [
@@ -55,14 +57,30 @@ SUPPORTED_BOOKS = [
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "pdf")
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
-def download_pdf(url: str, dest_path: str) -> bool:
-    """Downloads a file from url to dest_path using urllib and curl fallback."""
+def download_pdf(url: str, dest_path: str, s3_key: str = None) -> bool:
+    """Downloads a file from url to dest_path using urllib/curl, caching to and loading from S3 if configured."""
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    if os.path.exists(dest_path):
+    
+    # 1. If local file exists, use it
+    if os.path.exists(dest_path) and os.path.getsize(dest_path) > 1000:
         logger.info(f"Using cached file: {dest_path}")
         return True
 
+    # 2. Check if S3 integration is enabled and s3_key is provided
+    s3_enabled = bool(settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY)
+    if s3_enabled and s3_key:
+        logger.info(f"Checking S3 cache for key: {s3_key}")
+        if s3_file_exists(s3_key):
+            logger.info(f"S3 cache hit! Downloading {s3_key} from S3...")
+            if download_from_s3(s3_key, dest_path):
+                return True
+            logger.warning("S3 download failed, falling back to direct download...")
+        else:
+            logger.info("S3 cache miss. Will download from source and upload to S3.")
+
+    # 3. Download from direct URL
     logger.info(f"Downloading {url} to {dest_path}...")
+    download_success = False
     try:
         req = urllib.request.Request(
             url, 
@@ -71,7 +89,7 @@ def download_pdf(url: str, dest_path: str) -> bool:
         with urllib.request.urlopen(req, timeout=15) as response:
             with open(dest_path, "wb") as f:
                 f.write(response.read())
-        return True
+        download_success = True
     except Exception as e:
         logger.warning(f"urllib download failed: {e}. Trying curl fallback...")
         try:
@@ -83,17 +101,27 @@ def download_pdf(url: str, dest_path: str) -> bool:
             ]
             subprocess.run(cmd, check=True)
             if os.path.exists(dest_path) and os.path.getsize(dest_path) > 1000:
-                return True
+                download_success = True
             else:
                 logger.error(f"Downloaded file is empty or too small.")
                 if os.path.exists(dest_path):
                     os.remove(dest_path)
-                return False
         except Exception as curl_err:
             logger.error(f"Curl download failed: {curl_err}")
             if os.path.exists(dest_path):
                 os.remove(dest_path)
-            return False
+
+    # 4. If download succeeded and S3 is enabled, upload the PDF to S3 for future caching
+    if download_success and s3_enabled and s3_key:
+        try:
+            with open(dest_path, "rb") as f:
+                pdf_bytes = f.read()
+            upload_to_s3(pdf_bytes, s3_key, "application/pdf")
+            logger.info(f"Successfully cached PDF to S3 key: {s3_key}")
+        except Exception as upload_err:
+            logger.error(f"Failed to cache PDF to S3: {upload_err}")
+
+    return download_success
 
 def clean_extracted_text(text: str) -> str:
     """Cleans NCERT-specific headers, footers, and duplicates from extracted raw text."""
@@ -132,34 +160,52 @@ def clean_extracted_text(text: str) -> str:
     return "\n".join(cleaned_lines).strip()
 
 def extract_images(pdf_path: str, book_id: int, chapter_num: int) -> list:
-    """Extracts images from PDF pages using pypdf and saves them to static folder."""
+    """Extracts images from PDF pages using pypdf and uploads them to S3 (or saves locally as fallback)."""
     reader = PdfReader(pdf_path)
     image_infos = []
     
-    # Destination directory: backend/static/books/{book_id}/chapter_{chapter_num}/images/
+    s3_enabled = bool(settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY)
+    
+    # Destination directory for fallback/local storage
     img_dir = os.path.join(STATIC_DIR, "books", str(book_id), f"chapter_{chapter_num}", "images")
-    os.makedirs(img_dir, exist_ok=True)
     
     for page_idx, page in enumerate(reader.pages):
         for img_idx, image_file_object in enumerate(page.images):
             filename = f"page_{page_idx+1}_img_{img_idx+1}.png"
-            filepath = os.path.join(img_dir, filename)
             
-            # Serve path relative to static mount (e.g., /static/books/1/chapter_1/images/...)
-            relative_url = f"/static/books/{book_id}/chapter_{chapter_num}/images/{filename}"
+            # S3 key for image
+            s3_key = f"books/{book_id}/chapter_{chapter_num}/images/{filename}"
+            uploaded_url = None
             
-            try:
-                with open(filepath, "wb") as f:
-                    f.write(image_file_object.data)
-                image_infos.append({
-                    "page": page_idx + 1,
-                    "url": relative_url,
-                    "filename": filename
-                })
-            except Exception as e:
-                logger.error(f"Failed to extract image {filename} from {pdf_path}: {e}")
+            if s3_enabled:
+                try:
+                    # Upload directly to S3
+                    uploaded_url = upload_to_s3(image_file_object.data, s3_key, "image/png")
+                    if uploaded_url:
+                        logger.info(f"Uploaded extracted image to S3: {uploaded_url}")
+                except Exception as s3_err:
+                    logger.error(f"S3 image upload failed for {s3_key}: {s3_err}, falling back to local storage")
+
+            # Fallback to local storage if S3 is disabled or failed
+            if not uploaded_url:
+                os.makedirs(img_dir, exist_ok=True)
+                filepath = os.path.join(img_dir, filename)
+                try:
+                    with open(filepath, "wb") as f:
+                        f.write(image_file_object.data)
+                    # Serve path relative to static mount
+                    uploaded_url = f"/static/books/{book_id}/chapter_{chapter_num}/images/{filename}"
+                except Exception as e:
+                    logger.error(f"Failed to save local image {filename}: {e}")
+                    continue
+
+            image_infos.append({
+                "page": page_idx + 1,
+                "url": uploaded_url,
+                "filename": filename
+            })
                 
-    logger.info(f"Extracted {len(image_infos)} images to {img_dir}")
+    logger.info(f"Processed {len(image_infos)} images for Book {book_id} Ch {chapter_num}")
     return image_infos
 
 def generate_sections_heuristically(cleaned_text: str, page_images: list, book_id: int, chapter_num: int) -> list:
@@ -320,9 +366,10 @@ def sync_chapter(db: Session, book: Book, chapter_num: int, code: str, title: st
     url = f"https://ncert.nic.in/textbook/pdf/{code}{chap_idx_str}.pdf"
     
     pdf_path = os.path.join(CACHE_DIR, code, f"chapter_{chapter_num}.pdf")
+    s3_pdf_key = f"books/{book.id}/chapter_{chapter_num}/chapter_{chapter_num}.pdf"
     
-    # Download
-    success = download_pdf(url, pdf_path)
+    # Download with S3 caching enabled
+    success = download_pdf(url, pdf_path, s3_pdf_key)
     if not success:
         logger.error(f"Skipping Chapter {chapter_num} because download failed.")
         return
@@ -347,7 +394,7 @@ def sync_chapter(db: Session, book: Book, chapter_num: int, code: str, title: st
     # Clean text
     cleaned_text = clean_extracted_text(raw_text)
     
-    # Extract images
+    # Extract images (will be uploaded to S3 if configured)
     images = extract_images(pdf_path, book.id, chapter_num)
     
     # Structure sections (AI-assisted or Heuristic)
@@ -424,6 +471,9 @@ def sync_chapter(db: Session, book: Book, chapter_num: int, code: str, title: st
     db.commit()
     logger.info(f"Saved BookChapter ID {book_chap.id}: {title} with {len(structured_data.get('sections', []))} sections.")
 
+    # Combine plain text of all sections to set as the overall text_content for linked chapters
+    full_plain_text = "\n\n".join([sec_data.get("plain_text", "") for sec_data in structured_data.get("sections", []) if sec_data.get("plain_text")])
+
     # Link school tenant's Chapter records to this global BookChapter
     # Find classes matching book's class name (e.g. "Grade 1")
     classes = db.query(Class).filter(Class.name == book.class_).all()
@@ -438,8 +488,9 @@ def sync_chapter(db: Session, book: Book, chapter_num: int, code: str, title: st
             ).first()
             if tenant_chap:
                 tenant_chap.book_chapter_id = book_chap.id
+                tenant_chap.text_content = full_plain_text
                 db.add(tenant_chap)
-                logger.info(f"Linked tenant chapter ID {tenant_chap.id} (Subject: {subj.name}, Class: {cls.name}) to BookChapter ID {book_chap.id}")
+                logger.info(f"Linked tenant chapter ID {tenant_chap.id} (Subject: {subj.name}, Class: {cls.name}) to BookChapter ID {book_chap.id} and populated text_content")
                 
     db.commit()
 

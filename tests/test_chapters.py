@@ -150,5 +150,71 @@ class TestChaptersAPI(unittest.TestCase):
         self.db.refresh(test_chap)
         self.assertEqual(test_chap.text_content, "This is verified NCERT textbook chapter text.")
 
+    @unittest.mock.patch("app.api.chapters.routes.BackgroundTasks.add_task")
+    @unittest.mock.patch("app.tasks.sync_tasks.sync_ncert_chapter_task.delay")
+    def test_sync_ncert_chapter_background_success(self, mock_celery, mock_bg_tasks):
+        """Test successfully triggering background NCERT sync."""
+        # Setup class and subject in DB
+        from app.models.class_model import Class
+        from app.models.subject import Subject
+        from app.models.chapter import Chapter
+        
+        test_class = Class(name="Grade 1", grade="1", section="A")
+        self.db.add(test_class)
+        self.db.commit()
+        
+        test_subj = Subject(name="Mathematics", code="MATH1", class_id=test_class.id)
+        self.db.add(test_subj)
+        self.db.commit()
+        
+        test_chap = Chapter(number="1", title="Shapes and Space", subject_id=test_subj.id)
+        self.db.add(test_chap)
+        self.db.commit()
+        
+        # Trigger background sync endpoint
+        response = self.client.post(
+            f"/api/chapters/{test_chap.id}/sync-ncert?background=true",
+            headers=self.headers
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        # Celery should be called with chapter id
+        mock_celery.assert_called_once_with(test_chap.id)
+        mock_bg_tasks.assert_not_called()
+
+    @unittest.mock.patch("app.api.chapters.routes.BackgroundTasks.add_task")
+    @unittest.mock.patch("app.tasks.sync_tasks.sync_ncert_chapter_task.delay")
+    def test_sync_ncert_chapter_background_fallback(self, mock_celery, mock_bg_tasks):
+        """Test background NCERT sync falls back to BackgroundTasks if Celery fails."""
+        mock_celery.side_effect = Exception("Celery broker connection failed")
+        
+        # Setup class and subject in DB
+        from app.models.class_model import Class
+        from app.models.subject import Subject
+        from app.models.chapter import Chapter
+        
+        test_class = Class(name="Grade 1", grade="1", section="A")
+        self.db.add(test_class)
+        self.db.commit()
+        
+        test_subj = Subject(name="Mathematics", code="MATH1", class_id=test_class.id)
+        self.db.add(test_subj)
+        self.db.commit()
+        
+        # We need a different chapter number to avoid collision
+        test_chap = Chapter(number="2", title="Numbers from One to Nine", subject_id=test_subj.id)
+        self.db.add(test_chap)
+        self.db.commit()
+        
+        # Trigger background sync endpoint
+        response = self.client.post(
+            f"/api/chapters/{test_chap.id}/sync-ncert?background=true",
+            headers=self.headers
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        mock_celery.assert_called_once_with(test_chap.id)
+        mock_bg_tasks.assert_called_once()
+
 if __name__ == "__main__":
     unittest.main()
