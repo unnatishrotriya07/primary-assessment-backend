@@ -3,6 +3,9 @@ import boto3
 from botocore.exceptions import ClientError
 from app.core.config import settings
 
+# Global toggle to pause S3 uploads and route them to local storage
+PAUSE_S3 = os.getenv("PAUSE_S3", "true").lower() == "true"
+
 def get_s3_client():
     return boto3.client(
         "s3",
@@ -12,6 +15,19 @@ def get_s3_client():
     )
 
 def upload_to_s3(file_bytes: bytes, filename: str, content_type: str = "image/png") -> str:
+    if PAUSE_S3:
+        clean_filename = filename.lstrip("/")
+        local_path = os.path.join("static", clean_filename)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        try:
+            with open(local_path, "wb") as f:
+                f.write(file_bytes)
+            print(f"Local Storage (S3 Paused): Saved '{clean_filename}' locally.", flush=True)
+            return f"/static/{clean_filename}"
+        except Exception as e:
+            print(f"Local Storage (S3 Paused): Failed to save '{clean_filename}' locally. Error: {e}", flush=True)
+            return None
+
     s3 = get_s3_client()
     bucket = settings.AWS_STORAGE_BUCKET_NAME
     
@@ -71,7 +87,12 @@ def upload_to_s3(file_bytes: bytes, filename: str, content_type: str = "image/pn
         return None
 
 def s3_file_exists(filename: str) -> bool:
-    """Checks if a file exists in the S3 bucket."""
+    """Checks if a file exists in the S3 bucket (or local static folder if S3 is paused)."""
+    if PAUSE_S3:
+        clean_filename = filename.lstrip("/")
+        local_path = os.path.join("static", clean_filename)
+        return os.path.exists(local_path)
+
     if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
         return False
     s3 = get_s3_client()
@@ -90,7 +111,23 @@ def s3_file_exists(filename: str) -> bool:
         return False
 
 def download_from_s3(filename: str, dest_path: str) -> bool:
-    """Downloads a file from S3 to dest_path."""
+    """Downloads a file from S3 (or copies from local static folder if S3 is paused) to dest_path."""
+    if PAUSE_S3:
+        clean_filename = filename.lstrip("/")
+        local_path = os.path.join("static", clean_filename)
+        if os.path.exists(local_path):
+            try:
+                import shutil
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                shutil.copy2(local_path, dest_path)
+                print(f"Local Storage (S3 Paused): Successfully copied '{clean_filename}' to '{dest_path}'.", flush=True)
+                return True
+            except Exception as e:
+                print(f"Local Storage (S3 Paused): Failed to copy '{clean_filename}' to '{dest_path}'. Error: {e}", flush=True)
+                return False
+        print(f"Local Storage (S3 Paused): '{clean_filename}' not found locally.", flush=True)
+        return False
+
     if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
         return False
     s3 = get_s3_client()

@@ -24,3 +24,22 @@ def evaluate_interview_task(self, interview_id: int):
             raise retry_exc
     finally:
         db.close()
+
+
+@celery_app.task(name="app.tasks.evaluation_tasks.cleanup_expired_audio_task")
+def cleanup_expired_audio_task():
+    print("[Celery Worker] Starting periodic audio recordings cleanup task", flush=True)
+    db = SessionLocal()
+    try:
+        from app.services.conversation_engine import ConversationEngine
+        engine = ConversationEngine(db)
+        cleaned_count = engine.cleanup_expired_audio()
+        print(f"[Celery Worker] Successfully cleaned up {cleaned_count} expired interview audio directories", flush=True)
+        return cleaned_count
+    except Exception as exc:
+        db.rollback()
+        print(f"[Celery Worker] Audio cleanup task failed: {exc}", flush=True)
+        traceback.print_exc()
+        raise exc
+    finally:
+        db.close()

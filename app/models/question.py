@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, ForeignKey, JSON, DateTime
+from sqlalchemy import Column, String, Integer, ForeignKey, JSON, DateTime, Text, Float
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -27,6 +27,20 @@ class Question(Base):
     page = Column(String, nullable=True)
     confidence = Column(Integer, nullable=True)
     reference_text = Column(String, nullable=True)
+
+    # V2 Compiler Fields
+    learning_objective = Column(String, nullable=True)
+    bloom_level = Column(String, nullable=True)
+    expected_concepts = Column(JSON, nullable=True)
+    rubric = Column(Text, nullable=True)
+    common_mistakes = Column(JSON, nullable=True)
+    hints = Column(JSON, nullable=True)
+    followups = Column(JSON, nullable=True)
+    maximum_followups = Column(Integer, default=2, nullable=False)
+    minimum_coverage = Column(Float, default=0.6, nullable=False)
+    ideal_answer_length = Column(Integer, default=50, nullable=False)
+    estimated_duration = Column(Integer, default=120, nullable=False)
+    scoring_rules = Column(Text, nullable=True)
 
     school_class = relationship("Class", back_populates="questions")
     subject = relationship("Subject", back_populates="questions")

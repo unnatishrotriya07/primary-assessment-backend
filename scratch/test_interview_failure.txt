@@ -1,0 +1,197 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend
+plugins: anyio-4.13.0
+collected 9 items / 8 deselected / 1 selected
+
+tests/test_interview.py F                                                [100%]
+
+=================================== FAILURES ===================================
+_______ TestInterviewService.test_evaluation_pipeline_with_review_flags ________
+
+self = <test_interview.TestInterviewService testMethod=test_evaluation_pipeline_with_review_flags>
+mock_llm_call = <MagicMock name='_call_llm_with_fallback' id='4586056272'>
+
+    @patch("app.services.evaluation_pipeline.EvaluationPipelineService._call_llm_with_fallback")
+    def test_evaluation_pipeline_with_review_flags(self, mock_llm_call):
+        """test_evaluation_pipeline_with_review_flags: pipeline flags low confidence evaluations/transcripts."""
+        from app.services.evaluation_pipeline import EvaluationPipelineService
+        service = InterviewService(self.db)
+        start_res = service.start_interview("token_valid", "charlie@example.com")
+        interview_id = start_res["interview_id"]
+    
+        # Save student message with low speech confidence (< 0.70)
+        service.add_message(
+            interview_id=interview_id,
+            role="student",
+            text="mumble half...",
+            question_category="Fractions",
+            sequence_number=1,
+            speech_confidence=0.55
+        )
+    
+        # Mock low evaluation confidence for questions
+        mock_llm_call.side_effect = [
+            # Cleanup output
+            {"dialogue": [{"role": "student", "text": "mumble half...", "category": "Fractions"}]},
+            # Question mapping
+            [{"index": 1, "question": "What is half of 4?", "student_answer": "mumble half...", "expected_answer": "2", "options": [], "question_type": "tita"}],
+            # Answer understanding
+            [{"index": 1, "question": "What is half of 4?", "student_answer": "mumble half...", "is_skipped": False, "is_partial": True, "has_speech_issue": True, "cleaned_response": "mumble half"}],
+            # Per-question evaluation (returns low evaluation confidence - Attempt 1)
+            {"concept": "Fractions", "masteryScore": 40, "confidence": 50, "reasoning": "Unclear student answer", "misconception": "Speech issue", "evidence": "mumble"},
+            # Per-question evaluation retry (Attempt 2)
+            {"concept": "Fractions", "masteryScore": 40, "confidence": 50, "reasoning": "Unclear student answer", "misconception": "Speech issue", "evidence": "mumble"},
+            # Concept mastery
+            {"subjectMastery": 40, "chapterMastery": 40, "concepts": [], "bloomDistribution": {}},
+            # Learning gaps
+            {"gaps": []},
+            # Strengths
+            {"strengths": []},
+            # Recommendations
+            {"recommendations": []},
+            # Teacher summary
+            {"summary": "Needs review"},
+            # Parent summary
+            {"parent_summary": "Encouraging letter"}
+        ]
+    
+        pipeline = EvaluationPipelineService(self.db)
+>       result = pipeline.run_pipeline(interview_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_interview.py:329: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/evaluation_pipeline.py:46: in run_pipeline
+    understood_answers = self._run_step(interview_id, "answer_understanding", self._step_answer_understanding, interview, mapped_questions)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/services/evaluation_pipeline.py:315: in _run_step
+    raise e
+app/services/evaluation_pipeline.py:300: in _run_step
+    output = step_func(*args)
+             ^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.evaluation_pipeline.EvaluationPipelineService object at 0x111c8a660>
+interview = <app.models.interview.Interview object at 0x124ab3c50>
+mapped_questions = {'dialogue': [{'role': 'student', 'text': 'mumble half...', 'category': 'Fractions'}]}
+
+        def _step_answer_understanding(self, interview: Interview, mapped_questions: list) -> list:
+            """
+            Worker 3: Decodes student response semantic intent (skips, partial understanding, speech errors).
+            """
+            if self.cached_analysis and "understood_answers" in self.cached_analysis:
+                return self.cached_analysis["understood_answers"]
+    
+            prompt = f"""You are an educational response analysis assistant.
+    Analyze the student's responses to understand their semantic intent.
+    Identify:
+    1. Did the student skip or decline to answer (e.g., "I don't know", "skip", silence, etc.)?
+    2. Did the student provide a partial or incomplete answer?
+    3. Were there potential speech recognition issues (mumbled, gibberish)?
+    4. Is it a clean, complete response?
+    
+    Mapped Answers:
+    {json.dumps(mapped_questions, indent=2)}
+    
+    Respond ONLY with a JSON list of objects matching the input array order:
+    [
+      {{
+        "index": <index>,
+        "question": "<question>",
+        "student_answer": "<student_answer>",
+        "is_skipped": <true/false>,
+        "is_partial": <true/false>,
+        "has_speech_issue": <true/false>,
+        "cleaned_response": "<semantic response summary>"
+      }}
+    ]"""
+            system_instruction = "You are a semantic answer analyzer. Return raw JSON list only."
+            fallback_data = [
+                {
+>                   "index": q["index"],
+                             ^^^^^^^^^^
+                    "question": q["question"],
+                    "student_answer": q["student_answer"],
+                    "is_skipped": q["student_answer"] == "" or "don't know" in q["student_answer"].lower(),
+                    "is_partial": False,
+                    "has_speech_issue": False,
+                    "cleaned_response": q["student_answer"]
+                } for q in mapped_questions
+            ]
+E           TypeError: string indices must be integers, not 'str'
+
+app/services/evaluation_pipeline.py:515: TypeError
+----------------------------- Captured stdout call -----------------------------
+[EvaluationPipeline] Starting step: transcript_cleanup for interview 1
+[EvaluationPipeline] Completed step: transcript_cleanup
+[EvaluationPipeline] Starting step: question_mapping for interview 1
+[EvaluationPipeline] Completed step: question_mapping
+[EvaluationPipeline] Starting step: answer_understanding for interview 1
+[EvaluationPipeline] Failed step: answer_understanding. Error: string indices must be integers, not 'str'
+=============================== warnings summary ===============================
+app/core/config.py:6
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/core/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class Settings(BaseSettings):
+
+app/schemas/interview_schema.py:29
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/interview_schema.py:29: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InterviewStartResponse(BaseModel):
+
+app/schemas/interview_schema.py:50
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/interview_schema.py:50: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InterviewReportResponse(BaseModel):
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/tests/test_interview.py:55: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=24),
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/student_assessment_schema.py:17: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class StudentAssessmentInterviewSchema(CamelModel):
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/student_assessment_schema.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class StudentAssessmentResponse(CamelModel):
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/student_assessment_service.py:119: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.datetime.utcnow()
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/ai/gemini_provider.py:3: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:288: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    started_at=datetime.datetime.utcnow()
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:303: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    step.completed_at = datetime.datetime.utcnow()
+
+tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:312: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    step.completed_at = datetime.datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_interview.py::TestInterviewService::test_evaluation_pipeline_with_review_flags
+================= 1 failed, 8 deselected, 18 warnings in 0.70s =================

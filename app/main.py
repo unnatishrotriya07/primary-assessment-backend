@@ -37,6 +37,29 @@ try:
             db.rollback()
             pass
             
+        # V2 compiler fields for questions table
+        for col_name, col_type in [
+            ("learning_objective", "VARCHAR"),
+            ("bloom_level", "VARCHAR"),
+            ("expected_concepts", "JSON"),
+            ("rubric", "TEXT"),
+            ("common_mistakes", "JSON"),
+            ("hints", "JSON"),
+            ("followups", "JSON"),
+            ("maximum_followups", "INTEGER DEFAULT 2"),
+            ("minimum_coverage", "FLOAT DEFAULT 0.6"),
+            ("ideal_answer_length", "INTEGER DEFAULT 50"),
+            ("estimated_duration", "INTEGER DEFAULT 120"),
+            ("scoring_rules", "TEXT")
+        ]:
+            try:
+                db.execute(text(f"ALTER TABLE questions ADD COLUMN {col_name} {col_type}"))
+                db.commit()
+                print(f"Database migration: Added V2 compiler '{col_name}' column to 'questions' table.", flush=True)
+            except Exception as qe:
+                db.rollback()
+                pass
+
         # Migrate chapters table
         try:
             db.execute(text("ALTER TABLE chapters ADD COLUMN text_content VARCHAR"))
@@ -90,6 +113,7 @@ try:
             ("raw_transcript", "VARCHAR"),
             ("clean_transcript", "VARCHAR"),
             ("validated_transcript", "VARCHAR"),
+            ("session_state_data", "JSON"),
         ]:
             try:
                 db.execute(text(f"ALTER TABLE interviews ADD COLUMN {col_name} {col_type}"))

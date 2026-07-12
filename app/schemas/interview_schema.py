@@ -112,3 +112,21 @@ class InterviewReviewRequest(BaseModel):
 
 class UpdateNotesRequest(BaseModel):
     admin_note: str
+
+
+class InterviewTurnRequest(BaseModel):
+    student_response: str
+    network_status: Optional[str] = "online"
+    audio_url: Optional[str] = None
+
+
+class InterviewTurnResponse(BaseModel):
+    next_speech: str
+    next_state: str
+    hints_remaining: int
+    followups_remaining: int
+    active_hint: Optional[str] = None
+    questions: Optional[List[dict]] = None
+    current_question_index: int
+    comfort_index: int
+    completion_status: str

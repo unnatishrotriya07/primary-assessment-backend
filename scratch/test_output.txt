@@ -1,0 +1,293 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.5, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend
+plugins: anyio-4.13.0
+collected 1 item
+
+tests/test_conversation_engine.py [EvaluationPipeline] Running unified single-call LLM analysis...
+[EvaluationPipeline] Utilizing local heuristic fallback
+[EvaluationPipeline] Unified analysis call succeeded.
+[EvaluationPipeline] Starting step: transcript_cleanup for interview 4
+[EvaluationPipeline] Completed step: transcript_cleanup
+[EvaluationPipeline] Starting step: question_mapping for interview 4
+[EvaluationPipeline] Completed step: question_mapping
+[EvaluationPipeline] Starting step: answer_understanding for interview 4
+[EvaluationPipeline] Completed step: answer_understanding
+[EvaluationPipeline] Starting step: per_question_evaluation for interview 4
+[EvaluationPipeline] Completed step: per_question_evaluation
+[EvaluationPipeline] Starting step: concept_mastery_detection for interview 4
+[EvaluationPipeline] Completed step: concept_mastery_detection
+[EvaluationPipeline] Starting step: learning_gap_detection for interview 4
+[EvaluationPipeline] Completed step: learning_gap_detection
+[EvaluationPipeline] Starting step: strength_detection for interview 4
+[EvaluationPipeline] Completed step: strength_detection
+[EvaluationPipeline] Starting step: recommendation_engine for interview 4
+[EvaluationPipeline] Completed step: recommendation_engine
+[EvaluationPipeline] Starting step: teacher_summary for interview 4
+[EvaluationPipeline] Completed step: teacher_summary
+[EvaluationPipeline] Starting step: parent_summary for interview 4
+[EvaluationPipeline] Completed step: parent_summary
+[EvaluationPipeline] Starting step: final_report for interview 4
+[EvaluationPipeline] Completed step: final_report
+F                                      [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_v2_conversation_engine_workflow _____________________
+
+db_session = <sqlalchemy.orm.session.Session object at 0x10cb34830>
+
+    def test_v2_conversation_engine_workflow(db_session: Session):
+        # Clean up existing test token
+        db_session.query(StudentAssessment).filter(StudentAssessment.token == "test-token-v2-12345").delete()
+        db_session.commit()
+    
+        # Setup Class
+        school_class = db_session.query(Class).first()
+        if not school_class:
+            school_class = Class(name="Grade 4")
+            db_session.add(school_class)
+            db_session.commit()
+            db_session.refresh(school_class)
+    
+        # 1. Setup mock subject, chapter, and questions
+        subject = db_session.query(Subject).first()
+        if not subject:
+            subject = Subject(name="Mathematics", code="MATH101")
+            db_session.add(subject)
+            db_session.commit()
+            db_session.refresh(subject)
+    
+        chapter = db_session.query(Chapter).filter(Chapter.subject_id == subject.id).first()
+        if not chapter:
+            chapter = Chapter(number="1", title="Fractions", subject_id=subject.id, content="Intro to fractions")
+            db_session.add(chapter)
+            db_session.commit()
+            db_session.refresh(chapter)
+    
+        # Clean existing questions to ensure clean test
+        db_session.query(Question).filter(Question.chapter_id == chapter.id).delete()
+        db_session.commit()
+    
+        q1 = Question(
+            text="What is a fraction?",
+            options=[],
+            correct_answer="A fraction represents a part of a whole.",
+            question_type="tita",
+            difficulty="easy",
+            cognitive_level="remembering",
+            subject_id=subject.id,
+            chapter_id=chapter.id,
+            generated_by="manual"
+        )
+        q2 = Question(
+            text="What does the denominator represent?",
+            options=[],
+            correct_answer="The denominator represents the total number of equal parts.",
+            question_type="tita",
+            difficulty="medium",
+            cognitive_level="understanding",
+            subject_id=subject.id,
+            chapter_id=chapter.id,
+            generated_by="manual"
+        )
+        db_session.add(q1)
+        db_session.add(q2)
+        db_session.commit()
+    
+        # Create Assessment
+        assessment = Assessment(
+            title="Fractions Quick Quiz",
+            subject_id=subject.id,
+            class_id=school_class.id,
+            status="Draft",
+            questions_count=2,
+            questions_to_ask=2
+        )
+        assessment.questions = [q1, q2]
+        db_session.add(assessment)
+        db_session.commit()
+    
+        # Create Student Assessment
+        import datetime
+        sa = StudentAssessment(
+            assessment_id=assessment.id,
+            student_name="Rahul Kumar",
+            student_class="Grade 4",
+            student_email="rahul@example.com",
+            contact="1234567890",
+            token="test-token-v2-12345",
+            status="Pending",
+            date_of_birth="2015-01-01",
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        )
+        db_session.add(sa)
+        db_session.commit()
+    
+        # 2. Start Interview & Verify compilation + session initialization
+        service = InterviewService(db_session)
+        res = service.start_interview("test-token-v2-12345", "rahul@example.com")
+    
+        interview_id = res["interview_id"]
+        interview = db_session.query(Interview).filter(Interview.id == interview_id).first()
+        assert interview is not None
+        assert interview.session_state == "meet_buddy"
+        assert interview.session_state_data is not None
+        assert len(interview.session_state_data["questions"]) == 2
+    
+        # Verify compiled columns are filled
+        compiled_q1 = db_session.query(Question).filter(Question.id == q1.id).first()
+        assert compiled_q1.rubric is not None
+        assert compiled_q1.hints is not None
+        assert len(compiled_q1.hints) >= 1
+    
+        # Override session questions hints and followups for deterministic tests
+        session_data = interview.session_state_data
+        session_data["questions"][0]["hints"] = ["Clue 1: Think of slices."]
+        session_data["questions"][0]["followups"] = ["Tell me more about parts."]
+        session_data["questions"][1]["hints"] = []
+        session_data["questions"][1]["followups"] = []
+        interview.session_state_data = session_data
+    
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(interview, "session_state_data")
+    
+        db_session.add(interview)
+        db_session.commit()
+        db_session.refresh(interview)
+    
+        # 3. Process turn: meet_buddy -> comfort_conv
+        turn_res = service.process_turn(interview_id, "I am fine, thank you!")
+        assert turn_res["next_state"] == "comfort_conv"
+        assert "enjoy" in turn_res["next_speech"].lower()
+    
+        # 4. Process turn: comfort_conv (1) -> comfort_conv (2)
+        turn_res = service.process_turn(interview_id, "I played football.")
+        assert turn_res["next_state"] == "comfort_conv"
+        assert "ready" in turn_res["next_speech"].lower()
+    
+        # 5. Process turn: comfort_conv (2) -> interview
+        turn_res = service.process_turn(interview_id, "Yes, I am ready!")
+        assert turn_res["next_state"] == "interview"
+        assert "fraction" in turn_res["next_speech"].lower()
+        assert turn_res["current_question_index"] == 0
+    
+        # 6. Process turn: interview -> HINT (simulate struggle)
+        turn_res = service.process_turn(interview_id, "I don't know what it is.")
+        assert turn_res["next_state"] == "HINT"
+        assert turn_res["hints_remaining"] == 0
+        assert turn_res["current_question_index"] == 0
+    
+        # 7. Process turn: HINT -> transitions to FOLLOWUP due to low mock concept coverage (0.5 < 0.6)
+        turn_res = service.process_turn(interview_id, "Ah, it means a part of a whole thing.")
+        assert turn_res["next_state"] == "FOLLOWUP"
+        assert turn_res["current_question_index"] == 0
+    
+        # 8. Process turn: FOLLOWUP -> advances to next question
+        turn_res = service.process_turn(interview_id, "Yes, a fraction is made of parts.")
+        assert turn_res["next_state"] == "interview"
+        assert turn_res["current_question_index"] == 1
+        assert "denominator" in turn_res["next_speech"].lower()
+    
+        # 9. Process turn: interview -> GOODBYE (finish assessment)
+        turn_res = service.process_turn(interview_id, "It means the total number of parts at the bottom.")
+        assert turn_res["next_state"] == "GOODBYE"
+        assert turn_res["completion_status"] == "Completed"
+    
+        # Verify ConversationTurn entries exist
+        turns = db_session.query(ConversationTurn).filter(ConversationTurn.interview_id == interview_id).all()
+        # Expect 5 turns: meet_buddy, comfort_conv (1), comfort_conv (2), question 1, question 2
+>       assert len(turns) == 5
+E       assert 7 == 5
+E        +  where 7 = len([<app.models.interview.ConversationTurn object at 0x11c28cd10>, <app.models.interview.ConversationTurn object at 0x11c....interview.ConversationTurn object at 0x11c23db80>, <app.models.interview.ConversationTurn object at 0x11c27a190>, ...])
+
+tests/test_conversation_engine.py:185: AssertionError
+----------------------------- Captured stdout call -----------------------------
+[ConversationEngine] Redis not reachable. Running pipeline synchronously in background thread.
+=============================== warnings summary ===============================
+app/core/config.py:6
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/core/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class Settings(BaseSettings):
+
+app/schemas/interview_schema.py:29
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/interview_schema.py:29: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InterviewStartResponse(BaseModel):
+
+app/schemas/interview_schema.py:50
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/interview_schema.py:50: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class InterviewReportResponse(BaseModel):
+
+app/ai/gemini_provider.py:3
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/ai/gemini_provider.py:3: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+tests/test_conversation_engine.py: 19 warnings
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/tests/test_conversation_engine.py:107: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/student_assessment_schema.py:17: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class StudentAssessmentInterviewSchema(CamelModel):
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/schemas/student_assessment_schema.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class StudentAssessmentResponse(CamelModel):
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/student_assessment_service.py:119: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.datetime.utcnow()
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/repositories/assessment_repository.py:24: SAWarning: Multiple rows returned with uselist=False for eagerly-loaded attribute 'StudentAssessment.interview' 
+    ).first()
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/conversation_engine.py:65: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    created_at=datetime.datetime.utcnow()
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/conversation_engine.py:180: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    limit_date = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/conversation_engine.py:146: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    interview.completed_at = datetime.datetime.utcnow()
+
+tests/test_conversation_engine.py: 11 warnings
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:288: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    started_at=datetime.datetime.utcnow()
+
+tests/test_conversation_engine.py: 11 warnings
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:303: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    step.completed_at = datetime.datetime.utcnow()
+
+tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+  /Users/unnatishrotriya/Documents/Codebase/primary_ assessment/backend/app/services/evaluation_pipeline.py:884: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    interview.completed_at = datetime.datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_conversation_engine.py::test_v2_conversation_engine_workflow
+======================== 1 failed, 66 warnings in 3.26s ========================

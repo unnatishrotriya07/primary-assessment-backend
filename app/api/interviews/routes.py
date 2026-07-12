@@ -13,6 +13,8 @@ from app.schemas.interview_schema import (
     SessionUpdateRequest,
     InterviewReviewRequest,
     MessageCreateRequest,
+    InterviewTurnRequest,
+    InterviewTurnResponse,
 )
 from app.services.interview_service import InterviewService
 
@@ -61,6 +63,24 @@ def record_interview_message(
             speech_confidence=payload.speech_confidence,
         )
         return {"status": "success", "message_id": msg.id}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{interview_id}/turn", response_model=InterviewTurnResponse)
+def record_interview_turn(
+    interview_id: int,
+    payload: InterviewTurnRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    V2 Real-Time Conversation Engine turn execution.
+    Takes student speech response and returns next action from the state machine.
+    """
+    service = InterviewService(db)
+    try:
+        result = service.process_turn(interview_id, payload.student_response, payload.audio_url)
+        return result
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

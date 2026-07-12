@@ -4,7 +4,7 @@ import os
 import httpx
 from sqlalchemy.orm import Session
 
-from app.models.interview import Interview, InterviewMessage
+from app.models.interview import Interview, InterviewMessage, ConversationTurn
 from app.models.student_assessment import StudentAssessment
 from app.models.assessment import Assessment
 from app.schemas.interview_schema import InterviewSubmitRequest
@@ -119,11 +119,21 @@ class InterviewService:
             self.db.commit()
             self.db.refresh(interview)
 
+        # 1. Compile assessment if not already done
+        from app.services.compiler_service import AssessmentCompilerService
+        compiler = AssessmentCompilerService(self.db)
+        try:
+            compiler.compile_assessment(assessment.id)
+            # Reload assessment to get compiled relation objects
+            self.db.refresh(assessment)
+        except Exception as ce:
+            print(f"[InterviewService] Auto-compilation failed: {ce}", flush=True)
+            self.db.rollback()
 
         # Build dynamic list of questions
         dynamic_questions = []
 
-        # 1. Assessment-specific questions
+        # Find default skill
         subject_name = assessment.subject.name.lower() if assessment.subject else ""
         default_skill = "communication"
         if "math" in subject_name or "num" in subject_name:
@@ -136,7 +146,6 @@ class InterviewService:
         questions_to_use = asmt_service.get_questions_for_session(assessment.id, seed_str=token)
 
         for q in questions_to_use:
-            # Generate or fetch hint
             hint_val = getattr(q, 'hint', None)
             if not hint_val:
                 text_lower = q.text.lower()
@@ -154,19 +163,119 @@ class InterviewService:
                     hint_val = "Let's think together. Can you break the question down or explain what you think it means?"
             
             dynamic_questions.append({
+                "id": q.id,
                 "q": q.text,
-                "skill": default_skill,
+                "skill": q.bloom_level or default_skill,
                 "category": q.chapter.title if q.chapter else "Assessment Content",
-                "hint": hint_val
+                "hints": q.hints if q.hints else [hint_val],
+                "expected_concepts": q.expected_concepts or [],
+                "followups": q.followups or [],
+                "learning_objective": q.learning_objective or "",
             })
 
         # Fallback if no questions are assigned to the assessment
         if len(dynamic_questions) == 0:
             dynamic_questions.append({
+                "id": 1,
                 "q": "If you could visit any place in the world, where would you go and why?",
                 "skill": "creativity",
-                "category": "Aspirations"
+                "category": "Aspirations",
+                "hints": ["Think of your favorite place, maybe a park or beach.", "Why does that place make you happy?"],
+                "expected_concepts": ["place", "reason"],
+                "followups": ["What would you do when you get there?"],
+                "learning_objective": "Communicate creative thoughts clearly",
             })
+
+        # Set up grade-adapted persona (Chapter 7)
+        student_grade = sa.student_class or "Grade 3"
+        grade_persona = {}
+        grade_num = 3
+        try:
+            import re
+            m = re.search(r'\d+', student_grade)
+            if m:
+                grade_num = int(m.group(0))
+        except Exception:
+            pass
+
+        if grade_num <= 2:
+            grade_persona = {
+                "grade_group": "Grade 1-2",
+                "voice_speed": "very slow",
+                "expressiveness": "very high",
+                "sentence_limit": "5-8 words",
+                "style": "cheerful, slow, expressive"
+            }
+        elif grade_num <= 5:
+            grade_persona = {
+                "grade_group": "Grade 3-5",
+                "voice_speed": "normal",
+                "expressiveness": "high",
+                "sentence_limit": "8-15 words",
+                "style": "friendly, encouraging, teacher-like"
+            }
+        elif grade_num <= 8:
+            grade_persona = {
+                "grade_group": "Grade 6-8",
+                "voice_speed": "normal",
+                "expressiveness": "medium",
+                "sentence_limit": "15-20 words",
+                "style": "professional, energetic"
+            }
+        else:
+            grade_persona = {
+                "grade_group": "Grade 9-10",
+                "voice_speed": "normal",
+                "expressiveness": "calm",
+                "sentence_limit": "20-25 words",
+                "style": "calm, respectful, examiner style"
+            }
+
+        session_questions = []
+        for dq in dynamic_questions:
+            session_questions.append({
+                "id": dq["id"],
+                "text": dq["q"],
+                "skill": dq["skill"],
+                "category": dq["category"],
+                "hints": dq["hints"],
+                "expected_concepts": dq["expected_concepts"],
+                "followups": dq["followups"],
+                "learning_objective": dq["learning_objective"]
+            })
+
+        # 2. Session Initialization (Chapter 5)
+        if not interview.session_state_data:
+            session_data = {
+                "student_name": sa.student_name,
+                "student_class": sa.student_class,
+                "assessment_id": assessment.id,
+                "current_question_index": 0,
+                "current_skill": default_skill,
+                "current_difficulty": "medium",
+                "persona": grade_persona,
+                "voice_profile": {"voice": "default_teacher"},
+                "memory": {
+                    "transcript_summary": "",
+                    "concept_coverage": {},
+                    "misconceptions": [],
+                    "confidence": 1.0,
+                    "tone": "neutral",
+                    "remaining_questions": [q["text"] for q in session_questions[1:]]
+                },
+                "hints_used_count": 0,
+                "followups_used_count": 0,
+                "completed_skills": [],
+                "pending_skills": list(set([dq["skill"] for dq in dynamic_questions])),
+                "hints_limit": 2,
+                "followups_limit": 2,
+                "questions": session_questions,
+                "history": []
+            }
+            interview.session_state_data = session_data
+            self.db.add(interview)
+            self.db.commit()
+            self.db.refresh(interview)
 
         # Find subject name and chapter info to return for custom greeting
         sub_name = assessment.subject.name if assessment.subject else ""
@@ -457,12 +566,51 @@ class InterviewService:
 
         # Save transcript & V2 engine metadata
         interview.transcript   = json.dumps([e.dict() for e in payload.transcript])
+        interview.raw_answers  = payload.answers
         interview.completed_at = datetime.datetime.utcnow()
         interview.status       = "Transcript Saved"
         interview.language     = "en-US"
         interview.confidence   = 0.95
         interview.audio_references = json.dumps([])
         interview.report_version = "2.0.0"
+
+        # Populate InterviewMessage records for the session
+        # Clear existing to avoid duplicate entries on retry/re-submit
+        self.db.query(InterviewMessage).filter(InterviewMessage.interview_id == interview.id).delete()
+        self.db.query(ConversationTurn).filter(ConversationTurn.interview_id == interview.id).delete()
+
+        for idx, entry in enumerate(payload.transcript):
+            msg = InterviewMessage(
+                interview_id=interview.id,
+                role=entry.role,
+                text=entry.text,
+                question_category=entry.question_category,
+                sequence_number=idx + 1
+            )
+            self.db.add(msg)
+
+        # Populate ConversationTurn records
+        last_ai_text = None
+        for entry in payload.transcript:
+            if entry.role == "ai":
+                last_ai_text = entry.text
+            elif entry.role == "student" and last_ai_text is not None:
+                turn = ConversationTurn(
+                    interview_id=interview.id,
+                    buddy_message=last_ai_text,
+                    student_transcript=entry.text
+                )
+                self.db.add(turn)
+                last_ai_text = None
+                
+        # If there's a trailing AI message (e.g. goodbye)
+        if last_ai_text is not None:
+            turn = ConversationTurn(
+                interview_id=interview.id,
+                buddy_message=last_ai_text,
+                student_transcript=""
+            )
+            self.db.add(turn)
 
         # Mark parent StudentAssessment as completed
         sa = (
@@ -963,3 +1111,161 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation
         raw   = response.json()["choices"][0]["message"]["content"]
         clean = raw.replace("```json", "").replace("```", "").strip()
         return json.loads(clean)
+
+    # ── V2 CONVERSATION ENGINE STATE MACHINE ────────────────────────────────
+    def process_turn(self, interview_id: int, student_response: str, audio_url: Optional[str] = None) -> dict:
+        from typing import Optional
+        from app.services.conversation_engine import ConversationEngine
+        conv_engine = ConversationEngine(self.db)
+        return conv_engine.process_turn(interview_id, student_response, audio_url)
+
+    def _initialize_fallback_session_data(self, interview: Interview) -> dict:
+        # Build dynamic list of questions
+        dynamic_questions = []
+        subject_name = interview.assessment.subject.name.lower() if interview.assessment and interview.assessment.subject else ""
+        default_skill = "communication"
+        if "math" in subject_name or "num" in subject_name:
+            default_skill = "numeracy"
+        elif "art" in subject_name or "creat" in subject_name:
+            default_skill = "creativity"
+
+        questions_to_use = list(interview.assessment.questions) if interview.assessment and interview.assessment.questions else []
+        for q in questions_to_use:
+            dynamic_questions.append({
+                "id": q.id,
+                "text": q.text,
+                "skill": q.bloom_level or default_skill,
+                "category": q.chapter.title if q.chapter else "Assessment Content",
+                "hints": q.hints if q.hints else ["Let's think together."],
+                "expected_concepts": q.expected_concepts or [],
+                "followups": q.followups or [],
+                "learning_objective": q.learning_objective or "",
+            })
+
+        return {
+            "student_name": interview.student_name,
+            "student_class": interview.student_class,
+            "assessment_id": interview.assessment_id,
+            "current_question_index": 0,
+            "current_skill": default_skill,
+            "current_difficulty": "medium",
+            "persona": {
+                "grade_group": "Grade 3-5",
+                "voice_speed": "normal",
+                "expressiveness": "high",
+                "sentence_limit": "8-15 words",
+                "style": "friendly, encouraging, teacher-like"
+            },
+            "voice_profile": {"voice": "default_teacher"},
+            "memory": {
+                "transcript_summary": "",
+                "concept_coverage": {},
+                "misconceptions": [],
+                "confidence": 1.0,
+                "tone": "neutral"
+            },
+            "hints_used_count": 0,
+            "followups_used_count": 0,
+            "completed_skills": [],
+            "pending_skills": list(set([dq["skill"] for dq in dynamic_questions])),
+            "hints_limit": 2,
+            "followups_limit": 2,
+            "questions": dynamic_questions,
+            "history": []
+        }
+
+    def _rewrite_with_persona(self, text: str, persona: dict) -> str:
+        prompt = f"""You are a caring primary school teacher.
+Rewrite the following response to match the target children grade persona:
+Persona Style: {persona.get('style', 'friendly, encouraging')}
+Sentence length limit: {persona.get('sentence_limit', '8-15 words')}
+
+Response: {text}
+
+Keep it warm and encouraging. Return ONLY the rewritten text, without quotes, prefix introduction, or markdown styling. Keep it short.
+"""
+        try:
+            if self.groq_prov.is_configured():
+                res = self.groq_prov.generate(prompt=prompt, max_tokens=100, temperature=0.7)
+                if res and res.strip():
+                    return res.strip()
+            if self.gemini_prov.is_configured():
+                res = self.gemini_prov.generate(prompt=prompt, max_tokens=100, temperature=0.7, model_name="gemini-2.0-flash")
+                if res and res.strip():
+                    return res.strip()
+        except Exception:
+            pass
+        return text
+
+    def _analyze_response_realtime(self, question: dict, student_response: str) -> dict:
+        expected = question.get("expected_concepts") or []
+        prompt = f"""Analyze the student's answer to this question.
+Question: {question.get('text')}
+Expected Answer: {question.get('correct_answer')}
+Expected Key Concepts: {json.dumps(expected)}
+Student Answer: {student_response}
+
+Determine:
+1. Is the student struggling (silence, asking for help, "don't know", or off-topic/meaningless response)?
+2. What is the semantic concept coverage (from 0.0 to 1.0) of the expected key concepts?
+
+Return a JSON object:
+{{
+  "struggle": true/false,
+  "concept_coverage": 0.0-1.0
+}}
+Return ONLY the raw JSON. No markdown, no backticks.
+"""
+        try:
+            if self.groq_prov.is_configured():
+                res = self.groq_prov.generate(prompt=prompt, json_mode=True, max_tokens=50, temperature=0.0)
+                return json.loads(res)
+            if self.gemini_prov.is_configured():
+                res = self.gemini_prov.generate(prompt=prompt, json_mode=True, max_tokens=50, temperature=0.0, model_name="gemini-2.0-flash")
+                return json.loads(res)
+        except Exception:
+            pass
+        # Heuristic fallback
+        return {"struggle": self._check_heuristic_struggle(student_response), "concept_coverage": 0.5}
+
+    def _check_heuristic_struggle(self, text: str) -> bool:
+        text_lower = text.lower().strip()
+        if not text_lower or text_lower in ["(silent)", "silent", "none"]:
+            return True
+        struggle_words = ["don't know", "dont know", "skip", "help", "no idea", "not sure", "pass", "can't say", "cant say", "forget", "forgot"]
+        return any(word in text_lower for word in struggle_words)
+
+    def _trigger_background_evaluation(self, interview: Interview):
+        try:
+            # Check if Redis is alive before calling Celery
+            redis_alive = False
+            try:
+                import redis
+                from app.core.config import settings
+                r = redis.Redis.from_url(settings.CELERY_BROKER_URL, socket_timeout=0.5, socket_connect_timeout=0.5)
+                r.ping()
+                redis_alive = True
+            except Exception:
+                redis_alive = False
+
+            if redis_alive:
+                from app.tasks.evaluation_tasks import evaluate_interview_task
+                evaluate_interview_task.delay(interview.id)
+                print(f"[InterviewService] Triggered asynchronous evaluation task via Celery for interview {interview.id}", flush=True)
+            else:
+                print(f"[InterviewService] Redis not reachable. Running pipeline synchronously in background thread.", flush=True)
+                import threading
+                from app.services.evaluation_pipeline import EvaluationPipelineService
+                def run_sync():
+                    from app.db.session import SessionLocal
+                    db = SessionLocal()
+                    try:
+                        pipeline = EvaluationPipelineService(db)
+                        pipeline.run_pipeline(interview.id)
+                    except Exception as e:
+                        print(f"Background thread evaluation failed: {e}", flush=True)
+                    finally:
+                        db.close()
+                threading.Thread(target=run_sync).start()
+        except Exception as e:
+            print(f"[InterviewService] Failed to trigger background evaluation: {e}", flush=True)

@@ -55,6 +55,7 @@ class Interview(Base):
     raw_answers            = Column(JSON, nullable=True)
     network_status         = Column(String, default="online", nullable=False)
     completion_status      = Column(String, default="In Progress", nullable=False)
+    session_state_data     = Column(JSON, nullable=True)
 
     # Human Review mode
     requires_review        = Column(Boolean, default=False, nullable=False)
@@ -72,6 +73,7 @@ class Interview(Base):
 
     messages           = relationship("InterviewMessage", back_populates="interview", cascade="all, delete-orphan")
     evaluation_steps   = relationship("InterviewEvaluationStep", back_populates="interview", cascade="all, delete-orphan")
+    conversation_turns = relationship("ConversationTurn", back_populates="interview", cascade="all, delete-orphan")
 
 
 class InterviewMessage(Base):
@@ -112,3 +114,19 @@ class InterviewEvaluationStep(Base):
     completed_at = Column(DateTime, nullable=True)
 
     interview = relationship("Interview", back_populates="evaluation_steps")
+
+
+class ConversationTurn(Base):
+    __tablename__ = "conversation_turns"
+
+    id = Column(Integer, primary_key=True, index=True)
+    interview_id = Column(
+        Integer, ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id = Column(String, nullable=True)
+    buddy_message = Column(Text, nullable=True)
+    student_transcript = Column(Text, nullable=True)
+    audio_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    interview = relationship("Interview", back_populates="conversation_turns")

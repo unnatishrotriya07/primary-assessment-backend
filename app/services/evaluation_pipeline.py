@@ -7,7 +7,7 @@ import httpx
 import random
 from sqlalchemy.orm import Session
 
-from app.models.interview import Interview, InterviewMessage, InterviewEvaluationStep
+from app.models.interview import Interview, InterviewMessage, InterviewEvaluationStep, ConversationTurn
 from app.models.assessment import Assessment
 from app.db.session import SessionLocal
 
@@ -82,20 +82,40 @@ class EvaluationPipelineService:
         return final_report
 
     def _call_unified_llm(self, interview: Interview) -> dict:
-        # Load transcript turns
-        messages = self.db.query(InterviewMessage).filter(
-            InterviewMessage.interview_id == interview.id
-        ).order_by(InterviewMessage.id.asc()).all()
+        # Load transcript turns from canonical ConversationTurn table
+        turns = self.db.query(ConversationTurn).filter(
+            ConversationTurn.interview_id == interview.id
+        ).order_by(ConversationTurn.id.asc()).all()
 
         raw_turns = []
-        if messages:
-            for m in messages:
-                raw_turns.append({"role": m.role, "text": m.text, "category": m.question_category})
-        elif interview.transcript:
-            try:
-                raw_turns = json.loads(interview.transcript)
-            except Exception:
-                raw_turns = []
+        if turns:
+            for t in turns:
+                if t.buddy_message:
+                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": "interview"})
+                if t.student_transcript:
+                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": "interview"})
+            # Append final goodbye if completed
+            if interview.status == "Completed" or interview.completion_status == "Completed":
+                last_ai = self.db.query(InterviewMessage).filter(
+                    InterviewMessage.interview_id == interview.id,
+                    InterviewMessage.role == "ai",
+                    InterviewMessage.question_category == "GOODBYE"
+                ).first()
+                if last_ai:
+                    raw_turns.append({"role": "ai", "text": last_ai.text, "category": "GOODBYE"})
+        else:
+            # Fallback to InterviewMessage for backward compatibility
+            messages = self.db.query(InterviewMessage).filter(
+                InterviewMessage.interview_id == interview.id
+            ).order_by(InterviewMessage.id.asc()).all()
+            if messages:
+                for m in messages:
+                    raw_turns.append({"role": m.role, "text": m.text, "category": m.question_category})
+            elif interview.transcript:
+                try:
+                    raw_turns = json.loads(interview.transcript)
+                except Exception:
+                    raw_turns = []
 
         if not raw_turns:
             return {}
@@ -317,19 +337,39 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 pass
             return result
 
-        messages = self.db.query(InterviewMessage).filter(
-            InterviewMessage.interview_id == interview.id
-        ).order_by(InterviewMessage.id.asc()).all()
+        turns = self.db.query(ConversationTurn).filter(
+            ConversationTurn.interview_id == interview.id
+        ).order_by(ConversationTurn.id.asc()).all()
 
         raw_turns = []
-        if messages:
-            for m in messages:
-                raw_turns.append({"role": m.role, "text": m.text, "category": m.question_category})
-        elif interview.transcript:
-            try:
-                raw_turns = json.loads(interview.transcript)
-            except Exception:
-                raw_turns = []
+        if turns:
+            for t in turns:
+                if t.buddy_message:
+                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": "interview"})
+                if t.student_transcript:
+                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": "interview"})
+            # Append final goodbye if completed
+            if interview.status == "Completed" or interview.completion_status == "Completed":
+                last_ai = self.db.query(InterviewMessage).filter(
+                    InterviewMessage.interview_id == interview.id,
+                    InterviewMessage.role == "ai",
+                    InterviewMessage.question_category == "GOODBYE"
+                ).first()
+                if last_ai:
+                    raw_turns.append({"role": "ai", "text": last_ai.text, "category": "GOODBYE"})
+        else:
+            # Fallback to InterviewMessage for backward compatibility
+            messages = self.db.query(InterviewMessage).filter(
+                InterviewMessage.interview_id == interview.id
+            ).order_by(InterviewMessage.id.asc()).all()
+            if messages:
+                for m in messages:
+                    raw_turns.append({"role": m.role, "text": m.text, "category": m.question_category})
+            elif interview.transcript:
+                try:
+                    raw_turns = json.loads(interview.transcript)
+                except Exception:
+                    raw_turns = []
 
         if not raw_turns:
             return {"dialogue": []}

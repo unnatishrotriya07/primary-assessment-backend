@@ -12,6 +12,7 @@ from app.api.dashboard.routes import router as dashboard_router
 from app.api.team.routes import router as team_router
 from app.api.students.routes import router as students_router
 from app.api.control_panel.routes import router as control_panel_router
+from app.voice.router import router as voice_router
 
 api_router = APIRouter()
 
@@ -28,3 +29,5 @@ api_router.include_router(students_router, prefix="/students", tags=["students"]
 api_router.include_router(control_panel_router, prefix="/control-panel", tags=["control-panel"])
 
 api_router.include_router(interviews_router, prefix="/interviews", tags=["interviews"])
+api_router.include_router(voice_router, prefix="/voice", tags=["voice"])
+
