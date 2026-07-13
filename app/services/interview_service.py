@@ -2,6 +2,7 @@ import json
 import datetime
 import os
 import httpx
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.interview import Interview, InterviewMessage, ConversationTurn
@@ -1114,7 +1115,6 @@ Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation
 
     # ── V2 CONVERSATION ENGINE STATE MACHINE ────────────────────────────────
     def process_turn(self, interview_id: int, student_response: str, audio_url: Optional[str] = None) -> dict:
-        from typing import Optional
         from app.services.conversation_engine import ConversationEngine
         conv_engine = ConversationEngine(self.db)
         return conv_engine.process_turn(interview_id, student_response, audio_url)
