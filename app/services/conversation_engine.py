@@ -262,13 +262,13 @@ class ConversationEngine:
             else:
                 print(f"[ConversationEngine] Redis not reachable. Running pipeline synchronously in background thread.", flush=True)
                 import threading
-                from app.services.evaluation_pipeline import EvaluationPipelineService
+                from app.application import GenerateReportUseCase
                 def run_sync():
                     from app.db.session import SessionLocal
                     db = SessionLocal()
                     try:
-                        pipeline = EvaluationPipelineService(db)
-                        pipeline.run_pipeline(interview.id)
+                        use_case = GenerateReportUseCase(db)
+                        use_case.execute(interview.id)
                     except Exception as e:
                         print(f"Background thread evaluation failed: {e}", flush=True)
                     finally:

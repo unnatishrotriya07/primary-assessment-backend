@@ -6,8 +6,8 @@ import shutil
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.voice.whisper_service import get_whisper_service
-from app.voice.kokoro_service import get_kokoro_service
+from app.ai_assessment.audio.whisper_service import get_whisper_service
+from app.ai_assessment.audio.kokoro_service import get_kokoro_service
 
 class TestVoiceAPI(unittest.TestCase):
     def setUp(self):
@@ -26,8 +26,8 @@ class TestVoiceAPI(unittest.TestCase):
         if os.path.exists(self.kokoro_service.cache_dir):
             shutil.rmtree(self.kokoro_service.cache_dir)
 
-    @patch("app.voice.whisper_service.WhisperService.is_available")
-    @patch("app.voice.kokoro_service.KokoroService.is_available", new_callable=AsyncMock)
+    @patch("app.ai_assessment.audio.whisper_service.WhisperService.is_available")
+    @patch("app.ai_assessment.audio.kokoro_service.KokoroService.is_available", new_callable=AsyncMock)
     def test_health_check_success(self, mock_kokoro, mock_whisper):
         """Test GET /voice/health returns ok status."""
         mock_whisper.return_value = True
@@ -36,7 +36,7 @@ class TestVoiceAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok", "whisper": "available", "kokoro": "available"})
 
-    @patch("app.voice.whisper_service.WhisperModel")
+    @patch("app.ai_assessment.audio.whisper_service.WhisperModel")
     def test_transcribe_audio_success(self, MockWhisperModel):
         """Test successfully transcribing audio using faster-whisper mock."""
         # Setup mock model responses
@@ -77,7 +77,7 @@ class TestVoiceAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Unsupported audio format", response.json()["detail"])
 
-    @patch("app.voice.whisper_service.WhisperModel")
+    @patch("app.ai_assessment.audio.whisper_service.WhisperModel")
     def test_stt_endpoint_success(self, MockWhisperModel):
         """Test the legacy /voice/stt endpoint."""
         mock_model = MockWhisperModel.return_value
@@ -97,7 +97,7 @@ class TestVoiceAPI(unittest.TestCase):
         self.assertEqual(response.json()["text"], "hello")
         self.assertEqual(response.json()["language"], "en")
 
-    @patch("app.voice.kokoro_service.httpx.AsyncClient")
+    @patch("app.ai_assessment.audio.kokoro_service.httpx.AsyncClient")
     def test_tts_endpoint_success(self, MockAsyncClient):
         """Test text-to-speech audio synthesis endpoint."""
         mock_client = MockAsyncClient.return_value.__aenter__.return_value
@@ -114,7 +114,7 @@ class TestVoiceAPI(unittest.TestCase):
         self.assertEqual(response.headers["content-type"], "audio/mpeg")
         self.assertEqual(response.content, b"synthesized audio bytes")
 
-    @patch("app.voice.kokoro_service.httpx.AsyncClient")
+    @patch("app.ai_assessment.audio.kokoro_service.httpx.AsyncClient")
     def test_speak_endpoint_success_and_caching(self, MockAsyncClient):
         """Test speak endpoint success, chunking, and file-based caching."""
         # 1. Synthesize audio bytes

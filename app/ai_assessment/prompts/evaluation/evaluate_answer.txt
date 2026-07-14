@@ -1,0 +1,11 @@
+Evaluate the student's answer for the following question:
+Question: {question_text}
+Correct Answer: {correct_answer}
+Student Answer: {student_answer}
+
+Provide feedback indicating correctness, explaining why the answer is correct or incorrect, and suggesting areas of revision.
+Output a JSON object:
+{{
+  "is_correct": true/false,
+  "explanation": "text explanation here"
+}}

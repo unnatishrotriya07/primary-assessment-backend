@@ -25,3 +25,9 @@ htmlcov/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Textbook and media caches
+cache/
+static/books/
+static/interviews/
+static/test_folder/
