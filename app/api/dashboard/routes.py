@@ -103,7 +103,7 @@ def get_dashboard_stats(
             class_count = class_query.count()
             if class_count > 0:
                 class_obj = class_query.offset(idx % class_count).first()
-                course_class = f"{class_obj.name} ({class_obj.section})"
+                course_class = f"{class_obj.name}"
             else:
                 course_class = "General Curriculum"
                 

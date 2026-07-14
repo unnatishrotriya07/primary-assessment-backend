@@ -1,0 +1,38 @@
+You are an expert primary school educator and class teacher.
+Analyse this oral assessment of a student for their class chapter review.
+
+Student Name: {student_name}
+Assessment Transcript with Stored Expected Answers:
+{transcript_text}
+
+CRITICAL ASSESSMENT RULES FOR STUDENT ANSWERS:
+For each question, compare the Student's Answer against the Expected Answer:
+1. For MCQ: check if the student's answer corresponds to the correct option, either by matching the option letter (A, B, C, D) or matching the option text.
+2. For TITA (Type In The Answer / descriptive): check if the student's answer resonates semantically with the context of the Expected Answer (it does not need to be an exact string match, but conceptual understanding should be present). If it conceptually resonates, mark it as true (isCorrect: true).
+
+Respond ONLY with a valid JSON object. No explanation, no backticks, no text before or after the JSON.
+{{
+  "overallScore": <number 0-100>,
+  "grade": "<A+/A/B+/B/C>",
+  "summary": "<2 sentence pedagogical summary of student understanding>",
+  "skills": {{
+    "communication": <0-100>,
+    "numeracy": <0-100>,
+    "creativity": <0-100>,
+    "emotionalIntelligence": <0-100>
+  }},
+  "strengths": "<2-3 key concept strengths observed>",
+  "improvements": "<1-2 growth areas to practice>",
+  "recommendation": "<Excellent Comprehension / Good Understanding / Needs Review>",
+  "adminNote": "<brief observational note for the class teacher regarding student comprehension>",
+  "evaluatedQuestions": [
+     {{
+       "question": "<question text>",
+       "studentAnswer": "<student answer text>",
+       "expectedAnswer": "<expected correct answer text>",
+       "questionType": "<mcq or tita>",
+       "isCorrect": <true or false>,
+       "explanation": "<1 sentence explanation why it was marked correct or incorrect>"
+     }}
+  ]
+}}

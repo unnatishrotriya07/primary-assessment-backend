@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.ai.gemini_provider import GeminiProvider
 from app.ai.openai_provider import OpenAIProvider
 from app.ai.groq_provider import GroqProvider
+from app.ai_assessment.prompts import loader
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +52,8 @@ class QuestionGenerator:
         Returns:
             tuple: (list_of_questions, provider_name)
         """
-        # Load prompt template
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "generate_questions.txt")
         try:
-            with open(prompt_path, "r") as f:
-                template = f.read()
-            prompt = template.format(
+            prompt = loader.load_generate_questions(
                 count=count,
                 subject_name=subject_name,
                 chapter_number=chapter_number,
@@ -64,7 +61,6 @@ class QuestionGenerator:
                 chapter_content=chapter_content if chapter_content else "(No text content provided)",
                 difficulty=difficulty,
                 cognitive_level=cognitive_level,
-                question_type=question_type,
                 selected_text=selected_text if selected_text else ""
             )
         except Exception as e:

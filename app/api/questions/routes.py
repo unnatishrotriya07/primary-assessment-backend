@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.schemas.question_schema import QuestionCreate, QuestionResponse, AIQuestionParams, QuestionBatchSave
 from app.services.question_service import QuestionService
+from app.application import GenerateAssessmentUseCase
 
 router = APIRouter()
 
@@ -32,8 +33,8 @@ def create_question(question_in: QuestionCreate, db: Session = Depends(get_db), 
 
 @router.post("/generate", response_model=List[QuestionResponse])
 def generate_ai_questions(params: AIQuestionParams, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    service = QuestionService(db)
-    return service.generate_ai_questions(params, tenant_id=current_user.get("tenant_id"))
+    use_case = GenerateAssessmentUseCase(db)
+    return use_case.execute(params, tenant_id=current_user.get("tenant_id"))
 
 @router.post("/batch", response_model=List[QuestionResponse])
 def batch_create_questions(batch_in: QuestionBatchSave, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):

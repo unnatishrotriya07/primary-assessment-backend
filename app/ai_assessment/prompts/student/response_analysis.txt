@@ -1,0 +1,16 @@
+Analyze the student's answer to this question.
+Question: {question_text}
+Expected Answer: {correct_answer}
+Expected Key Concepts: {expected_concepts}
+Student Answer: {student_response}
+
+Determine:
+1. Is the student struggling (silence, asking for help, "don't know", or off-topic/meaningless response)?
+2. What is the semantic concept coverage (from 0.0 to 1.0) of the expected key concepts?
+
+Return a JSON object:
+{{
+  "struggle": true/false,
+  "concept_coverage": 0.0-1.0
+}}
+Return ONLY the raw JSON. No markdown, no backticks.

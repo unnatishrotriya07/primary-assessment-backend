@@ -17,6 +17,7 @@ from app.schemas.interview_schema import (
     InterviewTurnResponse,
 )
 from app.services.interview_service import InterviewService
+from app.application import StartInterviewUseCase, SubmitResponseUseCase
 
 router = APIRouter()
 
@@ -30,9 +31,9 @@ def start_interview(payload: InterviewStartRequest, db: Session = Depends(get_db
     Creates the Interview row in the database and returns
     the student's name and the 7 interview questions.
     """
-    service = InterviewService(db)
+    use_case = StartInterviewUseCase(db)
     try:
-        result = service.start_interview(payload.token, payload.email)
+        result = use_case.execute(payload.token, payload.email)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -95,9 +96,10 @@ def submit_interview(
     Called when the student finishes all 7 questions.
     Saves the transcript and starts evaluation in the background.
     """
-    service = InterviewService(db)
+    use_case = SubmitResponseUseCase(db)
+    service = InterviewService(db) # Still needed for background task fallback referencing evaluate_interview_in_background_v2
     try:
-        interview = service.save_submission_and_set_evaluating(payload)
+        interview = use_case.execute(payload)
         
         # Check if Redis is alive before calling Celery
         redis_alive = False

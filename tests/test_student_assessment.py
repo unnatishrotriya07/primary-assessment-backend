@@ -14,8 +14,8 @@ from app.models.assessment import Assessment
 from app.models.report import Report
 from app.models.student_assessment import StudentAssessment
 
-from app.services.student_assessment_service import StudentAssessmentService
-from app.services.assessment_service import AssessmentService
+from app.core.services.student_assessment_service import StudentAssessmentService
+from app.core.services.assessment_service import AssessmentService
 from app.schemas.student_assessment_schema import StudentAssessmentCreate, StudentAssessmentStartRequest, StudentAssessmentBulkCreate
 from app.schemas.assessment_schema import SubmitAnswersParams
 
@@ -319,7 +319,7 @@ class TestStudentAssessmentFlow(unittest.TestCase):
         info = service_asmt.get_join_info(self.asmt.id)
         self.assertEqual(info["id"], self.asmt.id)
         self.assertEqual(info["title"], "Addition Diagnostic")
-        self.assertEqual(info["class_name"], "Grade 5 (A)")
+        self.assertEqual(info["class_name"], "Grade 5")
         self.assertFalse(info["is_expired"])
 
         # 3. Test verify valid student details

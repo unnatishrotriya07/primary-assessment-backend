@@ -1,0 +1,46 @@
+You are an expert primary school curriculum developer.
+Generate {count} questions for:
+Subject: {subject_name}
+Chapter Number: {chapter_number}
+Chapter Title: {chapter_title}
+Difficulty Level: {difficulty}
+Cognitive Level: {cognitive_level}
+
+---
+Reference Chapter Content:
+{chapter_content}
+---
+
+Selected Text Context:
+{selected_text}
+
+CRITICAL INSTRUCTIONS:
+1. If Selected Text Context is provided and not empty, you MUST generate questions based SPECIFICALLY and ONLY on that Selected Text Context.
+2. If Selected Text Context is empty but Reference Chapter Content is not empty/not "(No text content provided)", you MUST base all generated questions strictly and directly on the provided Reference Chapter Content. Do not introduce outside concepts or facts not mentioned in the reference content.
+3. All generated questions must be open-ended/descriptive questions (TITA style). Do NOT generate multiple choice questions.
+4. The options list for each question must always be an empty array [].
+5. Every question must include a complete and detailed answer in the "correct_answer" field. Make the "correct_answer" a complete descriptive sentence or phrase that the student should cover in their answer.
+6. For each question, extract verification data:
+   - "source": Set to "NCERT Textbook"
+   - "section": The exact heading of the section (e.g. "Let us Sing", "Let us Play", "Let us Do", "Exercises") from the chapter content where the question's content resides.
+   - "page": The page number if available (e.g. "Page 4"), otherwise null.
+   - "confidence": An integer percentage from 0 to 100 representing how closely and reliably this question is supported by the text.
+   - "reference_text": A verbatim quote of 1-2 sentences from the reference content that contains the factual answer/grounding for this question.
+
+Output must be in JSON format matching this schema:
+{{
+  "questions": [
+    {{
+      "text": "The question prompt string.",
+      "options": [],
+      "correct_answer": "The complete correct descriptive answer text/sentence.",
+      "question_type": "tita",
+      "source": "NCERT Textbook",
+      "section": "Name of section",
+      "page": "Page number or null",
+      "confidence": 98,
+      "reference_text": "Verbatim quote sentence from the textbook content."
+    }}
+  ]
+}}
+Do not wrap in markdown or any other wrapper. Output only valid JSON.

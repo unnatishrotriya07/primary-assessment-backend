@@ -5,8 +5,8 @@ from unittest.mock import patch, MagicMock
 from io import BytesIO
 
 from app.core.config import settings
-from app.services.email_service import EmailService
-from app.services.student_assessment_service import StudentAssessmentService
+from app.infrastructure.sendgrid import EmailService
+from app.core.services.student_assessment_service import StudentAssessmentService
 from app.schemas.student_assessment_schema import StudentAssessmentCreate
 from app.db.session import SessionLocal, engine
 from app.db.base import Base
@@ -44,7 +44,7 @@ class TestSendGridIntegration(unittest.TestCase):
     def tearDown(self):
         self.db.close()
 
-    @patch("app.services.email_service.settings")
+    @patch("app.infrastructure.sendgrid.settings")
     def test_sendgrid_simulation_fallback_when_credentials_missing(self, mock_settings):
         # Empty credentials
         mock_settings.SENDGRID_API_KEY = ""
@@ -61,8 +61,8 @@ class TestSendGridIntegration(unittest.TestCase):
         # Should return False (simulation mode)
         self.assertFalse(result)
 
-    @patch("app.services.email_service.urllib.request.urlopen")
-    @patch("app.services.email_service.settings")
+    @patch("app.infrastructure.sendgrid.urllib.request.urlopen")
+    @patch("app.infrastructure.sendgrid.settings")
     def test_sendgrid_dispatch_success(self, mock_settings, mock_urlopen):
         # Setup credentials
         mock_settings.SENDGRID_API_KEY = "SG.valid_test_key"
@@ -85,8 +85,8 @@ class TestSendGridIntegration(unittest.TestCase):
         self.assertTrue(result)
         mock_urlopen.assert_called_once()
 
-    @patch("app.services.email_service.urllib.request.urlopen")
-    @patch("app.services.email_service.settings")
+    @patch("app.infrastructure.sendgrid.urllib.request.urlopen")
+    @patch("app.infrastructure.sendgrid.settings")
     def test_sendgrid_http_error_graceful_handling(self, mock_settings, mock_urlopen):
         # Setup credentials
         mock_settings.SENDGRID_API_KEY = "SG.invalid_key"
@@ -114,7 +114,7 @@ class TestSendGridIntegration(unittest.TestCase):
         # Should handle error gracefully, return False, and not raise an exception
         self.assertFalse(result)
 
-    @patch("app.services.student_assessment_service.EmailService")
+    @patch("app.core.services.student_assessment_service.EmailService")
     def test_assign_student_assessment_does_not_crash_on_email_failure(self, MockEmailClass):
         # Mock EmailService instance to simulate a failure
         mock_email_instance = MockEmailClass.return_value
