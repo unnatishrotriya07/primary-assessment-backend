@@ -141,7 +141,7 @@ class EvaluationPipelineService:
                 "question": q["text"],
                 "studentAnswer": ans_text,
                 "expectedAnswer": q["expected"],
-                "isCorrect": False,
+                "isCorrect": ans_text != "",
                 "concept": q["concept"],
                 "masteryScore": 0 if ans_text == "" else 75,
                 "confidence": 100,
