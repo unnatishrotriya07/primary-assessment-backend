@@ -75,6 +75,11 @@ class Interview(Base):
     evaluation_steps   = relationship("InterviewEvaluationStep", back_populates="interview", cascade="all, delete-orphan")
     conversation_turns = relationship("ConversationTurn", back_populates="interview", cascade="all, delete-orphan")
 
+    @property
+    def session_id(self):
+        return self.student_assessment.session_id if self.student_assessment else None
+
+
 
 class InterviewMessage(Base):
     __tablename__ = "interview_messages"

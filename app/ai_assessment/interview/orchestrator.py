@@ -44,7 +44,7 @@ class InterviewOrchestrator:
                 new_current_idx = 0
                 first_q = questions[0] if len(questions) > 0 else {"q": "Let's begin!"}
                 q_text = first_q.get("text") or first_q.get("q") or "Let's begin!"
-                next_speech = self.conv_mgr.rewrite_with_persona(f"Great! Let's start with this. {q_text}", persona)
+                next_speech = self.conv_mgr.rewrite_with_persona(f"Great! Let's go to the assessment now. Here is the first question: {q_text}", persona)
 
         elif current_state in ["interview", "HINT", "FOLLOWUP"]:
             q = questions[current_idx] if current_idx < len(questions) else None

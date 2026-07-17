@@ -37,7 +37,7 @@ class StudentService:
         
         # Check scholar number uniqueness if changing
         if student_in.scholar_number is not None and student_in.scholar_number != student.scholar_number:
-            existing = self.student_repo.get_by_scholar_number(student_in.scholar_number)
+            existing = self.student_repo.get_by_scholar_number(student_in.scholar_number, tenant_id=tenant_id)
             if existing and existing.id != student.id:
                 raise HTTPException(status_code=400, detail=f"Scholar number '{student_in.scholar_number}' is already assigned to another student.")
         
@@ -192,7 +192,7 @@ class StudentService:
                     print(f"Failed to upload image during excel import for scholar no {scholar_number}: {e}", flush=True)
 
             # Check if student with scholar number exists
-            existing_student = self.student_repo.get_by_scholar_number(scholar_number)
+            existing_student = self.student_repo.get_by_scholar_number(scholar_number, tenant_id=tenant_id)
             if existing_student:
                 raise HTTPException(
                     status_code=400,

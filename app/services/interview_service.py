@@ -1,4 +1,5 @@
 import json
+from app.common.config import settings
 import datetime
 import os
 import httpx
@@ -120,10 +121,10 @@ class InterviewService:
                         return float(v)
                 return default
 
-            interview.score_communication = get_skill(["communication", "score_communication"], 70.0)
-            interview.score_numeracy      = get_skill(["numeracy", "score_numeracy"], 70.0)
-            interview.score_creativity    = get_skill(["creativity", "score_creativity"], 70.0)
-            interview.score_emotional_iq  = get_skill(["emotionalIntelligence", "emotional_iq", "score_emotional_iq"], 70.0)
+            interview.score_communication = None
+            interview.score_numeracy      = None
+            interview.score_creativity    = None
+            interview.score_emotional_iq  = None
             
             interview.strengths           = report.get("strengths") or "Good verbal response."
             interview.improvements        = report.get("improvements") or "Continue to practice core concepts."
@@ -205,10 +206,10 @@ class InterviewService:
                         return float(v)
                 return default
 
-            interview.score_communication = get_skill(["communication", "score_communication"], 70.0)
-            interview.score_numeracy      = get_skill(["numeracy", "score_numeracy"], 70.0)
-            interview.score_creativity    = get_skill(["creativity", "score_creativity"], 70.0)
-            interview.score_emotional_iq  = get_skill(["emotionalIntelligence", "emotional_iq", "score_emotional_iq"], 70.0)
+            interview.score_communication = None
+            interview.score_numeracy      = None
+            interview.score_creativity    = None
+            interview.score_emotional_iq  = None
             
             interview.strengths           = report.get("strengths") or "Good verbal response."
             interview.improvements        = report.get("improvements") or "Continue to practice core concepts."
@@ -252,7 +253,7 @@ class InterviewService:
             print(f"[InterviewService] Groq analysis failed: {e}", flush=True)
 
         # 2. Try OpenAI second
-        openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+        openai_api_key = settings.OPENAI_API_KEY
         if not raw_response and openai_api_key:
             try:
                 print("[InterviewService] Attempting analysis using OpenAI...", flush=True)
@@ -268,7 +269,7 @@ class InterviewService:
                 print(f"[InterviewService] OpenAI analysis failed: {e}", flush=True)
 
         # 3. Try Gemini third
-        gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
+        gemini_api_key = settings.GEMINI_API_KEY
         if not raw_response and gemini_api_key:
             try:
                 print("[InterviewService] Attempting analysis using Gemini...", flush=True)
@@ -297,7 +298,7 @@ class InterviewService:
         return self._generate_fallback_report(student_name, answers)
 
     def _call_groq(self, student_name: str, answers: list) -> dict:
-        api_key = os.environ.get("GROQ_API_KEY", "")
+        api_key = settings.GROQ_API_KEY
         if not api_key:
             raise RuntimeError("GROQ_API_KEY is not set.")
             

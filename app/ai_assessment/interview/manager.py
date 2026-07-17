@@ -54,6 +54,9 @@ class InterviewManager:
             interview = None
 
         if not interview:
+            import uuid
+            if not sa.session_id:
+                sa.session_id = f"asmt_{sa.assessment_id}_{uuid.uuid4().hex[:8]}"
             sa.is_used = True
             sa.status = "Started"
 

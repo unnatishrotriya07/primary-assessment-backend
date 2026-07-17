@@ -163,26 +163,21 @@ def test_v2_conversation_engine_workflow(db_session: Session):
     assert turn_res["hints_remaining"] == 0
     assert turn_res["current_question_index"] == 0
 
-    # 7. Process turn: HINT -> transitions to FOLLOWUP due to low mock concept coverage (0.5 < 0.6)
+    # 7. Process turn: HINT -> advances to next question (since student answers correctly)
     turn_res = service.process_turn(interview_id, "Ah, it means a part of a whole thing.")
-    assert turn_res["next_state"] == "FOLLOWUP"
-    assert turn_res["current_question_index"] == 0
-
-    # 8. Process turn: FOLLOWUP -> advances to next question
-    turn_res = service.process_turn(interview_id, "Yes, a fraction is made of parts.")
     assert turn_res["next_state"] == "interview"
     assert turn_res["current_question_index"] == 1
     assert "denominator" in turn_res["next_speech"].lower()
 
-    # 9. Process turn: interview -> GOODBYE (finish assessment)
+    # 8. Process turn: interview -> GOODBYE (finish assessment)
     turn_res = service.process_turn(interview_id, "It means the total number of parts at the bottom.")
     assert turn_res["next_state"] == "GOODBYE"
     assert turn_res["completion_status"] == "Completed"
 
     # Verify ConversationTurn entries exist
     turns = db_session.query(ConversationTurn).filter(ConversationTurn.interview_id == interview_id).all()
-    # Expect 7 turns: meet_buddy, comfort_conv (1), comfort_conv (2), question 1 (initial, hint, followup), question 2
-    assert len(turns) == 7
+    # Expect 6 turns: meet_buddy, comfort_conv (1), comfort_conv (2), question 1 (initial, hint), question 2
+    assert len(turns) == 6
     for t in turns:
         assert t.student_transcript is not None
         assert t.buddy_message is not None
