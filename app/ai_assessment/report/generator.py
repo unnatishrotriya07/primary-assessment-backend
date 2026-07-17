@@ -1,4 +1,6 @@
 import json
+import asyncio
+from app.common.config import settings
 import datetime
 import traceback
 import httpx
@@ -27,8 +29,8 @@ class EvaluationPipelineService:
         interview.status = "Evaluation Running"
         self.db.commit()
 
-        # Run the unified single-call LLM analysis first and cache the results
-        self.cached_analysis = self._call_unified_llm(interview)
+        # No unified single-call LLM analysis in pipeline V3
+        self.cached_analysis = None
 
         # Step 1: Transcript Cleanup
         cleaned_dialogue = self._run_step(interview_id, "transcript_cleanup", self._step_transcript_cleanup, interview)
@@ -407,67 +409,235 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         return self._call_llm_with_fallback(cfg["prompt"], cfg["system_instruction"], cfg["fallback_data"])
 
     def _step_per_question_evaluation(self, interview: Interview, understood_answers: list) -> list:
-        if self.cached_analysis and "evaluated_answers" in self.cached_analysis:
-            return self.cached_analysis["evaluated_answers"]
+        return asyncio.run(self._evaluate_questions_parallel(interview, understood_answers))
 
+    async def _evaluate_questions_parallel(self, interview: Interview, understood_answers: list) -> list:
         assessment = self.db.query(Assessment).filter(Assessment.id == interview.assessment_id).first()
-        db_questions = {q.text.strip().lower(): q for q in assessment.questions} if assessment else {}
-
-        evaluations = []
+        db_questions = assessment.questions if assessment else []
+        
+        # Build dictionary of db_questions mapped by normalized text
+        db_q_map = {q.text.strip().lower(): q for q in db_questions}
+        
+        # Build a full transcript string for the LLM context
+        turns = self.db.query(ConversationTurn).filter(
+            ConversationTurn.interview_id == interview.id
+        ).order_by(ConversationTurn.id.asc()).all()
+        
+        raw_turns = []
+        for t in turns:
+            if t.buddy_message:
+                raw_turns.append(f"Buddy (AI): {t.buddy_message}")
+            if t.student_transcript:
+                raw_turns.append(f"Student ({interview.student_name}): {t.student_transcript}")
+                
+        formatted_transcript = "\n".join(raw_turns)
+        
+        subject = assessment.subject.name if assessment and assessment.subject else "General"
+        grade = interview.student_class
+        
+        tasks = []
         for ua in understood_answers:
             q_text = ua.get("question", "").strip()
-            db_q = db_questions.get(q_text.lower())
+            db_q = db_q_map.get(q_text.lower())
             
-            expected_answer = db_q.correct_answer if db_q else ua.get("expected_answer", "")
-            student_response = ua.get("cleaned_response", "")
-
-            if ua.get("is_skipped"):
-                evaluations.append({
-                    "question": q_text,
-                    "studentAnswer": ua.get("student_answer", ""),
-                    "expectedAnswer": expected_answer,
-                    "isCorrect": False,
-                    "concept": db_q.section if db_q and db_q.section else "Core Understanding",
-                    "masteryScore": 0,
-                    "confidence": 100,
-                    "reasoning": "Student skipped or did not answer the question.",
-                    "misconception": "No response provided",
-                    "evidence": ""
-                })
-                continue
-
-            cfg = analytics.step_per_question_evaluation(
-                ua, db_q, assessment, interview, expected_answer, student_response
+            tasks.append(
+                self._evaluate_single_question_async(
+                    ua=ua,
+                    db_q=db_q,
+                    formatted_transcript=formatted_transcript,
+                    subject=subject,
+                    grade=grade
+                )
             )
             
-            graded_q = None
-            for attempt in range(2):
+        evaluated_answers = await asyncio.gather(*tasks)
+        return evaluated_answers
+
+    async def _evaluate_single_question_async(self, ua: dict, db_q, formatted_transcript: str, subject: str, grade: str) -> dict:
+        evaluated_at = datetime.datetime.utcnow().isoformat()
+        
+        if not db_q:
+            # Fallback dummy question
+            class DummyQuestion:
+                id = "unknown"
+                text = ua.get("question", "")
+                correct_answer = ua.get("expected_answer", "")
+                expected_concepts = []
+                difficulty = "medium"
+                section = "General"
+                question_type = ua.get("question_type", "mcq")
+            db_q = DummyQuestion()
+
+        question_id = str(db_q.id)
+        question_text = db_q.text
+        expected_answer = db_q.correct_answer or ""
+        expected_concepts = self._get_expected_concepts(db_q)
+        difficulty = getattr(db_q, "difficulty", "medium") or "medium"
+        question_type = getattr(db_q, "question_type", "mcq") or "mcq"
+        
+        student_response = ua.get("cleaned_response", "") or ua.get("student_answer", "")
+        is_skipped = ua.get("is_skipped", False)
+        has_speech_issue = ua.get("has_speech_issue", False)
+        
+        # 1. Skip if no response / skipped
+        if is_skipped or not student_response or student_response.strip() == "":
+            return {
+                "question_id": question_id,
+                "question": question_text,
+                "studentAnswer": student_response,
+                "expectedAnswer": expected_answer,
+                "questionType": question_type,
+                "isCorrect": False,
+                "score": 0,
+                "label": "No Response",
+                "confidence": 1.0,
+                "reasoning": "Student skipped or did not answer the question.",
+                "explanation": "No response provided.",
+                "feedback": "No response provided.",
+                "matched_concepts": [],
+                "missing_concepts": expected_concepts,
+                "evaluated_at": evaluated_at
+            }
+            
+        # 2. Skip if speech recognition issues
+        if has_speech_issue:
+            return {
+                "question_id": question_id,
+                "question": question_text,
+                "studentAnswer": student_response,
+                "expectedAnswer": expected_answer,
+                "questionType": question_type,
+                "isCorrect": False,
+                "score": 0,
+                "label": "Invalid Response",
+                "confidence": 1.0,
+                "reasoning": "Speech/transcript was invalid or could not be understood.",
+                "explanation": "Unable to understand speech.",
+                "feedback": "Unable to understand speech.",
+                "matched_concepts": [],
+                "missing_concepts": expected_concepts,
+                "evaluated_at": evaluated_at
+            }
+            
+        # 3. LLM evaluation prompt
+        prompt = f"""You are an expert academic evaluator. Evaluate the student's response to the specific question based on the provided conversation transcript.
+
+Assessment Context:
+- Subject: {subject}
+- Grade: {grade}
+
+Question Details:
+- Question ID: {question_id}
+- Question: {question_text}
+- Expected Answer: {expected_answer}
+- Expected Concepts: {json.dumps(expected_concepts)}
+- Difficulty: {difficulty}
+
+Student Conversation Transcript:
+\"\"\"
+{formatted_transcript}
+\"\"\"
+
+Student Response:
+- Student's Answer: {student_response}
+
+Evaluation Criteria:
+1. Analyze the student's response to see if they understand the concepts. Focus on semantic understanding rather than exact matching or grammar/spelling.
+2. Determine if the student's answer is:
+   - Correct, Mostly Correct, or Incorrect. Label it accordingly.
+   - Assign a score between 0 and 100 representing their mastery (100 for perfectly correct, 70-90 for mostly correct, <50 for incorrect).
+3. Identify which expected concepts were successfully matched (under "matched_concepts") and which ones were missing (under "missing_concepts").
+4. Provide constructive feedback (under "feedback") and brief reasoning (under "reasoning").
+
+Response Format:
+Return ONLY a valid JSON object matching the following structure exactly. Do not include markdown blocks, code fences, or any text before/after the JSON.
+
+{{
+  "question_id": "{question_id}",
+  "score": 82,
+  "label": "Mostly Correct",
+  "confidence": 0.94,
+  "reasoning": "Student correctly identified equivalent fractions but made a simple division error.",
+  "feedback": "Great job finding equivalent fractions! Double check your division steps next time.",
+  "matched_concepts": ["concept1"],
+  "missing_concepts": ["concept2"]
+}}"""
+
+        system_instruction = "You are a precise diagnostic grading engine. Return structured JSON only. Do not output markdown code fencing or any explanation outside the JSON."
+        
+        graded_json = None
+        for attempt in range(3):
+            try:
+                raw_res = await asyncio.to_thread(
+                    self._call_llm_with_fallback,
+                    prompt,
+                    system_instruction,
+                    None
+                )
+                if raw_res and isinstance(raw_res, dict) and "score" in raw_res:
+                    graded_json = raw_res
+                    break
+            except Exception as e:
+                print(f"[EvaluationPipeline] Attempt {attempt+1} failed evaluating question {question_id}: {e}", flush=True)
+                
+        if not graded_json:
+            return {
+                "question_id": question_id,
+                "question": question_text,
+                "studentAnswer": student_response,
+                "expectedAnswer": expected_answer,
+                "questionType": question_type,
+                "isCorrect": False,
+                "score": 0,
+                "label": "Unable to Evaluate",
+                "confidence": 0.0,
+                "reasoning": "Evaluation failed due to system/LLM issue.",
+                "explanation": "Unable to evaluate this response.",
+                "feedback": "Unable to evaluate this response.",
+                "matched_concepts": [],
+                "missing_concepts": expected_concepts,
+                "evaluated_at": evaluated_at
+            }
+            
+        score_val = graded_json.get("score", 0)
+        label_val = graded_json.get("label", "Incorrect")
+        is_correct = label_val in ("Correct", "Mostly Correct") or score_val >= 50
+        feedback_val = graded_json.get("feedback") or graded_json.get("reasoning") or "Evaluated successfully."
+        
+        return {
+            "question_id": question_id,
+            "question": question_text,
+            "studentAnswer": student_response,
+            "expectedAnswer": expected_answer,
+            "questionType": question_type,
+            "isCorrect": is_correct,
+            "score": score_val,
+            "label": label_val,
+            "confidence": graded_json.get("confidence", 1.0),
+            "reasoning": graded_json.get("reasoning") or "Evaluated successfully.",
+            "explanation": feedback_val,
+            "feedback": feedback_val,
+            "matched_concepts": graded_json.get("matched_concepts") or [],
+            "missing_concepts": graded_json.get("missing_concepts") or [],
+            "evaluated_at": evaluated_at
+        }
+
+    def _get_expected_concepts(self, db_q) -> list:
+        if not db_q:
+            return []
+        if hasattr(db_q, "expected_concepts") and db_q.expected_concepts:
+            if isinstance(db_q.expected_concepts, list):
+                return db_q.expected_concepts
+            elif isinstance(db_q.expected_concepts, str):
                 try:
-                    graded_q = self._call_llm_with_fallback(cfg["prompt"], cfg["system_instruction"], cfg["fallback_data"])
-                    if graded_q and graded_q.get("confidence", 100) >= 70:
-                        break
+                    parsed = json.loads(db_q.expected_concepts)
+                    if isinstance(parsed, list):
+                        return parsed
                 except Exception:
                     pass
-            
-            if not graded_q:
-                graded_q = cfg["fallback_data"]
-
-            is_correct = graded_q.get("masteryScore", 0) >= 50
-            
-            evaluations.append({
-                "question": q_text,
-                "studentAnswer": ua.get("student_answer", ""),
-                "expectedAnswer": expected_answer,
-                "isCorrect": is_correct,
-                "concept": graded_q.get("concept") or cfg["concept_name"],
-                "masteryScore": graded_q.get("masteryScore", 75),
-                "confidence": graded_q.get("confidence", 90),
-                "reasoning": graded_q.get("reasoning") or "Evaluated successfully.",
-                "misconception": graded_q.get("misconception"),
-                "evidence": graded_q.get("evidence") or ""
-            })
-            
-        return evaluations
+        if hasattr(db_q, "section") and db_q.section:
+            return [db_q.section]
+        return []
 
     def _step_concept_mastery_detection(self, interview: Interview, evaluated_answers: list) -> dict:
         if self.cached_analysis and "concept_mastery" in self.cached_analysis:
@@ -545,11 +715,10 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         interview.recommendation = rec
         interview.evaluated_answers = evaluated_answers
         
-        random.seed(int(interview.id))
-        interview.score_communication = round(min(max(score + random.randint(-4, 6), 50.0), 98.0), 1)
-        interview.score_numeracy = round(min(max(score + random.randint(-6, 4), 50.0), 98.0), 1)
-        interview.score_creativity = round(min(max(score + random.randint(-3, 8), 50.0), 98.0), 1)
-        interview.score_emotional_iq = round(min(max(score + random.randint(-2, 5), 50.0), 98.0), 1)
+        interview.score_communication = None
+        interview.score_numeracy = None
+        interview.score_creativity = None
+        interview.score_emotional_iq = None
 
         strength_list = strengths.get("strengths", [])
         interview.strengths = "\n".join([f"• {s}" for s in strength_list]) if strength_list else "Demonstrated general understanding."
@@ -596,7 +765,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         return {"status": "Report Ready", "interview_id": interview.id, "requires_review": requires_review}
 
     def _call_llm_with_fallback(self, prompt: str, system_instruction: str, fallback_data: any) -> any:
-        groq_api_key = os.environ.get("GROQ_API_KEY", "")
+        groq_api_key = settings.GROQ_API_KEY
         if groq_api_key:
             try:
                 print("[EvaluationPipeline] Attempting LLM call via Groq...", flush=True)
@@ -623,7 +792,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
             except Exception as e:
                 print(f"[EvaluationPipeline] Groq failed: {e}", flush=True)
 
-        openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+        openai_api_key = settings.OPENAI_API_KEY
         if openai_api_key:
             try:
                 print("[EvaluationPipeline] Attempting LLM call via OpenAI...", flush=True)
@@ -639,7 +808,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
             except Exception as e:
                 print(f"[EvaluationPipeline] OpenAI failed: {e}", flush=True)
 
-        gemini_api_key = os.environ.get("GEMINI_API_KEY", "")
+        gemini_api_key = settings.GEMINI_API_KEY
         if gemini_api_key:
             try:
                 print("[EvaluationPipeline] Attempting LLM call via Gemini...", flush=True)

@@ -93,6 +93,13 @@ class ConversationEngine:
                 interview.status = "Transcript Saved"
                 interview.completed_at = datetime.datetime.utcnow()
                 interview.transcript = json.dumps([{"role": h["role"], "text": h["text"]} for h in result_state["transcript"]])
+                
+                # Update student assessment status to Completed
+                from app.core.models.student_assessment import StudentAssessment
+                sa = self.db.query(StudentAssessment).filter(StudentAssessment.id == interview.student_assessment_id).first()
+                if sa:
+                    sa.status = "Completed"
+                
                 self.db.commit()
                 self._trigger_background_evaluation(interview)
 

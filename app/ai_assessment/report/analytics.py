@@ -69,11 +69,37 @@ Respond ONLY with a JSON list containing the mapped answer for each question ind
     system_instruction = "You are a question mapping engine. Return a raw JSON list only, no markdown, no explanation."
     
     fallback_data = []
-    student_turns = [t for t in dialogue_turns if t["role"] == "student"]
     for idx, q in enumerate(q_list):
         ans_text = ""
-        if idx < len(student_turns):
-            ans_text = student_turns[idx]["text"]
+        q_text_clean = q["text"].strip().lower()
+        
+        # Find the first AI turn that contains the question text as a substring
+        ai_turn_idx = -1
+        for i, turn in enumerate(dialogue_turns):
+            if turn["role"] == "ai" and q_text_clean in turn["text"].lower():
+                ai_turn_idx = i
+                break
+                
+        # If found, the student response immediately following it is the student answer
+        if ai_turn_idx != -1 and ai_turn_idx + 1 < len(dialogue_turns):
+            next_turn = dialogue_turns[ai_turn_idx + 1]
+            if next_turn["role"] == "student":
+                ans_text = next_turn["text"]
+        
+        # If not found, fallback to index-based mapping but skip comfort/greeting turns
+        if not ans_text:
+            student_turns = [t for t in dialogue_turns if t["role"] == "student"]
+            comfort_turns_count = 0
+            for t in student_turns:
+                t_text = t["text"].strip().lower()
+                if t_text in ("yes", "no", "hello", "hi", "ok", "ready", "fine", "good") or t.get("category") == "comfort_conv":
+                    comfort_turns_count += 1
+                else:
+                    break
+            adjusted_idx = idx + comfort_turns_count
+            if adjusted_idx < len(student_turns):
+                ans_text = student_turns[adjusted_idx]["text"]
+
         fallback_data.append({
             "index": q["index"],
             "question": q["text"],

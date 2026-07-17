@@ -149,8 +149,8 @@ class TestInterviewService(unittest.TestCase):
         self.assertEqual(iv.overall_score, 85)
         self.assertEqual(iv.grade, "A")
         self.assertEqual(iv.recommendation, "Recommended")
-        self.assertEqual(iv.score_communication, 90)
-        self.assertEqual(iv.score_numeracy, 80)
+        self.assertIsNone(iv.score_communication)
+        self.assertIsNone(iv.score_numeracy)
         
         # Verify student assessment is marked as completed
         self.db.refresh(self.sa)
