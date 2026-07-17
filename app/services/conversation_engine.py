@@ -2,12 +2,14 @@ import os
 import json
 import datetime
 import shutil
+import logging
 from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.interview import Interview, InterviewMessage, ConversationTurn
-from app.services.interview_engine import InterviewEngine
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 class ConversationEngine:
     """
@@ -18,160 +20,100 @@ class ConversationEngine:
     """
     def __init__(self, db: Session):
         self.db = db
-        self.interview_engine = InterviewEngine()
 
     def process_turn(self, interview_id: int, student_response: str, audio_url: Optional[str] = None) -> dict:
-        interview = self.db.query(Interview).filter(Interview.id == interview_id).first()
-        if not interview:
-            raise ValueError(f"Interview {interview_id} not found")
+        from app.ai_assessment.interview.session_manager import SessionManager
+        from app.ai_assessment.interview.graph import interview_graph
 
-        # Load session_state_data
-        session_data = interview.session_state_data or {}
-        if not session_data:
-            session_data = self._initialize_fallback_session_data(interview)
+        session_mgr = SessionManager(self.db)
+        
+        # Load state dict from postgresql
+        state = session_mgr.load_session(interview_id)
+        
+        # Update dynamic turn inputs
+        state["student_response"] = student_response
+        state["audio_url"] = audio_url
 
-        questions = session_data.get("questions") or []
-        current_idx = session_data.get("current_question_index", 0)
-        current_state = session_data.get("session_state", "meet_buddy")
-        comfort_idx = session_data.get("comfort_index", 0)
-        history = session_data.setdefault("history", [])
-
-        # Save student turn in history
-        history.append({"role": "student", "text": student_response, "state": current_state})
-
-        # Find the last Buddy message that prompted this student response
-        buddy_msg = ""
-        # 1. Look in history
-        for h in reversed(history[:-1]):  # exclude the student response we just appended
+        # Check for last buddy message to write structured turn row
+        last_ai_text = ""
+        for h in reversed(state["transcript"]):
             if h.get("role") == "ai":
-                buddy_msg = h.get("text")
+                last_ai_text = h.get("text", "")
                 break
-        # 2. Query DB as fallback
-        if not buddy_msg:
-            last_ai_msg = self.db.query(InterviewMessage).filter(
-                InterviewMessage.interview_id == interview_id,
-                InterviewMessage.role == "ai"
-            ).order_by(InterviewMessage.id.desc()).first()
-            if last_ai_msg:
-                buddy_msg = last_ai_msg.text
 
-        # Create structured ConversationTurn DB record
-        conv_turn = ConversationTurn(
-            interview_id=interview.id,
-            question_id=str(current_idx),
-            buddy_message=buddy_msg,
+        # Save student turn DB records
+        q_idx = state["current_question_index"]
+        questions = state["questions"]
+        q_id_str = str(questions[q_idx].get("id")) if q_idx < len(questions) else str(q_idx)
+
+        session_mgr.add_conversation_turn(
+            interview_id=interview_id,
+            question_id=q_id_str,
+            buddy_message=last_ai_text,
             student_transcript=student_response,
-            audio_url=audio_url,
-            created_at=datetime.datetime.utcnow()
+            audio_url=audio_url
         )
-        self.db.add(conv_turn)
 
-        # Save student message turn in InterviewMessage DB table for compatibility
-        student_msg = InterviewMessage(
-            interview_id=interview.id,
+        session_mgr.add_message(
+            interview_id=interview_id,
             role="student",
             text=student_response,
-            question_category=current_state,
-            sequence_number=len(history),
+            question_category=state["session_state"],
+            sequence_number=len(state["transcript"]) + 1,
             student_response=student_response,
             audio_url=audio_url
         )
-        self.db.add(student_msg)
 
-        # Track raw answers
-        raw_answers = session_data.setdefault("raw_answers", [])
-        q = questions[current_idx] if current_idx < len(questions) else None
-        if q and current_state in ["interview", "HINT", "FOLLOWUP"]:
-            ans_exists = False
-            for ans in raw_answers:
-                if ans.get("question") == q.get("q") or ans.get("question") == q.get("text"):
-                    ans["answer"] = ans.get("answer", "") + " | " + student_response
-                    ans_exists = True
-                    break
-            if not ans_exists:
-                raw_answers.append({
-                    "question_category": q.get("skill", "General"),
-                    "question": q.get("text") or q.get("q"),
-                    "answer": student_response
-                })
+        # Execute LangGraph state machine
+        logger.info(f"[ConversationEngine] Running LangGraph for interview {interview_id}")
+        result_state = interview_graph.invoke(state)
 
-        # Decide next question/action via InterviewEngine
-        persona = session_data.get("persona") or {}
-        engine_result = self.interview_engine.process_interview_flow(
-            questions=questions,
-            current_idx=current_idx,
-            current_state=current_state,
-            comfort_idx=comfort_idx,
-            hints_used=session_data.get("hints_used_count", 0),
-            followups_used=session_data.get("followups_used_count", 0),
-            student_response=student_response,
-            persona=persona,
-            student_name=interview.student_name
-        )
-
-        next_speech = engine_result["next_speech"]
-        next_state = engine_result["next_state"]
-        is_completed = engine_result["is_completed"]
-
-        # Save Buddy message in history
-        history.append({"role": "ai", "text": next_speech, "state": next_state})
-
-        # Save Buddy message turn in InterviewMessage DB table for compatibility
-        buddy_db_msg = InterviewMessage(
-            interview_id=interview.id,
+        # Update Session with the resulting speech message
+        next_speech = result_state["next_speech"]
+        next_state = result_state["session_state"]
+        
+        session_mgr.add_message(
+            interview_id=interview_id,
             role="ai",
             text=next_speech,
             question_category=next_state,
-            sequence_number=len(history),
+            sequence_number=len(result_state["transcript"]),
             buddy_response=next_speech
         )
-        self.db.add(buddy_db_msg)
 
-        # Update database values for session recovery
-        session_data["session_state"] = next_state
-        session_data["comfort_index"] = engine_result["comfort_index"]
-        session_data["current_question_index"] = engine_result["current_question_index"]
-        session_data["hints_used_count"] = engine_result["hints_used_count"]
-        session_data["followups_used_count"] = engine_result["followups_used_count"]
+        # Save session variables back to postgresql
+        session_mgr.save_session(interview_id, result_state)
 
-        interview.current_question_index = engine_result["current_question_index"]
-        interview.session_state = next_state
-        interview.comfort_index = engine_result["comfort_index"]
-        interview.raw_answers = raw_answers
-        interview.session_state_data = session_data
+        # Check completed trigger
+        if result_state["completion_status"] == "Completed":
+            # Sync final interview fields
+            interview = self.db.query(Interview).filter(Interview.id == interview_id).first()
+            if interview:
+                interview.completion_status = "Completed"
+                interview.status = "Transcript Saved"
+                interview.completed_at = datetime.datetime.utcnow()
+                interview.transcript = json.dumps([{"role": h["role"], "text": h["text"]} for h in result_state["transcript"]])
+                self.db.commit()
+                self._trigger_background_evaluation(interview)
 
-        if is_completed:
-            interview.completion_status = "Completed"
-            interview.status = "Transcript Saved"
-            interview.completed_at = datetime.datetime.utcnow()
-            interview.transcript = json.dumps([{"role": h["role"], "text": h["text"]} for h in history])
-            
-            # Trigger asynchronous evaluation pipeline
-            self._trigger_background_evaluation(interview)
-
-        from sqlalchemy.orm.attributes import flag_modified
-        flag_modified(interview, "session_state_data")
-
-        self.db.commit()
-
-        # Try to run cleanup asynchronously in a separate background thread
-        # to ensure expired audio recordings are cleared periodically
         self._trigger_lazy_cleanup()
 
-        # Map response matches
-        q_hints = q.get("hints") or [] if q else []
-        q_followups = q.get("followups") or [] if q else []
-        
+        # Calculate remaining hints
+        q_hints = []
+        if q_idx < len(questions):
+            q_hints = questions[q_idx].get("hints") or []
+        hints_remaining = max(0, len(q_hints) - result_state["hints_used_count"])
+
         return {
             "next_speech": next_speech,
             "next_state": next_state,
-            "hints_remaining": max(0, len(q_hints) - engine_result["hints_used_count"]),
-            "followups_remaining": max(0, len(q_followups) - engine_result["followups_used_count"]),
-            "active_hint": engine_result["active_hint"],
+            "hints_remaining": hints_remaining,
+            "followups_remaining": 0,  # Deprecated in V2
+            "active_hint": result_state["active_hint"],
             "questions": questions,
-            "current_question_index": engine_result["current_question_index"],
-            "comfort_index": engine_result["comfort_index"],
-            "completion_status": interview.completion_status
+            "current_question_index": result_state["current_question_index"],
+            "comfort_index": result_state["comfort_index"],
+            "completion_status": result_state["completion_status"]
         }
 
     def cleanup_expired_audio(self) -> int:

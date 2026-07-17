@@ -1,88 +1,20 @@
-import io
 import time
 from typing import Optional
-from faster_whisper import WhisperModel
-
-from app.ai_assessment.audio.config import voice_settings
 from app.ai_assessment.audio.schemas import STTResponse, TranscribeResponse
 from app.ai_assessment.audio.exceptions import STTException
 
 class WhisperService:
     def __init__(self):
-        # Local model instance cache
-        self._local_model: Optional[WhisperModel] = None
-
-    def _get_local_model(self) -> WhisperModel:
-        """
-        Lazy-loads the local faster-whisper model weights.
-        Ensures model files are only loaded once.
-        """
-        if self._local_model is None:
-            try:
-                self._local_model = WhisperModel(
-                    voice_settings.FASTER_WHISPER_MODEL,
-                    device=voice_settings.FASTER_WHISPER_DEVICE,
-                    compute_type=voice_settings.FASTER_WHISPER_COMPUTE_TYPE
-                )
-            except Exception as e:
-                raise STTException(f"Failed to initialize local faster-whisper model: {str(e)}")
-        return self._local_model
+        self._local_model = None
 
     async def transcribe_local(self, audio_bytes: bytes) -> TranscribeResponse:
-        """
-        Transcribes audio locally using faster-whisper.
-        Optimized for CPU execution.
-        """
-        start_time = time.time()
-        
-        if not audio_bytes:
-            raise STTException("Uploaded audio file is empty.")
-            
-        try:
-            model = self._get_local_model()
-            audio_file = io.BytesIO(audio_bytes)
-            
-            segments, info = model.transcribe(audio_file, beam_size=5)
-            segments_list = list(segments)
-            transcript_text = " ".join([segment.text for segment in segments_list]).strip()
-            
-            processing_time = round(time.time() - start_time, 3)
-            
-            return TranscribeResponse(
-                transcript=transcript_text,
-                language=info.language,
-                duration=round(info.duration, 2),
-                processing_time=processing_time
-            )
-            
-        except Exception as e:
-            raise STTException(f"Local transcription inference failed: {str(e)}")
+        raise STTException("Local Speech-to-Text is deprecated. Use browser speech APIs instead.")
 
     async def transcribe(self, audio_bytes: bytes, filename: str, content_type: str = "audio/webm") -> STTResponse:
-        """
-        Existing transcription method (for compatibility).
-        Routes directly to the local service.
-        """
-        local_res = await self.transcribe_local(audio_bytes)
-        return STTResponse(
-            text=local_res.transcript,
-            language=local_res.language
-        )
+        raise STTException("Local Speech-to-Text is deprecated. Use browser speech APIs instead.")
 
     def is_available(self) -> bool:
-        """
-        Check if the Whisper model is loaded or can be successfully initialized.
-        """
-        if self._local_model is not None:
-            return True
-        try:
-            self._get_local_model()
-            return True
-        except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Whisper availability check failed: {e}")
-            return False
+        return False
 
 # Global singleton helper
 _whisper_service_instance = WhisperService()

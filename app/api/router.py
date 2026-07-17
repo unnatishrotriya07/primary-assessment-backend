@@ -31,3 +31,52 @@ api_router.include_router(control_panel_router, prefix="/control-panel", tags=["
 api_router.include_router(interviews_router, prefix="/interviews", tags=["interviews"])
 api_router.include_router(voice_router, prefix="/voice", tags=["voice"])
 
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from app.core.dependencies import get_db
+from app.core.schemas.interview_schema import AssessmentMessageRequest, AssessmentMessageResponse
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.interview import Interview
+from app.services.interview_service import InterviewService
+
+@api_router.post("/assessment/message", response_model=AssessmentMessageResponse, tags=["assessment"])
+def handle_assessment_message(payload: AssessmentMessageRequest, db: Session = Depends(get_db)):
+    # 1. Lookup student assessment and its interview
+    sa = db.query(StudentAssessment).filter(StudentAssessment.session_id == payload.session_id).first()
+    interview = None
+    if sa and sa.interview:
+        interview = sa.interview
+    else:
+        # Fallback to lookup by token
+        sa_by_token = db.query(StudentAssessment).filter(StudentAssessment.token == payload.session_id).first()
+        if sa_by_token and sa_by_token.interview:
+            interview = sa_by_token.interview
+        else:
+            # Fallback to lookup by Interview ID directly
+            try:
+                int_id = int(payload.session_id)
+                interview = db.query(Interview).filter(Interview.id == int_id).first()
+            except ValueError:
+                pass
+
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview session not found")
+
+    # 2. Execute process_turn
+    service = InterviewService(db)
+    result = service.process_turn(interview.id, payload.message)
+
+    return AssessmentMessageResponse(
+        question=result["next_speech"],
+        assessment_state=result["next_state"],
+        conversation_complete=(result["completion_status"] == "Completed" or result["next_state"] == "GOODBYE"),
+        current_question_index=result.get("current_question_index"),
+        comfort_index=result.get("comfort_index"),
+        active_hint=result.get("active_hint"),
+        hints_remaining=result.get("hints_remaining"),
+        followups_remaining=result.get("followups_remaining"),
+        completion_status=result.get("completion_status")
+    )
+
+

@@ -28,6 +28,7 @@ class InterviewStartRequest(BaseModel):
 
 class InterviewStartResponse(BaseModel):
     interview_id: int
+    session_id: Optional[str] = None
     student_name: str
     student_class: str
     assessment_title: str
@@ -49,6 +50,7 @@ class InterviewSubmitRequest(BaseModel):
 
 class InterviewReportResponse(BaseModel):
     id: int
+    session_id: Optional[str] = None
     student_name: str
     student_class: str
     assessment_title: Optional[str] = None
@@ -130,3 +132,20 @@ class InterviewTurnResponse(BaseModel):
     current_question_index: int
     comfort_index: int
     completion_status: str
+
+
+class AssessmentMessageRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+class AssessmentMessageResponse(BaseModel):
+    question: str
+    assessment_state: str
+    conversation_complete: bool
+    current_question_index: Optional[int] = None
+    comfort_index: Optional[int] = None
+    active_hint: Optional[str] = None
+    hints_remaining: Optional[int] = None
+    followups_remaining: Optional[int] = None
+    completion_status: Optional[str] = None
