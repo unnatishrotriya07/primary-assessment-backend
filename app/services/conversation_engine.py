@@ -120,7 +120,8 @@ class ConversationEngine:
             "questions": questions,
             "current_question_index": result_state["current_question_index"],
             "comfort_index": result_state["comfort_index"],
-            "completion_status": result_state["completion_status"]
+            "completion_status": result_state["completion_status"],
+            "action": result_state.get("action")
         }
 
     def cleanup_expired_audio(self) -> int:

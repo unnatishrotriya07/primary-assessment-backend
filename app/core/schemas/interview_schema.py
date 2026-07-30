@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, field_serializer
+from typing import Optional, List, Any
 import datetime
 
 
@@ -50,6 +50,14 @@ class InterviewSubmitRequest(BaseModel):
 
 class InterviewReportResponse(BaseModel):
     id: int
+
+    @field_serializer('*', mode='wrap')
+    def serialize_datetime(self, value: Any, handler: Any) -> Any:
+        if isinstance(value, datetime.datetime):
+            if value.tzinfo is None:
+                value = value.replace(tzinfo=datetime.timezone.utc)
+            return value.isoformat()
+        return handler(value)
     session_id: Optional[str] = None
     student_name: str
     student_class: str
@@ -132,6 +140,7 @@ class InterviewTurnResponse(BaseModel):
     current_question_index: int
     comfort_index: int
     completion_status: str
+    action: Optional[str] = None
 
 
 class AssessmentMessageRequest(BaseModel):

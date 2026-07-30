@@ -132,6 +132,7 @@ class SessionBuilder:
                 "expected_concepts": q.expected_concepts or [],
                 "followups": q.followups or [],
                 "learning_objective": q.learning_objective or "",
+                "correct_answer": q.correct_answer or "",
             })
 
         if len(dynamic_questions) == 0:
@@ -144,6 +145,7 @@ class SessionBuilder:
                 "expected_concepts": ["place", "reason"],
                 "followups": ["What would you do when you get there?"],
                 "learning_objective": "Communicate creative thoughts clearly",
+                "correct_answer": "",
             })
 
         grade_persona = get_grade_adapted_persona(sa.student_class or "Grade 3")

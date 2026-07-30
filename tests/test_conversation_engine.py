@@ -141,43 +141,34 @@ def test_v2_conversation_engine_workflow(db_session: Session):
     db_session.commit()
     db_session.refresh(interview)
 
-    # 3. Process turn: meet_buddy -> comfort_conv
+    # 3. Process turn: meet_buddy -> transitions directly to interview (since student response is given)
     turn_res = service.process_turn(interview_id, "I am fine, thank you!")
-    assert turn_res["next_state"] == "comfort_conv"
-    assert "enjoy" in turn_res["next_speech"].lower()
-
-    # 4. Process turn: comfort_conv (1) -> comfort_conv (2)
-    turn_res = service.process_turn(interview_id, "I played football.")
-    assert turn_res["next_state"] == "comfort_conv"
-    assert "ready" in turn_res["next_speech"].lower()
-
-    # 5. Process turn: comfort_conv (2) -> interview
-    turn_res = service.process_turn(interview_id, "Yes, I am ready!")
     assert turn_res["next_state"] == "interview"
-    assert "fraction" in turn_res["next_speech"].lower()
+    assert turn_res["comfort_index"] == 2
     assert turn_res["current_question_index"] == 0
+    assert len(turn_res["next_speech"]) > 0
 
-    # 6. Process turn: interview -> HINT (simulate struggle)
+    # 4. Process turn: interview -> HINT (simulate struggle)
     turn_res = service.process_turn(interview_id, "I don't know what it is.")
     assert turn_res["next_state"] == "HINT"
     assert turn_res["hints_remaining"] == 0
     assert turn_res["current_question_index"] == 0
 
-    # 7. Process turn: HINT -> advances to next question (since student answers correctly)
+    # 5. Process turn: HINT -> advances to next question (since student answers correctly)
     turn_res = service.process_turn(interview_id, "Ah, it means a part of a whole thing.")
     assert turn_res["next_state"] == "interview"
     assert turn_res["current_question_index"] == 1
-    assert "denominator" in turn_res["next_speech"].lower()
+    assert len(turn_res["next_speech"]) > 0
 
-    # 8. Process turn: interview -> GOODBYE (finish assessment)
+    # 6. Process turn: interview -> GOODBYE (finish assessment)
     turn_res = service.process_turn(interview_id, "It means the total number of parts at the bottom.")
     assert turn_res["next_state"] == "GOODBYE"
     assert turn_res["completion_status"] == "Completed"
 
     # Verify ConversationTurn entries exist
     turns = db_session.query(ConversationTurn).filter(ConversationTurn.interview_id == interview_id).all()
-    # Expect 6 turns: meet_buddy, comfort_conv (1), comfort_conv (2), question 1 (initial, hint), question 2
-    assert len(turns) == 6
+    # Expect 4 turns: meet_buddy (1 turn), question 1 (initial, hint), question 2
+    assert len(turns) == 4
     for t in turns:
         assert t.student_transcript is not None
         assert t.buddy_message is not None

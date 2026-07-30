@@ -21,7 +21,7 @@ api_router.include_router(classes_router, prefix="/classes", tags=["classes"], d
 api_router.include_router(subjects_router, prefix="/subjects", tags=["subjects"], dependencies=[Depends(check_permission("subjects"))])
 api_router.include_router(chapters_router, prefix="/chapters", tags=["chapters"], dependencies=[Depends(check_permission("chapters"))])
 api_router.include_router(questions_router, prefix="/questions", tags=["questions"], dependencies=[Depends(check_permission("questions"))])
-api_router.include_router(assessments_router, prefix="/assessments", tags=["assessments"], dependencies=[Depends(check_permission("assessments"))])
+api_router.include_router(assessments_router, prefix="/assessments", tags=["assessments"])
 api_router.include_router(reports_router, prefix="/reports", tags=["reports"], dependencies=[Depends(check_permission("reports"))])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"], dependencies=[Depends(check_permission("dashboard"))])
 api_router.include_router(team_router, prefix="/team", tags=["team"])

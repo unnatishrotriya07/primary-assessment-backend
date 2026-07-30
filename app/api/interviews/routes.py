@@ -1,6 +1,8 @@
 from typing import List, Optional
+import json
+import logging
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db, get_current_user
@@ -84,6 +86,49 @@ def record_interview_turn(
         return result
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.websocket("/ws/{interview_id}")
+async def websocket_interview_endpoint(
+    websocket: WebSocket,
+    interview_id: int,
+    db: Session = Depends(get_db)
+):
+    await websocket.accept()
+    logger = logging.getLogger("app.api.interviews.websocket")
+    logger.info(f"WebSocket connection accepted for interview {interview_id}")
+    try:
+        while True:
+            # Receive message from student client
+            data = await websocket.receive_text()
+            payload = json.loads(data)
+            student_response = payload.get("student_response", "")
+            audio_url = payload.get("audio_url", None)
+            
+            # Execute conversation state machine turn
+            service = InterviewService(db)
+            result = service.process_turn(interview_id, student_response, audio_url)
+            
+            # Send next turn action details back to the client
+            await websocket.send_json({
+                "next_speech": result.get("next_speech"),
+                "next_state": result.get("next_state"),
+                "hints_remaining": result.get("hints_remaining"),
+                "followups_remaining": result.get("followups_remaining"),
+                "active_hint": result.get("active_hint"),
+                "current_question_index": result.get("current_question_index"),
+                "comfort_index": result.get("comfort_index"),
+                "completion_status": result.get("completion_status"),
+                "action": result.get("action")
+            })
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for interview {interview_id}")
+    except Exception as e:
+        logger.error(f"WebSocket error for interview {interview_id}: {e}", exc_info=True)
+        try:
+            await websocket.send_json({"error": str(e)})
+        except Exception:
+            pass
 
 
 @router.post("/submit", response_model=InterviewReportResponse, status_code=202)
@@ -358,6 +403,25 @@ def _build_response(iv) -> InterviewReportResponse:
                 "category": "Aspirations"
             })
 
+    # Load active transcript from InterviewMessage if not finalized in iv.transcript
+    active_transcript = []
+    if iv.transcript:
+        try:
+            active_transcript = json.loads(iv.transcript)
+        except Exception:
+            active_transcript = []
+    else:
+        from app.core.models.interview import InterviewMessage
+        messages = db.query(InterviewMessage).filter(
+            InterviewMessage.interview_id == iv.id
+        ).order_by(InterviewMessage.id.asc()).all()
+        for m in messages:
+            active_transcript.append({
+                "role": m.role,
+                "text": m.text,
+                "category": m.question_category
+            })
+
     return InterviewReportResponse(
         id=iv.id,
         student_name=iv.student_name,
@@ -379,7 +443,7 @@ def _build_response(iv) -> InterviewReportResponse:
         started_at=iv.started_at,
         completed_at=iv.completed_at,
         evaluated_answers=iv.evaluated_answers,
-        transcript=json.loads(iv.transcript) if iv.transcript else [],
+        transcript=active_transcript,
         language=iv.language,
         confidence=iv.confidence,
         audio_references=audio_refs,

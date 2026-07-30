@@ -2,7 +2,7 @@ from typing import List
 import uuid
 from fastapi import APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_db, get_current_user, check_permission
 from app.schemas.assessment_schema import (
     AssessmentCreate, AssessmentResponse, StartSessionResponse,
     SubmitAnswersParams, SubmissionResultResponse, AssessmentJoinInfoResponse, StudentJoinVerifyRequest
@@ -16,12 +16,12 @@ from app.services.student_assessment_service import StudentAssessmentService
 
 router = APIRouter()
 
-@router.get("/", response_model=List[AssessmentResponse])
+@router.get("/", response_model=List[AssessmentResponse], dependencies=[Depends(check_permission("assessments"))])
 def read_assessments(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = AssessmentService(db)
     return service.get_all_assessments(tenant_id=current_user.get("tenant_id"))
 
-@router.post("/", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(check_permission("assessments"))])
 def create_assessment(asmt_in: AssessmentCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = AssessmentService(db)
     return service.create_assessment(asmt_in, tenant_id=current_user.get("tenant_id"))
@@ -32,7 +32,7 @@ def verify_token(token: str, email: str, db: Session = Depends(get_db)):
     return service.verify_token(token, email)
 
 
-@router.get("/{id}", response_model=AssessmentResponse)
+@router.get("/{id}", response_model=AssessmentResponse, dependencies=[Depends(check_permission("assessments"))])
 def read_assessment(id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     service = AssessmentService(db)
     asmt = service.get_assessment_by_id(id, tenant_id=current_user.get("tenant_id"))
@@ -81,7 +81,7 @@ def submit_answers(params: SubmitAnswersParams, db: Session = Depends(get_db)):
 
 # Student Invitation & Verification endpoints
 
-@router.post("/assign", response_model=StudentAssessmentResponse)
+@router.post("/assign", response_model=StudentAssessmentResponse, dependencies=[Depends(check_permission("assessments"))])
 def assign_assessment(
     payload: StudentAssessmentCreate,
     request: Request,
@@ -99,7 +99,7 @@ def assign_assessment(
     service = StudentAssessmentService(db)
     return service.assign_assessment(payload, tenant_id=current_user.get("tenant_id"), frontend_url=frontend_url)
 
-@router.post("/assign-bulk", response_model=List[StudentAssessmentResponse])
+@router.post("/assign-bulk", response_model=List[StudentAssessmentResponse], dependencies=[Depends(check_permission("assessments"))])
 def assign_assessment_bulk(
     payload: StudentAssessmentBulkCreate,
     request: Request,

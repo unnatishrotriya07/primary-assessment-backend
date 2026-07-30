@@ -43,11 +43,11 @@ class AIOrchestrator:
                 logger.error(f"[AIOrchestrator] Provider {name} failed: {e}", exc_info=True)
 
         # Ultimate fallback
-        logger.warning("[AIOrchestrator] All configured LLMs failed. Returning fallback.")
+        logger.warning("[AIOrchestrator] All configured LLMs failed.")
         if json_mode:
             return json.dumps({
                 "intent": "ANSWER",
                 "explanation": "Fallback due to LLM provider timeout/failure.",
                 "confidence": 0.5
             })
-        return "You are doing a wonderful job! Let's keep trying together."
+        raise RuntimeError("All configured LLM providers failed to generate a response.")

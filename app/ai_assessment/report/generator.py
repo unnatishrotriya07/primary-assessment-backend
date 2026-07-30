@@ -132,7 +132,7 @@ class EvaluationPipelineService:
                 "cognitive_level": q.cognitive_level or "remembering"
             })
 
-        student_turns = [t for t in raw_turns if t["role"] == "student"]
+        student_turns = [t for t in raw_turns if t["role"] == "student" and t.get("category") not in ("comfort_conv", "meet_buddy")]
         
         default_evals = []
         for idx, q in enumerate(q_list):
@@ -329,11 +329,12 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
 
         raw_turns = []
         if turns:
-            for t in turns:
+            for idx, t in enumerate(turns):
+                category = "comfort_conv" if idx == 0 else "interview"
                 if t.buddy_message:
-                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": "interview"})
+                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": category})
                 if t.student_transcript:
-                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": "interview"})
+                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": category})
             if interview.status == "Completed" or interview.completion_status == "Completed":
                 last_ai = self.db.query(InterviewMessage).filter(
                     InterviewMessage.interview_id == interview.id,
@@ -489,6 +490,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 "questionType": question_type,
                 "isCorrect": False,
                 "score": 0,
+                "masteryScore": 0,
                 "label": "No Response",
                 "confidence": 1.0,
                 "reasoning": "Student skipped or did not answer the question.",
@@ -509,6 +511,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 "questionType": question_type,
                 "isCorrect": False,
                 "score": 0,
+                "masteryScore": 0,
                 "label": "Invalid Response",
                 "confidence": 1.0,
                 "reasoning": "Speech/transcript was invalid or could not be understood.",
@@ -589,6 +592,7 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
                 "questionType": question_type,
                 "isCorrect": False,
                 "score": 0,
+                "masteryScore": 0,
                 "label": "Unable to Evaluate",
                 "confidence": 0.0,
                 "reasoning": "Evaluation failed due to system/LLM issue.",
@@ -612,6 +616,7 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
             "questionType": question_type,
             "isCorrect": is_correct,
             "score": score_val,
+            "masteryScore": score_val,
             "label": label_val,
             "confidence": graded_json.get("confidence", 1.0),
             "reasoning": graded_json.get("reasoning") or "Evaluated successfully.",
@@ -690,7 +695,7 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
         teacher_summary = aggregated_data["teacher_summary"]
         parent_summary = aggregated_data["parent_summary"]
 
-        scores_list = [a.get("masteryScore", 0) for a in evaluated_answers]
+        scores_list = [a.get("masteryScore", a.get("score", 0)) for a in evaluated_answers]
         score = sum(scores_list) / len(scores_list) if scores_list else 75.0
         score = round(score, 1)
 

@@ -42,6 +42,12 @@ Respond ONLY with a JSON object of this structure:
     }
 
 def step_question_mapping(q_list: list, dialogue_turns: list) -> dict:
+    # Filter out comfort/welcome turns to prevent them from disturbing question-mapping
+    dialogue_turns = [
+        t for t in dialogue_turns
+        if t.get("category") not in ("comfort_conv", "meet_buddy")
+    ]
+
     dialogue_text = ""
     for t in dialogue_turns:
         dialogue_text += f"{t['role'].upper()}: {t['text']}\n"

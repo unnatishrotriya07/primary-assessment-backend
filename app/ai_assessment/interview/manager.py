@@ -94,7 +94,8 @@ class InterviewManager:
                 "hints": dq["hints"],
                 "expected_concepts": dq["expected_concepts"],
                 "followups": dq["followups"],
-                "learning_objective": dq["learning_objective"]
+                "learning_objective": dq["learning_objective"],
+                "correct_answer": dq.get("correct_answer", "")
             })
 
         # Session Initialization

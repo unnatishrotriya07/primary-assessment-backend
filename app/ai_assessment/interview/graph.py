@@ -86,17 +86,22 @@ class HeuristicIntentClassifier:
         if any(kw in cleaned for kw in repeat_keywords):
             return "ASK_REPEAT"
             
-        # 3. I don't know / Skip check
-        idk_keywords = ["don't know", "dont know", "i forgot", "forgot", "no idea", "not sure", "skip", "pass", "can't remember", "cant remember"]
+        # 3. I don't know check
+        idk_keywords = ["don't know", "dont know", "i forgot", "forgot", "no idea", "not sure", "can't remember", "cant remember"]
         if any(kw in cleaned for kw in idk_keywords):
             return "I_DONT_KNOW"
 
-        # 4. Ask Hint check
+        # 4. Skip check
+        skip_keywords = ["skip", "pass", "next", "move on", "go next", "next question", "already answered", "already gave", "already told", "already gay"]
+        if any(kw in cleaned for kw in skip_keywords):
+            return "SKIP"
+
+        # 5. Ask Hint check
         hint_keywords = ["hint", "clue", "help me", "give me help", "help please"]
         if any(kw in cleaned for kw in hint_keywords):
             return "ASK_HINT"
 
-        # 5. Confused check
+        # 6. Confused check
         confused_keywords = ["confused", "don't understand", "dont understand", "what do you mean", "tricky"]
         if any(kw in cleaned for kw in confused_keywords):
             return "CONFUSED"
@@ -105,14 +110,23 @@ class HeuristicIntentClassifier:
 
 # LLM Intent classifier prompt
 INTENT_SYSTEM_INSTRUCTION = """You are an educational assessment assistant.
-Classify the student's verbal response into exactly one of these intents:
-- ANSWER: The student provides a complete, clear, or tentative answer to the question.
-- PARTIAL_ANSWER: The student provides a half-formed or partial answer, trying to explain.
-- OFF_TOPIC: The student talks about something completely unrelated.
-- SILENCE: Empty or meaningless sounds.
+You are evaluating a student's response to a specific question to determine their intent and the accuracy/resonance of their answer.
+
+Examine the Question, the Expected Answer, the Expected Key Concepts, and the Student's Response.
+
+Classify the Student's Response into exactly one of these categories:
+- RESONATES_ANSWER: The student attempts to answer, and their response RESONATES with the expected answer or expected key concepts (even if it is only slightly correct, partial, tentative, or half-formed, as long as it shows some correct understanding or is on the right track). Allow for simple vocabulary and spelling/transcription errors (e.g. "already gay" for "already gave", "subtraction problem 5 minutes to you" for "5 minus 2", etc.).
+- INCORRECT_ANSWER: The student attempts to answer, but their response is incorrect, does not resonate at all with the expected answer, or shows a major misconception.
+- SKIP: The student explicitly asks to skip, pass, move on, go to the next question, or indicates they have already answered / want to proceed.
+- ASK_REPEAT: The student explicitly asks to repeat the question or says they didn't hear/understand.
+- ASK_HINT: The student asks for help, a hint, or a clue.
+- I_DONT_KNOW: The student says "I don't know", "I forgot", "pass", "skip", "no idea", etc.
+- CONFUSED: The student says they are confused or don't understand what the question means.
+- OFF_TOPIC: The student talks about something completely unrelated to the question or the conversation.
+- SILENCE: The response is empty, silent, or contains only meaningless sounds.
 
 Return a raw JSON object with format:
-{"intent": "ANSWER" | "PARTIAL_ANSWER" | "OFF_TOPIC" | "SILENCE"}
+{"intent": "RESONATES_ANSWER" | "INCORRECT_ANSWER" | "SKIP" | "ASK_REPEAT" | "ASK_HINT" | "I_DONT_KNOW" | "CONFUSED" | "OFF_TOPIC" | "SILENCE", "reason": "A brief explanation of why this category was selected"}
 Do not include any formatting, backticks, or markdown."""
 
 # LangGraph Node Implementations
@@ -124,6 +138,7 @@ def welcome_node(state: InterviewState) -> Dict[str, Any]:
     try:
         c_idx = state.get("comfort_index", 0)
         s_name = state.get("student_name", "friend")
+        student_grade = state.get("student_class", "Grade 3")
         
         transcript = list(state.get("transcript") or [])
         student_resp = state.get("student_response", "")
@@ -136,27 +151,27 @@ def welcome_node(state: InterviewState) -> Dict[str, Any]:
         next_state = "comfort_conv"
         new_c_idx = c_idx
 
+        # Retrieve the first question text to pass to welcome speech if transitioning
+        questions = state.get("questions") or []
+        first_q = questions[0] if questions else {"q": "Are you ready to share your learning journey?"}
+        first_q_text = first_q.get("text") or first_q.get("q") or ""
+
+        # Delegate welcome speech to ConversationManager
+        from app.services.conversation_manager import ConversationManager
+        conv_mgr = ConversationManager()
+
         if c_idx == 0:
             if not student_resp or student_resp.lower() in ["", "start", "initiate_interview"]:
-                next_speech = f"Hello {s_name}! I am Buddy, your learning assistant. How are you today?"
+                next_speech = conv_mgr.generate_welcome_speech(s_name, student_grade, 0, "", first_q_text, transcript)
                 new_c_idx = 1
             else:
-                next_speech = "That's lovely! What did you enjoy doing today?"
+                next_speech = conv_mgr.generate_welcome_speech(s_name, student_grade, 1, student_resp, first_q_text, transcript)
                 new_c_idx = 2
-        elif c_idx == 1:
-            next_speech = "That's lovely! What did you enjoy doing today?"
-            new_c_idx = 2
-        elif c_idx == 2:
-            next_speech = "Wonderful! Are you ready to learn together?"
-            new_c_idx = 3
+                next_state = "interview"
         else:
-            # Transition to first question
+            next_speech = conv_mgr.generate_welcome_speech(s_name, student_grade, 1, student_resp, first_q_text, transcript)
+            new_c_idx = 2
             next_state = "interview"
-            new_c_idx = 4
-            questions = state.get("questions") or []
-            first_q = questions[0] if questions else {"q": "Are you ready to share your learning journey?"}
-            first_q_text = first_q.get("text") or first_q.get("q") or ""
-            next_speech = f"Great! Let's go to the assessment now. Here is the first question: {first_q_text}"
 
         # Save Buddy turn in transcript history
         transcript.append({"role": "ai", "text": next_speech, "state": next_state})
@@ -171,7 +186,7 @@ def welcome_node(state: InterviewState) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"[LangGraph] Error in welcome_node: {e}", exc_info=True)
         return {
-            "comfort_index": 3,
+            "comfort_index": 2,
             "session_state": "interview",
             "next_speech": "Let's check out our first question together!",
             "error": str(e)
@@ -179,7 +194,7 @@ def welcome_node(state: InterviewState) -> Dict[str, Any]:
 
 def ask_question_node(state: InterviewState) -> Dict[str, Any]:
     """
-    Presents the current academic question.
+    Presents the current academic question (fallback/unused in normal workflow).
     """
     logger.info("[LangGraph] Executing ask_question_node")
     try:
@@ -253,7 +268,7 @@ def listen_node(state: InterviewState) -> Dict[str, Any]:
 
 def hybrid_intent_detection_node(state: InterviewState) -> Dict[str, Any]:
     """
-    Detects student intent via Heuristics, falling back to Gemini Orchestration.
+    Detects student intent via Heuristics, falling back to Gemini/Groq Orchestration.
     """
     logger.info("[LangGraph] Executing hybrid_intent_detection_node")
     try:
@@ -271,9 +286,17 @@ def hybrid_intent_detection_node(state: InterviewState) -> Dict[str, Any]:
         
         q_idx = state.get("current_question_index", 0)
         questions = state.get("questions") or []
-        current_q = questions[q_idx].get("text", "") if q_idx < len(questions) else ""
+        current_q_dict = questions[q_idx] if q_idx < len(questions) else {}
+        current_q = current_q_dict.get("text") or current_q_dict.get("q") or ""
+        correct_answer = current_q_dict.get("correct_answer", "")
+        expected_concepts = current_q_dict.get("expected_concepts", [])
         
-        prompt = f"Teacher's Question: {current_q}\nStudent Response: {student_resp}"
+        prompt = (
+            f"Question: {current_q}\n"
+            f"Expected Answer: {correct_answer}\n"
+            f"Expected Key Concepts: {expected_concepts}\n"
+            f"Student Response: {student_resp}"
+        )
         
         raw_res = orchestrator.generate(
             prompt=prompt,
@@ -283,47 +306,41 @@ def hybrid_intent_detection_node(state: InterviewState) -> Dict[str, Any]:
         )
         
         try:
-            intent = json.loads(raw_res).get("intent", "ANSWER")
+            intent = json.loads(raw_res).get("intent", "RESONATES_ANSWER")
         except Exception:
-            intent = "ANSWER"
+            intent = "RESONATES_ANSWER"
 
         logger.info(f"[LangGraph] AI intent classified: {intent}")
         return {"intent": intent, "error": None}
     except Exception as e:
         logger.error(f"[LangGraph] Error in hybrid_intent_detection_node: {e}", exc_info=True)
-        return {"intent": "ANSWER", "error": str(e)}
+        return {"intent": "RESONATES_ANSWER", "error": str(e)}
 
 def decision_node(state: InterviewState) -> Dict[str, Any]:
     """
     Planner node: Routes intent to planned action (repeat, hint, praise, skip).
+    Enforces maximum 2 conversational assists rule.
     """
     logger.info("[LangGraph] Executing decision_node")
     try:
-        intent = state.get("intent", "ANSWER")
+        intent = state.get("intent", "RESONATES_ANSWER")
         hints_used = state.get("hints_used_count", 0)
-        q_idx = state.get("current_question_index", 0)
-        questions = state.get("questions") or []
-        
-        q_hints = []
-        if q_idx < len(questions):
-            q_hints = questions[q_idx].get("hints") or []
 
-        metrics = dict(state.get("metrics") or {})
+        # Enforce Max 2 conversational assists rule
+        if hints_used >= 2:
+            logger.info(f"[LangGraph] Max assists (2) reached. Forcing skip action.")
+            return {"action": "skip", "error": None}
+
         action = "praise"
 
         if intent == "ASK_REPEAT":
             action = "repeat"
-        elif intent in ["I_DONT_KNOW", "CONFUSED", "ASK_HINT", "PARTIAL_ANSWER"]:
-            if hints_used < len(q_hints):
-                action = "hint"
-            else:
-                action = "skip"
+        elif intent == "SKIP":
+            action = "skip"
+        elif intent in ["I_DONT_KNOW", "CONFUSED", "ASK_HINT", "INCORRECT_ANSWER"]:
+            action = "hint"
         elif intent == "SILENCE":
-            retries = metrics.get("retries", 0)
-            if retries < 2:
-                action = "encourage_retry"
-            else:
-                action = "skip"
+            action = "encourage_retry"
         elif intent == "OFF_TOPIC":
             action = "encourage_topic"
         else:
@@ -338,6 +355,8 @@ def decision_node(state: InterviewState) -> Dict[str, Any]:
 def hint_encourage_praise_node(state: InterviewState) -> Dict[str, Any]:
     """
     Executes the action decided in the Planner node.
+    For repeat/hint/encourage, it generates speech.
+    For praise/skip, it delegates speech generation to next_question_node.
     """
     logger.info("[LangGraph] Executing hint_encourage_praise_node")
     try:
@@ -348,9 +367,10 @@ def hint_encourage_praise_node(state: InterviewState) -> Dict[str, Any]:
         transcript = list(state.get("transcript") or [])
         metrics = dict(state.get("metrics") or {})
         s_name = state.get("student_name", "")
+        student_grade = state.get("student_class", "Grade 3")
 
-        next_speech = ""
-        active_hint = None
+        next_speech = state.get("next_speech", "")
+        active_hint = state.get("active_hint", None)
         new_hints_used = hints_used
         new_session_state = state.get("session_state", "interview")
 
@@ -360,31 +380,70 @@ def hint_encourage_praise_node(state: InterviewState) -> Dict[str, Any]:
             q_text = questions[q_idx].get("text") or questions[q_idx].get("q") or ""
             q_hints = questions[q_idx].get("hints") or []
 
+        student_resp = state.get("student_response", "")
+
+        from app.services.conversation_manager import ConversationManager
+        conv_mgr = ConversationManager()
+
+        if action in ["praise", "skip"]:
+            # Let next_question_node handle speech and history. Just prepare the metrics and reset hints.
+            if action == "skip":
+                metrics["skipped_questions"] = metrics.get("skipped_questions", 0) + 1
+            new_hints_used = 0
+            metrics["retries"] = 0
+            
+            return {
+                "hints_used_count": new_hints_used,
+                "metrics": metrics,
+                "active_hint": None,
+                "error": None
+            }
+
+        # Handle conversational assists
         if action == "repeat":
-            next_speech = f"Sure, let me repeat it. {q_text}"
+            next_speech = conv_mgr.generate_assessment_speech(
+                student_name=s_name,
+                student_grade=student_grade,
+                action="repeat",
+                current_question=q_text,
+                student_response=student_resp,
+                history=transcript
+            )
+            new_hints_used = hints_used + 1
         elif action == "hint":
             active_hint = q_hints[hints_used] if hints_used < len(q_hints) else "Let's think step by step."
+            next_speech = conv_mgr.generate_assessment_speech(
+                student_name=s_name,
+                student_grade=student_grade,
+                action="hint",
+                current_question=q_text,
+                student_response=student_resp,
+                active_hint=active_hint,
+                history=transcript
+            )
             new_hints_used = hints_used + 1
-            next_speech = f"Here is a small clue. {active_hint}"
             new_session_state = "HINT"
         elif action == "encourage_retry":
             metrics["retries"] = metrics.get("retries", 0) + 1
-            next_speech = "Take your time! Tell me whatever you remember, or what you think."
+            next_speech = conv_mgr.generate_assessment_speech(
+                student_name=s_name,
+                student_grade=student_grade,
+                action="encourage_retry",
+                current_question=q_text,
+                student_response=student_resp,
+                history=transcript
+            )
+            new_hints_used = hints_used + 1
         elif action == "encourage_topic":
-            next_speech = f"That sounds very interesting! But let's try to focus on our question. {q_text}"
-        elif action == "skip":
-            metrics["skipped_questions"] = metrics.get("skipped_questions", 0) + 1
-            new_hints_used = 0
-            metrics["retries"] = 0
-            next_speech = "Wonderful effort! Let's check out the next one."
-        else:  # praise
-            new_hints_used = 0
-            metrics["retries"] = 0
-            encouragements = [
-                "Thoughtful answer!", "Nice thinking!", "Great effort!", 
-                "Wonderful job explaining!", "That's very clear!"
-            ]
-            next_speech = random.choice(encouragements)
+            next_speech = conv_mgr.generate_assessment_speech(
+                student_name=s_name,
+                student_grade=student_grade,
+                action="encourage_topic",
+                current_question=q_text,
+                student_response=student_resp,
+                history=transcript
+            )
+            new_hints_used = hints_used + 1
 
         # Save Buddy speech to history
         transcript.append({"role": "ai", "text": next_speech, "state": new_session_state})
@@ -408,6 +467,7 @@ def hint_encourage_praise_node(state: InterviewState) -> Dict[str, Any]:
 def next_question_node(state: InterviewState) -> Dict[str, Any]:
     """
     Increments question pointer, checking if we route to ask_question or goodbye.
+    Generates natural transitions using ConversationManager.
     """
     logger.info("[LangGraph] Executing next_question_node")
     try:
@@ -415,31 +475,40 @@ def next_question_node(state: InterviewState) -> Dict[str, Any]:
         questions = state.get("questions") or []
         transcript = list(state.get("transcript") or [])
         s_name = state.get("student_name", "")
+        student_grade = state.get("student_class", "Grade 3")
+        student_resp = state.get("student_response", "")
+        action = state.get("action", "praise")
+
+        q_text = ""
+        if q_idx < len(questions):
+            q_text = questions[q_idx].get("text") or questions[q_idx].get("q") or ""
 
         new_q_idx = q_idx + 1
         next_speech = ""
         new_session_state = "interview"
 
+        from app.services.conversation_manager import ConversationManager
+        conv_mgr = ConversationManager()
+
         if new_q_idx < len(questions):
             next_q = questions[new_q_idx]
             next_q_text = next_q.get("text") or next_q.get("q") or ""
-            # Prepend Buddy next speech with previous praise statement
-            prev_speech = state.get("next_speech", "")
-            next_speech = f"{prev_speech} Let's try this next one. {next_q_text}"
             
-            # Since next_speech contains the praise already, replace last transcript entry with compiled version
-            if transcript and transcript[-1]["role"] == "ai":
-                transcript[-1]["text"] = next_speech
-            else:
-                transcript.append({"role": "ai", "text": next_speech, "state": "interview"})
+            # Generate the unified transition speech (praise/skip + next question)
+            next_speech = conv_mgr.generate_assessment_speech(
+                student_name=s_name,
+                student_grade=student_grade,
+                action=action,
+                current_question=q_text,
+                student_response=student_resp,
+                next_question=next_q_text,
+                history=transcript
+            )
+            transcript.append({"role": "ai", "text": next_speech, "state": "interview"})
         else:
             new_session_state = "GOODBYE"
-            next_speech = f"Thank you {s_name}! We have finished all our questions today. You did wonderful! Goodbye!"
-            if transcript and transcript[-1]["role"] == "ai":
-                transcript[-1]["text"] = f"{state.get('next_speech', '')} {next_speech}"
-                transcript[-1]["state"] = "GOODBYE"
-            else:
-                transcript.append({"role": "ai", "text": next_speech, "state": "GOODBYE"})
+            next_speech = conv_mgr.generate_goodbye_speech(s_name, student_grade, transcript)
+            transcript.append({"role": "ai", "text": next_speech, "state": "GOODBYE"})
 
         return {
             "current_question_index": new_q_idx,

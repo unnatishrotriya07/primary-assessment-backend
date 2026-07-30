@@ -18,6 +18,12 @@ class SessionManager:
         if not interview:
             raise ValueError(f"Interview {interview_id} not found")
 
+        # Refresh database session to get updates from other threads (e.g., frontend session reset)
+        try:
+            self.db.refresh(interview)
+        except Exception:
+            pass
+
         session_data = interview.session_state_data or {}
         if not session_data:
             session_data = self._initialize_fallback_session_data(interview)
@@ -26,9 +32,9 @@ class SessionManager:
             "interview_id": interview.id,
             "student_name": interview.student_name,
             "student_class": interview.student_class,
-            "current_question_index": session_data.get("current_question_index", 0),
-            "session_state": session_data.get("session_state", "meet_buddy"),
-            "comfort_index": session_data.get("comfort_index", 0),
+            "current_question_index": interview.current_question_index,
+            "session_state": interview.session_state,
+            "comfort_index": interview.comfort_index,
             "questions": session_data.get("questions") or [],
             "transcript": session_data.get("history") or [],
             "raw_answers": session_data.get("raw_answers") or [],
