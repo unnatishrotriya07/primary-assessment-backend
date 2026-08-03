@@ -105,9 +105,9 @@ class ConversationManager:
         elif action == "encourage_topic":
             prompt = f"The student went off-topic. Acknowledge what they said: '{student_response}' briefly and friendly, then redirect them to focus back on the question: '{current_question}'."
         elif action == "skip":
-            prompt = f"The student struggled or wanted to move on from the question: '{current_question}'. Reassure them with a very brief phrase (maximum 3 words, e.g. 'No problem!', 'All good!', or 'Let's keep going!'). Then, ask the next question directly: '{next_question}'. Do not add any other conversational filler or preamble before the question."
+            prompt = f"The student struggled or wanted to move on from the question: '{current_question}'. Generate a very brief, warm reassuring phrase (maximum 3 words, e.g. 'No problem!', 'All good!', or 'Let's keep going!'). Do not add any other words or questions."
         else: # praise / transition
-            prompt = f"The student answered the question: '{current_question}' with: '{student_response}'. Acknowledge their response with a very brief, warm praise (maximum 3 words, e.g. 'Great job!', 'Well done!', or 'Nice thinking!'). Then, ask the next question directly: '{next_question}'. Do not add any other conversational filler or preamble before the question."
+            prompt = f"The student answered the question: '{current_question}' with: '{student_response}'. Generate a very brief, warm praise (maximum 3 words, e.g. 'Great job!', 'Well done!', or 'Nice thinking!'). Do not add any other words or questions."
 
         user_prompt = ""
         if recent_context:
@@ -121,6 +121,11 @@ class ConversationManager:
                 system_instruction=CONVERSATION_SYSTEM_INSTRUCTION,
                 preferred_provider="gemini"
             )
+            speech = speech.strip()
+            if action in ["skip", "praise"] and next_question:
+                if speech and not speech.endswith(('.', '!', '?')):
+                    speech += "!"
+                speech = f"{speech} {next_question}"
             return speech
         except Exception as e:
             logger.error(f"Error generating assessment speech: {e}", exc_info=True)
@@ -133,10 +138,11 @@ class ConversationManager:
                 return "Take your time! Tell me whatever you remember."
             elif action == "encourage_topic":
                 return f"That's interesting! Let's focus back on the question: {current_question}"
-            elif action == "skip":
-                return "No problem at all! Let's try the next one."
-            else:
-                return "Great effort! Let's try the next question."
+            
+            speech = "No problem at all!" if action == "skip" else "Great effort!"
+            if next_question:
+                speech = f"{speech} {next_question}"
+            return speech
 
     def generate_goodbye_speech(self, student_name: str, student_grade: str, history: List[Dict[str, str]] = None) -> str:
         """

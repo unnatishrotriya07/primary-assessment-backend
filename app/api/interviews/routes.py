@@ -422,6 +422,46 @@ def _build_response(iv) -> InterviewReportResponse:
                 "category": m.question_category
             })
 
+    # Map evaluated_answers dynamically if needed (backward compatibility)
+    corrected_evaluated_answers = []
+    if iv.evaluated_answers:
+        raw_map = {}
+        if iv.raw_answers:
+            try:
+                raw_list = json.loads(iv.raw_answers) if isinstance(iv.raw_answers, str) else iv.raw_answers
+                for r in raw_list:
+                    if isinstance(r, dict) and "question" in r and "answer" in r:
+                        raw_map[r["question"].strip().lower()] = r["answer"]
+            except Exception:
+                pass
+        
+        if db:
+            try:
+                from app.core.models.interview import InterviewEvaluationStep
+                step = db.query(InterviewEvaluationStep).filter(
+                    InterviewEvaluationStep.interview_id == iv.id,
+                    InterviewEvaluationStep.step_name == 'answer_understanding'
+                ).first()
+                if step and step.output:
+                    step_output = json.loads(step.output) if isinstance(step.output, str) else step.output
+                    for item in step_output:
+                        if isinstance(item, dict) and "question" in item and "student_answer" in item:
+                            raw_map[item["question"].strip().lower()] = item["student_answer"]
+            except Exception:
+                pass
+
+        for item in iv.evaluated_answers:
+            if isinstance(item, dict):
+                item_copy = dict(item)
+                q_text = item_copy.get("question", "").strip().lower()
+                if q_text in raw_map:
+                    item_copy["studentAnswer"] = raw_map[q_text] or item_copy.get("studentAnswer")
+                corrected_evaluated_answers.append(item_copy)
+            else:
+                corrected_evaluated_answers.append(item)
+    else:
+        corrected_evaluated_answers = iv.evaluated_answers
+
     return InterviewReportResponse(
         id=iv.id,
         student_name=iv.student_name,
@@ -442,7 +482,7 @@ def _build_response(iv) -> InterviewReportResponse:
         status=iv.status,
         started_at=iv.started_at,
         completed_at=iv.completed_at,
-        evaluated_answers=iv.evaluated_answers,
+        evaluated_answers=corrected_evaluated_answers,
         transcript=active_transcript,
         language=iv.language,
         confidence=iv.confidence,

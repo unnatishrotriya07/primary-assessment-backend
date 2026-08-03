@@ -63,8 +63,8 @@ class ResponsePolicyLayer:
 
         # Basic length limiter just to be safe
         words = cleaned.split()
-        if len(words) > 35:
-            cleaned = " ".join(words[:30]) + "... You're doing a fantastic job, let's keep going!"
+        if len(words) > 100:
+            cleaned = " ".join(words[:90]) + "... You're doing a fantastic job, let's keep going!"
 
         return cleaned
 

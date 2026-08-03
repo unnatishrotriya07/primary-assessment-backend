@@ -476,7 +476,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         difficulty = getattr(db_q, "difficulty", "medium") or "medium"
         question_type = getattr(db_q, "question_type", "mcq") or "mcq"
         
-        student_response = ua.get("cleaned_response", "") or ua.get("student_answer", "")
+        student_response = ua.get("student_answer", "") or ua.get("cleaned_response", "")
         is_skipped = ua.get("is_skipped", False)
         has_speech_issue = ua.get("has_speech_issue", False)
         
