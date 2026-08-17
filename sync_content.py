@@ -18,12 +18,12 @@ logger = logging.getLogger("sync_content")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.db.session import SessionLocal
-from app.models.book import Book, BookChapter, ChapterSection, ChapterAsset
-from app.models.chapter import Chapter
-from app.models.subject import Subject
-from app.models.class_model import Class
+from app.core.models.book import Book, BookChapter, ChapterSection, ChapterAsset
+from app.core.models.chapter import Chapter
+from app.core.models.subject import Subject
+from app.core.models.class_model import Class
 from app.ai.openai_provider import OpenAIProvider
-from app.utils.s3 import upload_to_s3, s3_file_exists, download_from_s3
+from app.infrastructure.s3 import upload_to_s3, s3_file_exists, download_from_s3
 from app.core.config import settings
 
 # List of NCERT textbooks for Classes 1-5 (English, Math, EVS, Hindi)

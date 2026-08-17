@@ -30,7 +30,7 @@ def test_v2_conversation_engine_workflow(db_session: Session):
     # Setup Class
     school_class = db_session.query(Class).first()
     if not school_class:
-        school_class = Class(name="Grade 4")
+        school_class = Class(name="Grade 4", grade="4", section="A")
         db_session.add(school_class)
         db_session.commit()
         db_session.refresh(school_class)
