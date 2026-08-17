@@ -11,7 +11,7 @@ from app.core.models.student_assessment import StudentAssessment
 from app.core.schemas.student_schema import StudentUpdate
 from app.core.exceptions import EntityNotFoundException
 from app.utils.excel import parse_student_file
-from app.utils.s3 import upload_to_s3
+from app.infrastructure.s3 import upload_to_s3
 
 class StudentService:
     def __init__(self, db: Session):

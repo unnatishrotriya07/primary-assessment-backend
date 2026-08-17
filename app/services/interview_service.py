@@ -11,6 +11,8 @@ from app.core.schemas.interview_schema import InterviewSubmitRequest
 from app.ai_assessment.interview.manager import InterviewManager
 from app.ai_assessment.interview.state import StateManager
 
+from app.core.helpers import ENGLISH_STOPWORDS
+
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
 from app.ai_assessment.prompts import loader
@@ -348,13 +350,6 @@ class InterviewService:
     def _generate_fallback_report(self, student_name: str, answers: list) -> dict:
         import string
         translator = str.maketrans('', '', string.punctuation)
-        stopwords = {
-            "the", "a", "an", "is", "are", "was", "were", "of", "in", "on", "at",
-            "to", "for", "with", "by", "about", "like", "through", "over", "before",
-            "after", "between", "under", "it", "this", "that", "these", "those",
-            "or", "and", "but", "as", "if"
-        }
-
         evaluated_questions = []
         correct_count = 0
         for idx, a in enumerate(answers):
@@ -367,8 +362,8 @@ class InterviewService:
                 is_correct = False
                 score_val = 0
             elif expected_ans:
-                s_words = set(student_ans.translate(translator).split()) - stopwords
-                e_words = set(expected_ans.translate(translator).split()) - stopwords
+                s_words = set(student_ans.translate(translator).split()) - ENGLISH_STOPWORDS
+                e_words = set(expected_ans.translate(translator).split()) - ENGLISH_STOPWORDS
                 overlap = s_words.intersection(e_words)
                 recall = len(overlap) / len(e_words) if e_words else 1.0
 

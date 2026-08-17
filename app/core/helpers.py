@@ -4,6 +4,13 @@ from typing import List, Any, Optional
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 
+ENGLISH_STOPWORDS = {
+    "the", "a", "an", "is", "are", "was", "were", "of", "in", "on", "at",
+    "to", "for", "with", "by", "about", "like", "through", "over", "before",
+    "after", "between", "under", "it", "this", "that", "these", "those",
+    "or", "and", "but", "as", "if"
+}
+
 def is_valid_email(email: str) -> bool:
     regex = r"^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     return bool(re.match(regex, email))

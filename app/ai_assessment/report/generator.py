@@ -14,7 +14,16 @@ from app.core.models.assessment import Assessment
 from app.ai_assessment.report import analytics
 from app.ai_assessment.report import recommendation
 
+from app.core.helpers import ENGLISH_STOPWORDS
+
 GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# Scoring threshold constants for heuristic fallback evaluator
+RECALL_FULL_CREDIT_THRESHOLD = 0.50
+RECALL_PARTIAL_CREDIT_THRESHOLD = 0.25
+RECALL_MINIMAL_CREDIT_THRESHOLD = 0.10
+JACCARD_FULL_CREDIT_THRESHOLD = 0.35
+JACCARD_PARTIAL_CREDIT_THRESHOLD = 0.18
 
 class EvaluationPipelineService:
     def __init__(self, db: Session):
@@ -87,18 +96,19 @@ class EvaluationPipelineService:
 
         return final_report
 
-    def _call_unified_llm(self, interview: Interview) -> dict:
+    def _get_raw_turns(self, interview: Interview) -> list:
         turns = self.db.query(ConversationTurn).filter(
             ConversationTurn.interview_id == interview.id
         ).order_by(ConversationTurn.id.asc()).all()
 
         raw_turns = []
         if turns:
-            for t in turns:
+            for idx, t in enumerate(turns):
+                category = "comfort_conv" if idx == 0 else "interview"
                 if t.buddy_message:
-                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": "interview"})
+                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": category})
                 if t.student_transcript:
-                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": "interview"})
+                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": category})
             if interview.status == "Completed" or interview.completion_status == "Completed":
                 last_ai = self.db.query(InterviewMessage).filter(
                     InterviewMessage.interview_id == interview.id,
@@ -119,7 +129,10 @@ class EvaluationPipelineService:
                     raw_turns = json.loads(interview.transcript)
                 except Exception:
                     raw_turns = []
+        return raw_turns
 
+    def _call_unified_llm(self, interview: Interview) -> dict:
+        raw_turns = self._get_raw_turns(interview)
         if not raw_turns:
             return {}
 
@@ -209,15 +222,15 @@ class EvaluationPipelineService:
                 "revisionTopics": ["Core chapters."]
             },
             "teacher_summary": {
-                "summary": f"Completed review session. Showing basic progress."
+                "summary": "Completed review session. Showing basic progress."
             },
             "parent_summary": {
                 "parent_summary": f"Dear Parent, {interview.student_name} completed their review today! We are excited to keep supporting their learning."
             }
         }
 
-        from unittest.mock import Mock
-        if isinstance(getattr(self, "_call_llm_with_fallback", None), Mock):
+        llm_caller = getattr(self, "_call_llm_with_fallback", None)
+        if llm_caller and type(llm_caller).__name__ in ("Mock", "MagicMock"):
             print("[EvaluationPipeline] Mock test detected. Bypassing unified LLM call.", flush=True)
             return {}
 
@@ -331,39 +344,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 pass
             return result
 
-        turns = self.db.query(ConversationTurn).filter(
-            ConversationTurn.interview_id == interview.id
-        ).order_by(ConversationTurn.id.asc()).all()
-
-        raw_turns = []
-        if turns:
-            for idx, t in enumerate(turns):
-                category = "comfort_conv" if idx == 0 else "interview"
-                if t.buddy_message:
-                    raw_turns.append({"role": "ai", "text": t.buddy_message, "category": category})
-                if t.student_transcript:
-                    raw_turns.append({"role": "student", "text": t.student_transcript, "category": category})
-            if interview.status == "Completed" or interview.completion_status == "Completed":
-                last_ai = self.db.query(InterviewMessage).filter(
-                    InterviewMessage.interview_id == interview.id,
-                    InterviewMessage.role == "ai",
-                    InterviewMessage.question_category == "GOODBYE"
-                ).first()
-                if last_ai:
-                    raw_turns.append({"role": "ai", "text": last_ai.text, "category": "GOODBYE"})
-        else:
-            messages = self.db.query(InterviewMessage).filter(
-                InterviewMessage.interview_id == interview.id
-            ).order_by(InterviewMessage.id.asc()).all()
-            if messages:
-                for m in messages:
-                    raw_turns.append({"role": m.role, "text": m.text, "category": m.question_category})
-            elif interview.transcript:
-                try:
-                    raw_turns = json.loads(interview.transcript)
-                except Exception:
-                    raw_turns = []
-
+        raw_turns = self._get_raw_turns(interview)
         cfg = analytics.step_transcript_cleanup(interview, raw_turns)
         result = self._call_llm_with_fallback(cfg["prompt"], cfg["system_instruction"], cfg["fallback_data"])
         
@@ -428,18 +409,11 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         db_q_map = {q.text.strip().lower(): q for q in db_questions}
         
         # Build a full transcript string for the LLM context
-        turns = self.db.query(ConversationTurn).filter(
-            ConversationTurn.interview_id == interview.id
-        ).order_by(ConversationTurn.id.asc()).all()
-        
-        raw_turns = []
-        for t in turns:
-            if t.buddy_message:
-                raw_turns.append(f"Buddy (AI): {t.buddy_message}")
-            if t.student_transcript:
-                raw_turns.append(f"Student ({interview.student_name}): {t.student_transcript}")
-                
-        formatted_transcript = "\n".join(raw_turns)
+        raw_turns = self._get_raw_turns(interview)
+        formatted_transcript = "\n".join([
+            f"{'Buddy (AI)' if t.get('role') == 'ai' else f'Student ({interview.student_name})'}: {t.get('text', '')}"
+            for t in raw_turns
+        ])
         
         subject = assessment.subject.name if assessment and assessment.subject else "General"
         grade = interview.student_class
@@ -488,14 +462,8 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         s_words = set(s_clean.translate(translator).split())
         e_words = set(e_clean.translate(translator).split())
         
-        stopwords = {
-            "the", "a", "an", "is", "are", "was", "were", "of", "in", "on", "at",
-            "to", "for", "with", "by", "about", "like", "through", "over", "before",
-            "after", "between", "under", "it", "this", "that", "these", "those",
-            "or", "and", "but", "as", "if"
-        }
-        s_keywords = s_words - stopwords
-        e_keywords = e_words - stopwords
+        s_keywords = s_words - ENGLISH_STOPWORDS
+        e_keywords = e_words - ENGLISH_STOPWORDS
         
         if not s_clean or s_clean in ["silent", "(silent)", "none", "i don't know", "skip", "no"]:
             return {
@@ -511,7 +479,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         matched_concepts = []
         missing_concepts = []
         for c in (expected_concepts or []):
-            c_words = set(str(c).lower().translate(translator).split()) - stopwords
+            c_words = set(str(c).lower().translate(translator).split()) - ENGLISH_STOPWORDS
             if c_words and (c_words.issubset(s_words) or any(w in s_words for w in c_words)):
                 matched_concepts.append(c)
             else:
@@ -543,7 +511,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         recall = len(overlap) / len(e_keywords) if e_keywords else 1.0
         jaccard = len(overlap) / len(s_keywords.union(e_keywords)) if s_keywords.union(e_keywords) else 1.0
         
-        if recall >= 0.50 or jaccard >= 0.35:
+        if recall >= RECALL_FULL_CREDIT_THRESHOLD or jaccard >= JACCARD_FULL_CREDIT_THRESHOLD:
             return {
                 "score": 100,
                 "label": "Correct",
@@ -553,7 +521,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 "matched_concepts": expected_concepts,
                 "missing_concepts": []
             }
-        elif recall >= 0.25 or jaccard >= 0.18:
+        elif recall >= RECALL_PARTIAL_CREDIT_THRESHOLD or jaccard >= JACCARD_PARTIAL_CREDIT_THRESHOLD:
             return {
                 "score": 80,
                 "label": "Mostly Correct",
@@ -563,7 +531,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
                 "matched_concepts": matched_concepts or (expected_concepts[:1] if expected_concepts else []),
                 "missing_concepts": missing_concepts
             }
-        elif recall >= 0.10:
+        elif recall >= RECALL_MINIMAL_CREDIT_THRESHOLD:
             return {
                 "score": 50,
                 "label": "Partially Correct",

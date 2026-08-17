@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
 from app.core.schemas.student_schema import StudentResponse, StudentUpdate, StudentReportResponse, StudentJourneyResponse
 from app.core.services.student_service import StudentService
-from app.utils.s3 import upload_to_s3
+from app.infrastructure.s3 import upload_to_s3
 
 router = APIRouter()
 
