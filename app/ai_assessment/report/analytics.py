@@ -217,16 +217,19 @@ Evaluate and return ONLY a JSON object:
     }
 
 def step_concept_mastery_detection(evaluated_answers: list) -> dict:
-    prompt = f"""You are a child diagnostics specialist.
-Aggregate all per-question evaluations to compute the student's mastery.
+    scores_list = [a.get("masteryScore", a.get("score", 0)) for a in evaluated_answers if isinstance(a, dict)]
+    avg_score = round(sum(scores_list) / len(scores_list), 1) if scores_list else 0.0
+
+    prompt = f"""You are an educational diagnostics specialist.
+Aggregate all per-question evaluations to compute the student's mastery across concepts.
 
 Evaluations:
 {json.dumps(evaluated_answers, indent=2)}
 
 Respond ONLY with a JSON object:
 {{
-  "subjectMastery": <overall grade average 0-100>,
-  "chapterMastery": <chapter average 0-100>,
+  "subjectMastery": {avg_score},
+  "chapterMastery": {avg_score},
   "concepts": [
     {{
       "name": "<concept name>",
@@ -244,8 +247,8 @@ Respond ONLY with a JSON object:
 }}"""
     system_instruction = "Return aggregated masteries in raw JSON only."
     fallback_data = {
-        "subjectMastery": 75,
-        "chapterMastery": 75,
+        "subjectMastery": avg_score,
+        "chapterMastery": avg_score,
         "concepts": [],
         "bloomDistribution": {}
     }

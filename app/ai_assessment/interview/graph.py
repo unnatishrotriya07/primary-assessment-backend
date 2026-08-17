@@ -337,12 +337,14 @@ def decision_node(state: InterviewState) -> Dict[str, Any]:
             action = "repeat"
         elif intent == "SKIP":
             action = "skip"
-        elif intent in ["I_DONT_KNOW", "CONFUSED", "ASK_HINT", "INCORRECT_ANSWER"]:
+        elif intent in ["I_DONT_KNOW", "CONFUSED", "ASK_HINT"]:
             action = "hint"
         elif intent == "SILENCE":
             action = "encourage_retry"
         elif intent == "OFF_TOPIC":
             action = "encourage_topic"
+        elif intent in ["RESONATES_ANSWER", "INCORRECT_ANSWER", "ANSWER"]:
+            action = "praise"
         else:
             action = "praise"
 

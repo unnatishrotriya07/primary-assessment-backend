@@ -346,6 +346,15 @@ class InterviewService:
         return json.loads(clean)
 
     def _generate_fallback_report(self, student_name: str, answers: list) -> dict:
+        import string
+        translator = str.maketrans('', '', string.punctuation)
+        stopwords = {
+            "the", "a", "an", "is", "are", "was", "were", "of", "in", "on", "at",
+            "to", "for", "with", "by", "about", "like", "through", "over", "before",
+            "after", "between", "under", "it", "this", "that", "these", "those",
+            "or", "and", "but", "as", "if"
+        }
+
         evaluated_questions = []
         correct_count = 0
         for idx, a in enumerate(answers):
@@ -354,13 +363,24 @@ class InterviewService:
             
             is_correct = False
             score_val = 5
-            if not student_ans or student_ans in ["silent", "(silent)", "none"]:
+            if not student_ans or student_ans in ["silent", "(silent)", "none", "i don't know", "skip", "no"]:
                 is_correct = False
                 score_val = 0
             elif expected_ans:
-                if student_ans == expected_ans or expected_ans in student_ans or student_ans in expected_ans:
+                s_words = set(student_ans.translate(translator).split()) - stopwords
+                e_words = set(expected_ans.translate(translator).split()) - stopwords
+                overlap = s_words.intersection(e_words)
+                recall = len(overlap) / len(e_words) if e_words else 1.0
+
+                if student_ans == expected_ans or recall >= 0.65:
                     is_correct = True
-                    score_val = 10
+                    score_val = 10 if recall >= 0.85 else 9
+                elif recall >= 0.35:
+                    is_correct = True
+                    score_val = 7
+                elif recall >= 0.15:
+                    is_correct = False
+                    score_val = 5
                 else:
                     is_correct = False
                     score_val = 2
@@ -371,6 +391,7 @@ class InterviewService:
             if is_correct:
                 correct_count += 1
 
+            feedback_text = "Accurate response with clear conceptual understanding." if is_correct else f"Keep practicing this concept. Expected: {a.get('expected_answer', '')}"
             evaluated_questions.append({
                 "index": a.get("index", idx + 1),
                 "question": a.get("question", ""),
@@ -378,7 +399,7 @@ class InterviewService:
                 "expectedAnswer": a.get("expected_answer", ""),
                 "isCorrect": is_correct,
                 "score": score_val,
-                "feedback": "Correct response." if is_correct else "Need to review expectations."
+                "feedback": feedback_text
             })
 
         total = len(answers)
