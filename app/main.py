@@ -27,8 +27,9 @@ try:
 
     db = SessionLocal()
     try:
-        # Seed default school
+        # Seed default school and admin
         from app.core.models.school import School
+        from app.core.models.admin import Admin
         default_school = db.query(School).filter(School.tenant_id == "SCH-SYSTEM").first()
         if not default_school:
             default_school = School(
