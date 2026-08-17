@@ -3,16 +3,16 @@ import uuid
 from fastapi import APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, check_permission
-from app.schemas.assessment_schema import (
+from app.core.schemas.assessment_schema import (
     AssessmentCreate, AssessmentResponse, StartSessionResponse,
     SubmitAnswersParams, SubmissionResultResponse, AssessmentJoinInfoResponse, StudentJoinVerifyRequest
 )
-from app.services.assessment_service import AssessmentService
-from app.schemas.student_assessment_schema import (
+from app.core.services.assessment_service import AssessmentService
+from app.core.schemas.student_assessment_schema import (
     StudentAssessmentCreate, StudentAssessmentResponse,
     StudentAssessmentVerifyResponse, StudentAssessmentStartRequest, StudentAssessmentBulkCreate
 )
-from app.services.student_assessment_service import StudentAssessmentService
+from app.core.services.student_assessment_service import StudentAssessmentService
 
 router = APIRouter()
 

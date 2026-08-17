@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from app.repositories.auth_repository import AuthRepository
-from app.schemas.auth_schema import LoginCredentials, AuthResponse, UserInfo, SchoolSignupRequest
-from app.models.admin import Admin
-from app.common import security
-from app.common.exceptions import InvalidCredentialsException
+from app.core.repositories.auth_repository import AuthRepository
+from app.core.schemas.auth_schema import LoginCredentials, AuthResponse, UserInfo, SchoolSignupRequest
+from app.core.models.admin import Admin
+from app.core import security
+from app.core.exceptions import InvalidCredentialsException
 
 class AuthService:
     def __init__(self, db: Session):
@@ -14,7 +14,7 @@ class AuthService:
         if not admin or not security.verify_password(credentials.password, admin.hashed_password):
             raise InvalidCredentialsException()
 
-        from app.models.school import School
+        from app.core.models.school import School
         school_name = None
         if admin.tenant_id:
             school = self.auth_repo.db.query(School).filter(School.tenant_id == admin.tenant_id).first()
@@ -50,7 +50,7 @@ class AuthService:
         import random
         import string
         import re
-        from app.models.school import School
+        from app.core.models.school import School
         
         # Check if email is already registered
         existing_user = self.auth_repo.get_admin_by_email(payload.email)

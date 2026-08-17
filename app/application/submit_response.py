@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.services.interview_service import InterviewService
-from app.schemas.interview_schema import InterviewSubmitRequest
+from app.core.schemas.interview_schema import InterviewSubmitRequest
 from app.core.models.interview import Interview
 
 class SubmitResponseUseCase:

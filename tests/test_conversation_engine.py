@@ -2,16 +2,16 @@ import json
 import pytest
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal, engine, Base
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
-from app.models.question import Question
-from app.models.assessment import Assessment
-from app.models.student import Student
-from app.models.student_assessment import StudentAssessment
-from app.models.interview import Interview, ConversationTurn
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
+from app.core.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.student import Student
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.interview import Interview, ConversationTurn
 from app.services.interview_service import InterviewService
-from app.services.compiler_service import AssessmentCompilerService
+from app.core.services.compiler_service import AssessmentCompilerService
 
 @pytest.fixture(scope="function")
 def db_session():

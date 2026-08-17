@@ -4,20 +4,20 @@ from unittest.mock import patch
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
+from app.db.session import Base
 
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
-from app.models.question import Question
-from app.models.assessment import Assessment
-from app.models.report import Report
-from app.models.student_assessment import StudentAssessment
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
+from app.core.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.report import Report
+from app.core.models.student_assessment import StudentAssessment
 
 from app.core.services.student_assessment_service import StudentAssessmentService
 from app.core.services.assessment_service import AssessmentService
-from app.schemas.student_assessment_schema import StudentAssessmentCreate, StudentAssessmentStartRequest, StudentAssessmentBulkCreate
-from app.schemas.assessment_schema import SubmitAnswersParams
+from app.core.schemas.student_assessment_schema import StudentAssessmentCreate, StudentAssessmentStartRequest, StudentAssessmentBulkCreate
+from app.core.schemas.assessment_schema import SubmitAnswersParams
 
 class TestStudentAssessmentFlow(unittest.TestCase):
     def setUp(self):
@@ -257,7 +257,7 @@ class TestStudentAssessmentFlow(unittest.TestCase):
 
     def test_assign_assessment_bulk(self):
         """Test assigning assessment to multiple students at once."""
-        from app.models.student import Student
+        from app.core.models.student import Student
 
         # Seed students
         student1 = Student(name="John Doe", email="john@example.com", contact_number="1234567890", scholar_number="S101", class_id=self.test_class.id)
@@ -294,8 +294,8 @@ class TestStudentAssessmentFlow(unittest.TestCase):
 
     def test_join_info_and_join_verify(self):
         """Test public assessment join-info fetch and verification endpoints."""
-        from app.models.student import Student
-        from app.schemas.assessment_schema import StudentJoinVerifyRequest
+        from app.core.models.student import Student
+        from app.core.schemas.assessment_schema import StudentJoinVerifyRequest
 
         # 1. Seed student in target class
         student = Student(
@@ -361,9 +361,9 @@ class TestStudentAssessmentFlow(unittest.TestCase):
 
     def test_get_student_results_combined(self):
         """Test that get_student_results retrieves and combines both Report and Interview results sorted by date."""
-        from app.models.student import Student
-        from app.models.interview import Interview
-        from app.services.student_service import StudentService
+        from app.core.models.student import Student
+        from app.core.models.interview import Interview
+        from app.core.services.student_service import StudentService
 
         # 1. Seed a student
         student = Student(

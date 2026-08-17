@@ -2,10 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, enforce_super_admin
-from app.schemas.subject_schema import SubjectCreate, SubjectUpdate, SubjectResponse
-from app.services.subject_service import SubjectService
-from app.schemas.chapter_schema import ChapterResponse
-from app.services.chapter_service import ChapterService
+from app.core.schemas.subject_schema import SubjectCreate, SubjectUpdate, SubjectResponse
+from app.core.services.subject_service import SubjectService
+from app.core.schemas.chapter_schema import ChapterResponse
+from app.core.services.chapter_service import ChapterService
 
 router = APIRouter()
 

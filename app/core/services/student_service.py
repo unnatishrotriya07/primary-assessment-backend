@@ -3,12 +3,12 @@ import time
 from typing import List, Dict, Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.repositories.student_repository import StudentRepository
-from app.repositories.class_repository import ClassRepository
-from app.models.student import Student
-from app.models.report import Report
-from app.models.student_assessment import StudentAssessment
-from app.schemas.student_schema import StudentUpdate
+from app.core.repositories.student_repository import StudentRepository
+from app.core.repositories.class_repository import ClassRepository
+from app.core.models.student import Student
+from app.core.models.report import Report
+from app.core.models.student_assessment import StudentAssessment
+from app.core.schemas.student_schema import StudentUpdate
 from app.core.exceptions import EntityNotFoundException
 from app.utils.excel import parse_student_file
 from app.utils.s3 import upload_to_s3
@@ -88,7 +88,7 @@ class StudentService:
         
         # Query reports matching student email case-insensitively
         from sqlalchemy import func
-        from app.models.interview import Interview
+        from app.core.models.interview import Interview
         from datetime import datetime
 
         reports = self.db.query(Report).filter(func.lower(Report.student_email) == func.lower(student.email)).all()
@@ -219,13 +219,13 @@ class StudentService:
         student = self.get_student_by_id(student_id, tenant_id)
         
         # Fetch all subjects and chapters in the student's class
-        from app.models.subject import Subject
-        from app.models.chapter import Chapter
-        from app.models.question import Question
-        from app.models.report import Report
-        from app.models.interview import Interview
-        from app.models.student_assessment import StudentAssessment
-        from app.models.assessment import Assessment, assessment_questions
+        from app.core.models.subject import Subject
+        from app.core.models.chapter import Chapter
+        from app.core.models.question import Question
+        from app.core.models.report import Report
+        from app.core.models.interview import Interview
+        from app.core.models.student_assessment import StudentAssessment
+        from app.core.models.assessment import Assessment, assessment_questions
         from sqlalchemy import func
         from datetime import datetime
 

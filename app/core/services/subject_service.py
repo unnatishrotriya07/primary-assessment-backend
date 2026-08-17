@@ -1,8 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.repositories.subject_repository import SubjectRepository
-from app.schemas.subject_schema import SubjectCreate, SubjectUpdate
-from app.models.subject import Subject
+from app.core.repositories.subject_repository import SubjectRepository
+from app.core.schemas.subject_schema import SubjectCreate, SubjectUpdate
+from app.core.models.subject import Subject
 from app.core.exceptions import EntityNotFoundException, EntityAlreadyExistsException
 
 class SubjectService:

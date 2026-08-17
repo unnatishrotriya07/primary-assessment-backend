@@ -1,6 +1,6 @@
 from typing import Optional, List
 from datetime import datetime
-from app.schemas.base_schema import CamelModel
+from app.core.schemas.base_schema import CamelModel
 
 class StudentAssessmentCreate(CamelModel):
     assessment_id: int

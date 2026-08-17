@@ -7,12 +7,12 @@ from io import BytesIO
 from app.core.config import settings
 from app.infrastructure.sendgrid import EmailService
 from app.core.services.student_assessment_service import StudentAssessmentService
-from app.schemas.student_assessment_schema import StudentAssessmentCreate
+from app.core.schemas.student_assessment_schema import StudentAssessmentCreate
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.assessment import Assessment
+from app.db.session import Base
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.assessment import Assessment
 
 class TestSendGridIntegration(unittest.TestCase):
     def setUp(self):

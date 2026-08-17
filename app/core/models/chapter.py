@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from app.common.database import Base
+from app.db.session import Base
 
 class Chapter(Base):
     __tablename__ = "chapters"

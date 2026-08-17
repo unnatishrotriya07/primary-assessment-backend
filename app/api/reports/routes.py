@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.schemas.report_schema import ReportResponse, ReportOverviewResponse
-from app.services.report_service import ReportService
+from app.core.schemas.report_schema import ReportResponse, ReportOverviewResponse
+from app.core.services.report_service import ReportService
 
 router = APIRouter()
 

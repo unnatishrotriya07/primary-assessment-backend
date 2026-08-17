@@ -7,262 +7,28 @@ from app.db.session import engine, Base
 
 # Create database tables automatically on startup
 try:
-    print(f"DEBUG STARTUP: Starting database table creation/migration...", flush=True)
-    
-    # Import base metadata so all models are recognized
-    from app.db.base import Base
+    print(f"DEBUG STARTUP: Starting database table creation...", flush=True)
+    from app.db.session import Base
     Base.metadata.create_all(bind=engine)
-    print("DEBUG STARTUP: Database tables created/checked successfully.", flush=True)
+    print("DEBUG STARTUP: Database tables checked successfully.", flush=True)
+except Exception as e:
+    print(f"DEBUG STARTUP: Table check warning: {e}", flush=True)
 
-    # Auto-migrate: ensure columns exist
+try:
     from app.db.session import SessionLocal
-    db = SessionLocal()
-    try:
-        from sqlalchemy import text
-        print("DEBUG STARTUP: Running database migrations...", flush=True)
-        # Migrate questions table
-        try:
-            db.execute(text("ALTER TABLE questions ADD COLUMN session VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'session' column to 'questions' table.", flush=True)
-        except Exception as qe:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE questions ADD COLUMN question_type VARCHAR DEFAULT 'mcq'"))
-            db.commit()
-            print("Database migration: Added 'question_type' column to 'questions' table.", flush=True)
-        except Exception as qe:
-            db.rollback()
-            pass
-            
-        # V2 compiler fields for questions table
-        for col_name, col_type in [
-            ("learning_objective", "VARCHAR"),
-            ("bloom_level", "VARCHAR"),
-            ("expected_concepts", "JSON"),
-            ("rubric", "TEXT"),
-            ("common_mistakes", "JSON"),
-            ("hints", "JSON"),
-            ("followups", "JSON"),
-            ("maximum_followups", "INTEGER DEFAULT 2"),
-            ("minimum_coverage", "FLOAT DEFAULT 0.6"),
-            ("ideal_answer_length", "INTEGER DEFAULT 50"),
-            ("estimated_duration", "INTEGER DEFAULT 120"),
-            ("scoring_rules", "TEXT")
-        ]:
-            try:
-                db.execute(text(f"ALTER TABLE questions ADD COLUMN {col_name} {col_type}"))
-                db.commit()
-                print(f"Database migration: Added V2 compiler '{col_name}' column to 'questions' table.", flush=True)
-            except Exception as qe:
-                db.rollback()
-                pass
-
-        # Migrate chapters table
-        try:
-            db.execute(text("ALTER TABLE chapters ADD COLUMN text_content VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'text_content' column to 'chapters' table.", flush=True)
-        except Exception as ce:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE chapters ADD COLUMN tenant_id VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'tenant_id' column to 'chapters' table.", flush=True)
-        except Exception as ce:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE chapters ADD COLUMN book_chapter_id INTEGER"))
-            db.commit()
-            print("Database migration: Added 'book_chapter_id' column to 'chapters' table.", flush=True)
-        except Exception as ce:
-            db.rollback()
-            pass
-
-
-        # Migrate interviews table
-        try:
-            db.execute(text("ALTER TABLE interviews ADD COLUMN evaluated_answers JSON"))
-            db.commit()
-            print("Database migration: Added 'evaluated_answers' column to 'interviews' table.", flush=True)
-        except Exception as ie:
-            db.rollback()
-            pass
-
-        for col_name, col_type in [
-            ("language", "VARCHAR"),
-            ("confidence", "FLOAT"),
-            ("audio_references", "JSON"),
-            ("report_version", "VARCHAR"),
-            ("current_question_index", "INTEGER DEFAULT 0"),
-            ("session_state", "VARCHAR DEFAULT 'meet_buddy'"),
-            ("comfort_index", "INTEGER DEFAULT 0"),
-            ("raw_answers", "JSON"),
-            ("network_status", "VARCHAR DEFAULT 'online'"),
-            ("completion_status", "VARCHAR DEFAULT 'In Progress'"),
-            ("requires_review", "BOOLEAN DEFAULT FALSE"),
-            ("review_reason", "VARCHAR"),
-            ("reviewed_by", "VARCHAR"),
-            ("reviewed_at", "TIMESTAMP"),
-            ("raw_transcript", "VARCHAR"),
-            ("clean_transcript", "VARCHAR"),
-            ("validated_transcript", "VARCHAR"),
-            ("session_state_data", "JSON"),
-        ]:
-            try:
-                db.execute(text(f"ALTER TABLE interviews ADD COLUMN {col_name} {col_type}"))
-                db.commit()
-                print(f"Database migration: Added '{col_name}' column to 'interviews' table.", flush=True)
-            except Exception as ie:
-                db.rollback()
-                pass
-
-        # Migrate interview_messages table for V2
-        for col_name, col_type in [
-            ("sequence_number", "INTEGER"),
-            ("question_id", "INTEGER"),
-            ("student_response", "VARCHAR"),
-            ("buddy_response", "VARCHAR"),
-            ("audio_url", "VARCHAR"),
-            ("speech_confidence", "FLOAT"),
-        ]:
-            try:
-                db.execute(text(f"ALTER TABLE interview_messages ADD COLUMN {col_name} {col_type}"))
-                db.commit()
-                print(f"Database migration: Added '{col_name}' column to 'interview_messages' table.", flush=True)
-            except Exception as me:
-                db.rollback()
-                pass
-
-
-        # Migrate admins table for RBAC & Multi-Tenancy
-        try:
-            db.execute(text("ALTER TABLE admins ADD COLUMN role VARCHAR DEFAULT 'admin'"))
-            db.commit()
-            print("Database migration: Added 'role' column to 'admins' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE admins ADD COLUMN allowed_features JSON"))
-            db.commit()
-            print("Database migration: Added 'allowed_features' column to 'admins' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE admins ADD COLUMN tenant_id VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'tenant_id' column to 'admins' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        # Migrate assessments table
-        try:
-            db.execute(text("ALTER TABLE assessments ADD COLUMN tenant_id VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'tenant_id' column to 'assessments' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE assessments ADD COLUMN created_at TIMESTAMP"))
-            db.commit()
-            print("Database migration: Added 'created_at' column to 'assessments' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE assessments ADD COLUMN questions_to_ask INTEGER DEFAULT 5"))
-            db.commit()
-            print("Database migration: Added 'questions_to_ask' column to 'assessments' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        try:
-            db.execute(text("ALTER TABLE assessments ADD COLUMN type VARCHAR DEFAULT 'Assessment'"))
-            db.commit()
-            print("Database migration: Added 'type' column to 'assessments' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-
-        # Migrate questions table tenant_id (if not already handled or needed)
-        try:
-            db.execute(text("ALTER TABLE questions ADD COLUMN tenant_id VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'tenant_id' column to 'questions' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        # Migrate verification columns for questions table
-        for col_name in ["source", "section", "page", "reference_text"]:
-            try:
-                db.execute(text(f"ALTER TABLE questions ADD COLUMN {col_name} VARCHAR"))
-                db.commit()
-                print(f"Database migration: Added '{col_name}' column to 'questions' table.", flush=True)
-            except Exception as me:
-                db.rollback()
-                pass
-        try:
-            db.execute(text("ALTER TABLE questions ADD COLUMN confidence INTEGER"))
-            db.commit()
-            print("Database migration: Added 'confidence' column to 'questions' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        # Migrate student_assessments table
-        try:
-            db.execute(text("ALTER TABLE student_assessments ADD COLUMN tenant_id VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'tenant_id' column to 'student_assessments' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-
-        # Migrate students table
-        try:
-            db.execute(text("ALTER TABLE students ADD COLUMN teacher_notes VARCHAR"))
-            db.commit()
-            print("Database migration: Added 'teacher_notes' column to 'students' table.", flush=True)
-        except Exception as me:
-            db.rollback()
-            pass
-    except Exception as me:
-        print(f"DEBUG STARTUP: Database migration failed: {me}", flush=True)
-    finally:
-        db.close()
-
-    # Auto-seed default admin credentials
-    from app.models.admin import Admin
     print("DEBUG STARTUP: Importing security helpers for seeding...", flush=True)
     from app.core.security import get_password_hash
     print("DEBUG STARTUP: Security helpers imported successfully.", flush=True)
-    from app.models.class_model import Class
-    from app.models.subject import Subject
-    from app.models.chapter import Chapter
-    from app.models.question import Question
-    from app.models.assessment import Assessment
+    from app.core.models.class_model import Class
+    from app.core.models.subject import Subject
+    from app.core.models.chapter import Chapter
+    from app.core.models.question import Question
+    from app.core.models.assessment import Assessment
 
     db = SessionLocal()
     try:
         # Seed default school
-        from app.models.school import School
+        from app.core.models.school import School
         default_school = db.query(School).filter(School.tenant_id == "SCH-SYSTEM").first()
         if not default_school:
             default_school = School(

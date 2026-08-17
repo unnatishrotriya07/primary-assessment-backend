@@ -2,9 +2,9 @@ import unittest
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
-from app.models.student import Student
-from app.models.class_model import Class
+from app.db.session import Base
+from app.core.models.student import Student
+from app.core.models.class_model import Class
 from app.core.services.student_service import StudentService
 
 class TestStudentScholarUniqueness(unittest.TestCase):

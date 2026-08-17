@@ -6,7 +6,7 @@ import logging
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from app.models.interview import Interview, InterviewMessage, ConversationTurn
+from app.core.models.interview import Interview, InterviewMessage, ConversationTurn
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

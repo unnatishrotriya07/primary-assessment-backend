@@ -4,7 +4,7 @@ import io
 from fastapi.testclient import TestClient
 from app.main import app
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
+from app.db.session import Base
 
 class TestChaptersAPI(unittest.TestCase):
     def setUp(self):
@@ -15,7 +15,7 @@ class TestChaptersAPI(unittest.TestCase):
         self.db = SessionLocal()
 
         # Seed admin user
-        from app.models.admin import Admin
+        from app.core.models.admin import Admin
         from app.core.security import get_password_hash
         admin_user = Admin(
             name="Admin User",
@@ -113,7 +113,7 @@ class TestChaptersAPI(unittest.TestCase):
         """Test successfully syncing NCERT content for a chapter."""
         def fake_sync(db, book, chap_num, book_code, title, content):
             # Update the tenant chapter's text content
-            from app.models.chapter import Chapter
+            from app.core.models.chapter import Chapter
             tenant_chap = db.query(Chapter).filter(Chapter.number == str(chap_num)).first()
             if tenant_chap:
                 tenant_chap.text_content = "This is verified NCERT textbook chapter text."
@@ -122,9 +122,9 @@ class TestChaptersAPI(unittest.TestCase):
         mock_sync.side_effect = fake_sync
         
         # Setup class and subject in DB
-        from app.models.class_model import Class
-        from app.models.subject import Subject
-        from app.models.chapter import Chapter
+        from app.core.models.class_model import Class
+        from app.core.models.subject import Subject
+        from app.core.models.chapter import Chapter
         
         test_class = Class(name="Grade 10", grade="10", section="A")
         self.db.add(test_class)
@@ -155,9 +155,9 @@ class TestChaptersAPI(unittest.TestCase):
     def test_sync_ncert_chapter_background_success(self, mock_celery, mock_bg_tasks):
         """Test successfully triggering background NCERT sync."""
         # Setup class and subject in DB
-        from app.models.class_model import Class
-        from app.models.subject import Subject
-        from app.models.chapter import Chapter
+        from app.core.models.class_model import Class
+        from app.core.models.subject import Subject
+        from app.core.models.chapter import Chapter
         
         test_class = Class(name="Grade 1", grade="1", section="A")
         self.db.add(test_class)
@@ -189,9 +189,9 @@ class TestChaptersAPI(unittest.TestCase):
         mock_celery.side_effect = Exception("Celery broker connection failed")
         
         # Setup class and subject in DB
-        from app.models.class_model import Class
-        from app.models.subject import Subject
-        from app.models.chapter import Chapter
+        from app.core.models.class_model import Class
+        from app.core.models.subject import Subject
+        from app.core.models.chapter import Chapter
         
         test_class = Class(name="Grade 1", grade="1", section="A")
         self.db.add(test_class)

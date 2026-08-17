@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.models.chapter import Chapter
+from app.core.models.chapter import Chapter
 
 class ChapterRepository:
     def __init__(self, db: Session):
@@ -10,7 +10,7 @@ class ChapterRepository:
         return self.db.query(Chapter).all()
 
     def get_filtered(self, class_id: int = None, subject_id: int = None, tenant_id: str = None) -> List[Chapter]:
-        from app.models.subject import Subject
+        from app.core.models.subject import Subject
         query = self.db.query(Chapter)
         if class_id is not None or subject_id is not None:
             query = query.join(Subject)
@@ -24,7 +24,7 @@ class ChapterRepository:
 
     def get_by_id(self, chapter_id: int) -> Chapter:
         from sqlalchemy.orm import selectinload
-        from app.models.book import BookChapter, ChapterSection
+        from app.core.models.book import BookChapter, ChapterSection
         return self.db.query(Chapter).filter(Chapter.id == chapter_id).options(
             selectinload(Chapter.book_chapter)
             .selectinload(BookChapter.sections)

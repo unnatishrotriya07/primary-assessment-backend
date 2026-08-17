@@ -1,8 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.repositories.class_repository import ClassRepository
-from app.schemas.class_schema import ClassCreate, ClassUpdate
-from app.models.class_model import Class
+from app.core.repositories.class_repository import ClassRepository
+from app.core.schemas.class_schema import ClassCreate, ClassUpdate
+from app.core.models.class_model import Class
 from app.core.exceptions import EntityNotFoundException
 
 class ClassService:
@@ -11,7 +11,7 @@ class ClassService:
 
     def get_all_classes(self, tenant_id: str = None) -> List[Class]:
         classes = self.class_repo.get_all()
-        from app.models.student import Student
+        from app.core.models.student import Student
         for cls in classes:
             query = self.class_repo.db.query(Student).filter(Student.class_id == cls.id)
             if tenant_id:
@@ -23,7 +23,7 @@ class ClassService:
         cls = self.class_repo.get_by_id(class_id)
         if not cls:
             raise EntityNotFoundException("Class", str(class_id))
-        from app.models.student import Student
+        from app.core.models.student import Student
         query = self.class_repo.db.query(Student).filter(Student.class_id == cls.id)
         if tenant_id:
             query = query.filter(Student.tenant_id == tenant_id)
@@ -49,9 +49,9 @@ class ClassService:
         self.class_repo.delete(cls)
 
     def get_or_create_class_section(self, base_class_id: int, section_name: str) -> Class:
-        from app.models.class_model import Class
-        from app.models.subject import Subject
-        from app.models.chapter import Chapter
+        from app.core.models.class_model import Class
+        from app.core.models.subject import Subject
+        from app.core.models.chapter import Chapter
 
         # 1. Fetch base class
         base_cls = self.class_repo.get_by_id(base_class_id)

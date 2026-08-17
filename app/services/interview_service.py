@@ -1,5 +1,5 @@
 import json
-from app.common.config import settings
+from app.core.config import settings
 import datetime
 import os
 import httpx
@@ -169,7 +169,7 @@ class InterviewService:
         return qa_eval_context
 
     def evaluate_interview_in_background_v2(self, interview_id: int):
-        from app.common.database import SessionLocal
+        from app.db.session import SessionLocal
         from app.application import GenerateReportUseCase
         db = SessionLocal()
         try:
@@ -181,7 +181,7 @@ class InterviewService:
             db.close()
 
     def evaluate_interview_in_background(self, interview_id: int, qa_eval_context: list):
-        from app.common.database import SessionLocal
+        from app.db.session import SessionLocal
         db = SessionLocal()
         try:
             interview = db.query(Interview).filter(Interview.id == interview_id).first()

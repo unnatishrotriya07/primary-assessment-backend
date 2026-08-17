@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Float, JSON, Boolean
 from sqlalchemy.orm import relationship
-from app.common.database import Base
+from app.db.session import Base
 
 
 class Interview(Base):

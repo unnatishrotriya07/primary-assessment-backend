@@ -4,8 +4,8 @@ import io
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, enforce_super_admin, check_admin_role
-from app.schemas.chapter_schema import ChapterCreate, ChapterUpdate, ChapterResponse
-from app.services.chapter_service import ChapterService
+from app.core.schemas.chapter_schema import ChapterCreate, ChapterUpdate, ChapterResponse
+from app.core.services.chapter_service import ChapterService
 
 router = APIRouter()
 

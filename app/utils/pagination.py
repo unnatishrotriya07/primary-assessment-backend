@@ -1,2 +1,1 @@
-# Redirect to common pagination
-from app.common.pagination import Page, paginate
+from app.core.helpers import Page, paginate

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from app.services.question_service import QuestionService
-from app.schemas.question_schema import AIQuestionParams
+from app.core.services.question_service import QuestionService
+from app.core.schemas.question_schema import AIQuestionParams
 
 class GenerateAssessmentUseCase:
     def __init__(self, db: Session):

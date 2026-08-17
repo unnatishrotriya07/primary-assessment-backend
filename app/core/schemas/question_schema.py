@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from app.schemas.base_schema import CamelModel
+from app.core.schemas.base_schema import CamelModel
 
 class QuestionBase(CamelModel):
     text: str

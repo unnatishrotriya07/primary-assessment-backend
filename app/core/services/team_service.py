@@ -1,8 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.repositories.team_repository import TeamRepository
-from app.schemas.team_schema import TeamUserCreate, TeamUserUpdate
-from app.models.admin import Admin
+from app.core.repositories.team_repository import TeamRepository
+from app.core.schemas.team_schema import TeamUserCreate, TeamUserUpdate
+from app.core.models.admin import Admin
 from app.core import security
 from app.core.exceptions import EntityNotFoundException
 from fastapi import HTTPException

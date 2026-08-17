@@ -3,16 +3,16 @@ import datetime
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
-from app.models.question import Question
-from app.models.assessment import Assessment
-from app.models.report import Report
-from app.services.assessment_service import AssessmentService
-from app.services.question_service import QuestionService
-from app.schemas.assessment_schema import AssessmentCreate, SubmitAnswersParams
+from app.db.session import Base
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
+from app.core.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.report import Report
+from app.core.services.assessment_service import AssessmentService
+from app.core.services.question_service import QuestionService
+from app.core.schemas.assessment_schema import AssessmentCreate, SubmitAnswersParams
 
 class TestCustomAssessmentFlow(unittest.TestCase):
     def setUp(self):
@@ -185,7 +185,7 @@ class TestCustomAssessmentFlow(unittest.TestCase):
         q_service = QuestionService(self.db)
 
         # Create a new question with a session
-        from app.schemas.question_schema import QuestionCreate
+        from app.core.schemas.question_schema import QuestionCreate
         new_q = QuestionCreate(
             text="What is 2 + 2?",
             options=["2", "3", "4", "5"],

@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.models.report import Report
+from app.core.models.report import Report
 
 class ReportRepository:
     def __init__(self, db: Session):
@@ -15,7 +15,7 @@ class ReportRepository:
 
     def get_by_class(self, class_id: int, tenant_id: str = None) -> List[Report]:
         # Connects through assessment target class
-        from app.models.assessment import Assessment
+        from app.core.models.assessment import Assessment
         query = self.db.query(Report).join(Assessment).filter(Assessment.class_id == class_id)
         if tenant_id is not None:
             query = query.filter(Assessment.tenant_id == tenant_id)
@@ -28,7 +28,7 @@ class ReportRepository:
         return report_obj
 
     def get_overview_stats(self, tenant_id: str = None) -> dict:
-        from app.models.assessment import Assessment
+        from app.core.models.assessment import Assessment
         
         query_total = self.db.query(func.count(Report.id))
         query_passing = self.db.query(func.count(Report.id)).filter(Report.score >= 40.0)

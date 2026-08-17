@@ -39,8 +39,8 @@ def get_current_user(
             detail="Could not validate credentials",
         )
     
-    from app.models.admin import Admin
-    from app.models.school import School
+    from app.core.models.admin import Admin
+    from app.core.models.school import School
     admin = db.query(Admin).filter(Admin.email == email).first()
     if not admin:
         raise HTTPException(

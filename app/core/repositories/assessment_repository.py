@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Session, selectinload
-from app.models.assessment import Assessment
-from app.models.student_assessment import StudentAssessment
+from app.core.models.assessment import Assessment
+from app.core.models.student_assessment import StudentAssessment
 
 class AssessmentRepository:
     def __init__(self, db: Session):

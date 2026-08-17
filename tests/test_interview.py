@@ -5,16 +5,16 @@ from unittest.mock import patch
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
+from app.db.session import Base
 
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.assessment import Assessment
-from app.models.student_assessment import StudentAssessment
-from app.models.interview import Interview
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.assessment import Assessment
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.interview import Interview
 
 from app.services.interview_service import InterviewService
-from app.schemas.interview_schema import InterviewSubmitRequest, TranscriptEntry
+from app.core.schemas.interview_schema import InterviewSubmitRequest, TranscriptEntry
 
 class TestInterviewService(unittest.TestCase):
     def setUp(self):
@@ -281,10 +281,10 @@ class TestInterviewService(unittest.TestCase):
         self.assertEqual(iv.raw_answers, raw_answers)
         self.assertEqual(iv.network_status, "online")
 
-    @patch("app.services.evaluation_pipeline.EvaluationPipelineService._call_llm_with_fallback")
+    @patch("app.ai_assessment.report.generator.EvaluationPipelineService._call_llm_with_fallback")
     def test_evaluation_pipeline_with_review_flags(self, mock_llm_call):
         """test_evaluation_pipeline_with_review_flags: pipeline flags low confidence evaluations/transcripts."""
-        from app.services.evaluation_pipeline import EvaluationPipelineService
+        from app.ai_assessment.report.generator import EvaluationPipelineService
         service = InterviewService(self.db)
         start_res = service.start_interview("token_valid", "charlie@example.com")
         interview_id = start_res["interview_id"]

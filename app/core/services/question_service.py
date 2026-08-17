@@ -1,10 +1,10 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.repositories.question_repository import QuestionRepository
-from app.schemas.question_schema import QuestionCreate, AIQuestionParams, QuestionBatchSave
-from app.models.question import Question
-from app.models.subject import Subject
-from app.models.chapter import Chapter
+from app.core.repositories.question_repository import QuestionRepository
+from app.core.schemas.question_schema import QuestionCreate, AIQuestionParams, QuestionBatchSave
+from app.core.models.question import Question
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
 from app.core.exceptions import EntityNotFoundException
 from app.ai.question_generator import QuestionGenerator
 
@@ -108,7 +108,7 @@ class QuestionService:
         if chapter:
             # If section_ids are specified, fetch only their content
             if params.section_ids:
-                from app.models.book import ChapterSection
+                from app.core.models.book import ChapterSection
                 sections = self.db.query(ChapterSection).filter(
                     ChapterSection.id.in_(params.section_ids),
                     ChapterSection.chapter_id == chapter.book_chapter_id

@@ -1,6 +1,6 @@
 from app.core.celery_app import celery_app
 from app.db.session import SessionLocal
-from app.services.chapter_service import ChapterService
+from app.core.services.chapter_service import ChapterService
 import traceback
 
 @celery_app.task(name="app.tasks.sync_tasks.sync_ncert_chapter_task", bind=True, max_retries=3)

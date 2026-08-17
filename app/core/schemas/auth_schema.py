@@ -1,6 +1,6 @@
 from pydantic import EmailStr
 from typing import Optional
-from app.schemas.base_schema import CamelModel
+from app.core.schemas.base_schema import CamelModel
 
 class LoginCredentials(CamelModel):
     email: EmailStr

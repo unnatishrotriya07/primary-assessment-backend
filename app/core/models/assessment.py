@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, String, Integer, ForeignKey, Table, DateTime
 from sqlalchemy.orm import relationship
-from app.common.database import Base
+from app.db.session import Base
 
 # Association table for many-to-many relationship between Assessments and Questions
 assessment_questions = Table(

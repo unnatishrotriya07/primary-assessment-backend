@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime
 import datetime
-from app.common.database import Base
+from app.db.session import Base
 
 class School(Base):
     __tablename__ = "schools"

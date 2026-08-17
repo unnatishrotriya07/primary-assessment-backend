@@ -1,8 +1,8 @@
 import json
 import logging
 from sqlalchemy.orm import Session
-from app.models.assessment import Assessment
-from app.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.question import Question
 from app.ai.groq_provider import GroqProvider
 from app.ai.gemini_provider import GeminiProvider
 from app.ai.openai_provider import OpenAIProvider

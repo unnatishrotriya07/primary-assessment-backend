@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.repositories.report_repository import ReportRepository
-from app.models.report import Report
+from app.core.repositories.report_repository import ReportRepository
+from app.core.models.report import Report
 from app.core.exceptions import EntityNotFoundException
 
 class ReportService:

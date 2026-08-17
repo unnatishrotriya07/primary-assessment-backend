@@ -2,7 +2,7 @@ import json
 import logging
 import urllib.request
 import urllib.error
-from app.common.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

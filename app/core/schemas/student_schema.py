@@ -1,5 +1,5 @@
 from typing import Optional, List
-from app.schemas.base_schema import CamelModel
+from app.core.schemas.base_schema import CamelModel
 
 class StudentBase(CamelModel):
     name: str

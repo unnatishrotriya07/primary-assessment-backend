@@ -4,22 +4,22 @@ import json
 
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
+from app.db.session import Base
 
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
-from app.models.question import Question
-from app.models.assessment import Assessment
-from app.models.report import Report
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
+from app.core.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.report import Report
 
 from app.ai.gemini_provider import GeminiProvider
 from app.ai.openai_provider import OpenAIProvider
 from app.ai.groq_provider import GroqProvider
 from app.ai.answer_evaluator import AnswerEvaluator
 from app.ai.report_generator import ReportGenerator
-from app.services.assessment_service import AssessmentService
-from app.schemas.assessment_schema import SubmitAnswersParams
+from app.core.services.assessment_service import AssessmentService
+from app.core.schemas.assessment_schema import SubmitAnswersParams
 
 class TestHybridAIAchitecture(unittest.TestCase):
     
@@ -236,8 +236,8 @@ class TestHybridAIAchitecture(unittest.TestCase):
         """Verify that preview_only=True generates draft questions without writing them to the database."""
         mock_generate.return_value = '{"questions": [{"text": "Sample Preview Question?", "options": ["A", "B", "C", "D"], "correct_answer": "A"}]}'
         
-        from app.schemas.question_schema import AIQuestionParams
-        from app.services.question_service import QuestionService
+        from app.core.schemas.question_schema import AIQuestionParams
+        from app.core.services.question_service import QuestionService
         
         service = QuestionService(self.db)
         params = AIQuestionParams(
@@ -268,8 +268,8 @@ class TestHybridAIAchitecture(unittest.TestCase):
 
     def test_batch_create_questions(self):
         """Verify batch_create_questions saves all drafts, and clear_existing deletes old matching questions."""
-        from app.schemas.question_schema import QuestionCreate, QuestionBatchSave
-        from app.services.question_service import QuestionService
+        from app.core.schemas.question_schema import QuestionCreate, QuestionBatchSave
+        from app.core.services.question_service import QuestionService
         
         service = QuestionService(self.db)
         

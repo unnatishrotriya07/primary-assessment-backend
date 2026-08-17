@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
 
 NCERT_SYLLABUS = [
     # === GRADE 1 ===

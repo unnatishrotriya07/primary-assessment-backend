@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session, selectinload
-from app.models.subject import Subject
+from app.core.models.subject import Subject
 
 class SubjectRepository:
     def __init__(self, db: Session):

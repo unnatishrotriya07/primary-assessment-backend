@@ -5,13 +5,13 @@ import urllib.parse
 from sqlalchemy.orm import Session
 
 from typing import List
-from app.models.student_assessment import StudentAssessment
-from app.models.assessment import Assessment
-from app.schemas.student_assessment_schema import (
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.assessment import Assessment
+from app.core.schemas.student_assessment_schema import (
     StudentAssessmentCreate, StudentAssessmentResponse, StudentAssessmentVerifyResponse, StudentAssessmentBulkCreate
 )
 from app.core.exceptions import EntityNotFoundException
-from app.services.assessment_service import AssessmentService
+from app.core.services.assessment_service import AssessmentService
 from app.services.email_service import EmailService
 from app.core.config import settings
 
@@ -194,12 +194,12 @@ class StudentAssessmentService:
             raise EntityNotFoundException("Assessment", str(schema.assessment_id))
 
         # Fetch the target class name
-        from app.models.class_model import Class
+        from app.core.models.class_model import Class
         cls = self.db.query(Class).filter(Class.id == asmt.class_id).first()
         class_name = f"{cls.name}" if cls else "Unknown Class"
 
         # Fetch the student records
-        from app.models.student import Student
+        from app.core.models.student import Student
         student_query = self.db.query(Student).filter(Student.id.in_(schema.student_ids))
         if tenant_id is not None:
             student_query = student_query.filter(Student.tenant_id == tenant_id)
@@ -302,7 +302,7 @@ class StudentAssessmentService:
                 raise ValueError("This assessment link has expired (valid for 24 hours only).")
 
         # 3. Retrieve student in class with matching scholar number
-        from app.models.student import Student
+        from app.core.models.student import Student
         student = (
             self.db.query(Student)
             .filter(Student.class_id == asmt.class_id)
@@ -352,7 +352,7 @@ class StudentAssessmentService:
             )
 
         # 5. Create new StudentAssessment record
-        from app.models.class_model import Class
+        from app.core.models.class_model import Class
         cls = self.db.query(Class).filter(Class.id == asmt.class_id).first()
         class_name = f"{cls.name}" if cls else "Unknown Class"
 

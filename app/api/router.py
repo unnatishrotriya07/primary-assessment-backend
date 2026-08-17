@@ -12,7 +12,7 @@ from app.api.dashboard.routes import router as dashboard_router
 from app.api.team.routes import router as team_router
 from app.api.students.routes import router as students_router
 from app.api.control_panel.routes import router as control_panel_router
-from app.voice.router import router as voice_router
+from app.ai_assessment.audio.router import router as voice_router
 
 api_router = APIRouter()
 

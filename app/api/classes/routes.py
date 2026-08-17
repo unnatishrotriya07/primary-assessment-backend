@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, enforce_super_admin
-from app.schemas.class_schema import ClassCreate, ClassUpdate, ClassResponse
-from app.services.class_service import ClassService
+from app.core.schemas.class_schema import ClassCreate, ClassUpdate, ClassResponse
+from app.core.services.class_service import ClassService
 
 router = APIRouter()
 

@@ -1,12 +1,12 @@
 from typing import List, Dict
 import uuid
 from sqlalchemy.orm import Session
-from app.repositories.assessment_repository import AssessmentRepository
-from app.repositories.question_repository import QuestionRepository
-from app.repositories.report_repository import ReportRepository
-from app.schemas.assessment_schema import AssessmentCreate, SubmitAnswersParams, SubmissionResultResponse
-from app.models.assessment import Assessment
-from app.models.report import Report
+from app.core.repositories.assessment_repository import AssessmentRepository
+from app.core.repositories.question_repository import QuestionRepository
+from app.core.repositories.report_repository import ReportRepository
+from app.core.schemas.assessment_schema import AssessmentCreate, SubmitAnswersParams, SubmissionResultResponse
+from app.core.models.assessment import Assessment
+from app.core.models.report import Report
 from app.core.exceptions import EntityNotFoundException
 
 class AssessmentService:
@@ -36,7 +36,7 @@ class AssessmentService:
             tenant_id=tenant_id
         )
         if asmt_in.question_ids:
-            from app.models.question import Question
+            from app.core.models.question import Question
             questions = self.assessment_repo.db.query(Question).filter(Question.id.in_(asmt_in.question_ids)).all()
             asmt.questions = questions
             asmt.questions_count = len(questions)
@@ -78,7 +78,7 @@ class AssessmentService:
         asmt = self.get_assessment_by_id(asmt_id)
 
         # Look up if this session is associated with an assigned StudentAssessment
-        from app.models.student_assessment import StudentAssessment
+        from app.core.models.student_assessment import StudentAssessment
         sa = db.query(StudentAssessment).filter(StudentAssessment.session_id == params.session_id).first()
 
         seed_str = sa.token if sa else None

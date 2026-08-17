@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, check_admin_role
-from app.schemas.team_schema import TeamUserCreate, TeamUserUpdate, TeamUserResponse
-from app.services.team_service import TeamService
+from app.core.schemas.team_schema import TeamUserCreate, TeamUserUpdate, TeamUserResponse
+from app.core.services.team_service import TeamService
 
 router = APIRouter()
 

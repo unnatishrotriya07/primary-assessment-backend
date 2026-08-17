@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.models.admin import Admin
+from app.core.models.admin import Admin
 
 class TeamRepository:
     def __init__(self, db: Session):

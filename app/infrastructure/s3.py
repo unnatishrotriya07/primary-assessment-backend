@@ -1,7 +1,7 @@
 import os
 import boto3
 from botocore.exceptions import ClientError
-from app.common.config import settings
+from app.core.config import settings
 
 # Global toggle to pause S3 uploads and route them to local storage
 PAUSE_S3 = os.getenv("PAUSE_S3", "true").lower() == "true"

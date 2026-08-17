@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict
-from app.schemas.question_schema import QuestionResponse
-from app.schemas.base_schema import CamelModel
+from app.core.schemas.question_schema import QuestionResponse
+from app.core.schemas.base_schema import CamelModel
 
 class AssessmentBase(CamelModel):
     title: str
@@ -14,7 +14,7 @@ class AssessmentBase(CamelModel):
 class AssessmentCreate(AssessmentBase):
     question_ids: Optional[List[int]] = None
 
-from app.schemas.student_assessment_schema import StudentAssessmentResponse
+from app.core.schemas.student_assessment_schema import StudentAssessmentResponse
 
 class AssessmentResponse(AssessmentBase):
     id: int

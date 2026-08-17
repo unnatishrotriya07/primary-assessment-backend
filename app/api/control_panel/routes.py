@@ -2,11 +2,11 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.models.class_model import Class
-from app.models.question import Question
-from app.models.student_assessment import StudentAssessment
-from app.models.interview import Interview
-from app.schemas.auth_schema import SchoolSignupRequest
+from app.core.models.class_model import Class
+from app.core.models.question import Question
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.interview import Interview
+from app.core.schemas.auth_schema import SchoolSignupRequest
 
 router = APIRouter()
 
@@ -137,8 +137,8 @@ def list_schools(
     if current_user.get("role") != "admin" or current_user.get("tenant_id") is not None:
         raise HTTPException(status_code=403, detail="Forbidden: Super Admin access required.")
     
-    from app.models.school import School
-    from app.models.admin import Admin
+    from app.core.models.school import School
+    from app.core.models.admin import Admin
     schools = db.query(School).filter(School.tenant_id != "SCH-SYSTEM").all()
     results = []
     for s in schools:
@@ -166,7 +166,7 @@ def onboard_school(
     if current_user.get("role") != "admin" or current_user.get("tenant_id") is not None:
         raise HTTPException(status_code=403, detail="Forbidden: Super Admin access required.")
     
-    from app.services.auth_service import AuthService
+    from app.core.services.auth_service import AuthService
     auth_service = AuthService(db)
     try:
         director_info = auth_service.register_school(payload)
@@ -184,8 +184,8 @@ def delete_school(
     if current_user.get("role") != "admin" or current_user.get("tenant_id") is not None:
         raise HTTPException(status_code=403, detail="Forbidden: Super Admin access required.")
     
-    from app.models.school import School
-    from app.models.admin import Admin
+    from app.core.models.school import School
+    from app.core.models.admin import Admin
     
     school = db.query(School).filter(School.id == school_id).first()
     if not school:
@@ -206,7 +206,7 @@ def get_school_settings(
     if not tenant_id:
         raise HTTPException(status_code=400, detail="Tenant context required.")
         
-    from app.models.school import School
+    from app.core.models.school import School
     school = db.query(School).filter(School.tenant_id == tenant_id).first()
     if not school:
         raise HTTPException(status_code=404, detail="School settings not found.")
@@ -230,7 +230,7 @@ def update_school_settings(
     if not tenant_id:
         raise HTTPException(status_code=400, detail="Tenant context required.")
         
-    from app.models.school import School
+    from app.core.models.school import School
     school = db.query(School).filter(School.tenant_id == tenant_id).first()
     if not school:
         raise HTTPException(status_code=404, detail="School settings not found.")

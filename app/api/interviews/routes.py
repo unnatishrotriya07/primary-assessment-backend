@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, WebSocke
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_db, get_current_user
-from app.schemas.interview_schema import (
+from app.core.schemas.interview_schema import (
     InterviewStartRequest,
     InterviewStartResponse,
     InterviewSubmitRequest,
@@ -241,7 +241,7 @@ def get_interviews_for_assessment(
     Admin: get all completed interviews for one assessment.
     Used in the admin reports/dashboard page.
     """
-    from app.models.assessment import Assessment
+    from app.core.models.assessment import Assessment
     asmt_query = db.query(Assessment).filter(Assessment.id == assessment_id)
     if current_user.get("tenant_id") is not None:
         asmt_query = asmt_query.filter(Assessment.tenant_id == current_user.get("tenant_id"))
@@ -361,7 +361,7 @@ def _build_response(iv) -> InterviewReportResponse:
         db = object_session(iv)
         questions_to_use = []
         if db:
-            from app.services.assessment_service import AssessmentService
+            from app.core.services.assessment_service import AssessmentService
             asmt_service = AssessmentService(db)
             token = iv.student_assessment.token if iv.student_assessment else None
             try:

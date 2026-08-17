@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.admin import Admin
+from app.core.models.admin import Admin
 
 class AuthRepository:
     def __init__(self, db: Session):

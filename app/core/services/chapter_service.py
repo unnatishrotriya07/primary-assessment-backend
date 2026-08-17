@@ -1,8 +1,8 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.repositories.chapter_repository import ChapterRepository
-from app.schemas.chapter_schema import ChapterCreate, ChapterUpdate
-from app.models.chapter import Chapter
+from app.core.repositories.chapter_repository import ChapterRepository
+from app.core.schemas.chapter_schema import ChapterCreate, ChapterUpdate
+from app.core.models.chapter import Chapter
 from app.core.exceptions import EntityNotFoundException
 
 class ChapterService:
@@ -55,9 +55,9 @@ class ChapterService:
         self.chapter_repo.delete(chap)
 
     def sync_ncert_content(self, chapter_id: int) -> Chapter:
-        from app.models.class_model import Class
-        from app.models.subject import Subject
-        from app.models.book import Book
+        from app.core.models.class_model import Class
+        from app.core.models.subject import Subject
+        from app.core.models.book import Book
         from sync_content import sync_chapter
         
         chap = self.get_chapter_by_id(chapter_id)

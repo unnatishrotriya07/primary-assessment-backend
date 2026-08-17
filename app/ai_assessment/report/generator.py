@@ -1,6 +1,6 @@
 import json
 import asyncio
-from app.common.config import settings
+from app.core.config import settings
 import datetime
 import traceback
 import httpx

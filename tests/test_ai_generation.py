@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal, engine
-from app.db.base import Base
-from app.models.class_model import Class
-from app.models.subject import Subject
-from app.models.chapter import Chapter
-from app.models.question import Question
-from app.schemas.question_schema import AIQuestionParams
-from app.services.question_service import QuestionService
+from app.db.session import Base
+from app.core.models.class_model import Class
+from app.core.models.subject import Subject
+from app.core.models.chapter import Chapter
+from app.core.models.question import Question
+from app.core.schemas.question_schema import AIQuestionParams
+from app.core.services.question_service import QuestionService
 
 from unittest.mock import patch
 

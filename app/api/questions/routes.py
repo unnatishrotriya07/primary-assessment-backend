@@ -2,8 +2,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.schemas.question_schema import QuestionCreate, QuestionResponse, AIQuestionParams, QuestionBatchSave
-from app.services.question_service import QuestionService
+from app.core.schemas.question_schema import QuestionCreate, QuestionResponse, AIQuestionParams, QuestionBatchSave
+from app.core.services.question_service import QuestionService
 from app.application import GenerateAssessmentUseCase
 
 router = APIRouter()

@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.dependencies import get_db, get_current_user
-from app.models.class_model import Class
-from app.models.student_assessment import StudentAssessment
-from app.models.question import Question
-from app.models.assessment import Assessment
-from app.models.report import Report
+from app.core.models.class_model import Class
+from app.core.models.student_assessment import StudentAssessment
+from app.core.models.question import Question
+from app.core.models.assessment import Assessment
+from app.core.models.report import Report
 
 router = APIRouter()
 
@@ -61,7 +61,7 @@ def get_dashboard_stats(
         })
         
     # Calculate active_teachers
-    from app.models.admin import Admin
+    from app.core.models.admin import Admin
     if tenant_id:
         active_teachers = db.query(Admin).filter(Admin.tenant_id == tenant_id, Admin.role == "teacher").count()
     else:
