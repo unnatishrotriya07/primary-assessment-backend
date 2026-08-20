@@ -1,6 +1,6 @@
 # Backend Repository: Developer Onboarding & Setup Guide (Linux/Ubuntu)
 
-Welcome to the **Momentum Backend** repository! This FastAPI application powers the educational assessment platform, AI question compiler, auto-grading engines, and student analytics.
+Welcome to the **Proctors Backend** repository! This FastAPI application powers the educational assessment platform, AI question compiler, auto-grading engines, and student analytics.
 
 ---
 
@@ -52,7 +52,7 @@ To pull real database tables & data from Render into your local PostgreSQL datab
 chmod +x scripts/sync_db_from_render.sh
 
 # Option 1: Pass Render External Connection String directly
-./scripts/sync_db_from_render.sh "postgresql://user:pass@dpg-xxx.oregon-postgres.render.com/momentum_db"
+./scripts/sync_db_from_render.sh "postgresql://user:pass@dpg-xxx.oregon-postgres.render.com/proctors_db"
 
 # Option 2: Add RENDER_DATABASE_URL=... to your .env file and run:
 ./scripts/sync_db_from_render.sh

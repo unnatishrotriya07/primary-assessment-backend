@@ -66,7 +66,7 @@ class EmailService:
             ],
             "from": {
                 "email": self.from_email,
-                "name": "Momentum Assessment Platform"
+                "name": "Proctors Assessment Platform"
             },
             "content": [
                 {

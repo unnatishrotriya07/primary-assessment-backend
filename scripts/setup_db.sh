@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Momentum Backend - Automated Database & Environment Setup Script (Ubuntu/Linux)
+# Proctors Backend - Automated Database & Environment Setup Script (Ubuntu/Linux)
 # ==============================================================================
 # This script initializes the PostgreSQL database, applies migrations,
 # and seeds initial data (Admin user, Default School, NCERT syllabus) for local dev.
@@ -16,7 +16,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}====================================================${NC}"
-echo -e "${BLUE}  Momentum Backend: Database Setup (Ubuntu / Linux) ${NC}"
+echo -e "${BLUE}  Proctors Backend: Database Setup (Ubuntu / Linux) ${NC}"
 echo -e "${BLUE}====================================================${NC}\n"
 
 # 1. Determine script directory and move to backend root

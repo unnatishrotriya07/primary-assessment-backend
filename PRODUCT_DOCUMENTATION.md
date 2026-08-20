@@ -1,13 +1,13 @@
-# Momentum: Backend Architecture & Engineering Documentation
+# Proctors: Backend Architecture & Engineering Documentation
 ## System Architecture, Database Schemas, and Background Services
 
-This document provides a comprehensive overview of the **Momentum** Educational Assessment Platform backend. It covers the containerized services topology, gateway load-balancing configuration, directory layout, multi-tenant database schema, startup migration pipelines, API routing, asynchronous Celery workers, and the AI voice evaluation engine.
+This document provides a comprehensive overview of the **Proctors** Educational Assessment Platform backend. It covers the containerized services topology, gateway load-balancing configuration, directory layout, multi-tenant database schema, startup migration pipelines, API routing, asynchronous Celery workers, and the AI voice evaluation engine.
 
 ---
 
 ## 1. System Mission & Architectural Philosophy
 
-The Momentum backend is built as a highly robust, multi-tenant enterprise system for educational assessment.
+The Proctors backend is built as a highly robust, multi-tenant enterprise system for educational assessment.
 
 * **Academic Integration:** Fully aligned with academic terms (Schools, Classes, Subjects, Chapters, and Scholar Numbers).
 * **Asynchronous Execution:** Heavy computation—such as transcript evaluation and textbook PDF parsing—is decoupled from HTTP request-response cycles.
@@ -18,14 +18,14 @@ The Momentum backend is built as a highly robust, multi-tenant enterprise system
 
 ## 2. Infrastructure & Deployment Topology
 
-Momentum uses a containerized multi-service architecture coordinated via Docker Compose and fronted by an Nginx reverse proxy.
+Proctors uses a containerized multi-service architecture coordinated via Docker Compose and fronted by an Nginx reverse proxy.
 
 ```mermaid
 graph TD
     Client[Client Browser / Next.js Frontend] -->|HTTP / WebSockets Port 5001| Nginx[Nginx Gateway Container: Port 80]
     
-    Nginx -->|Route: /api/interviews & /api/voice| AI_Service[momentum-ai-assessment: Port 5000]
-    Nginx -->|Route: /api/* administrative| Core_Service[momentum-backend-core: Port 5000]
+    Nginx -->|Route: /api/interviews & /api/voice| AI_Service[proctors-ai-assessment: Port 5000]
+    Nginx -->|Route: /api/* administrative| Core_Service[proctors-backend-core: Port 5000]
     
     Core_Service -->|SQLAlchemy Connection| DB[(Postgres Database: Port 5432)]
     AI_Service -->|SQLAlchemy Connection| DB
@@ -45,18 +45,18 @@ graph TD
 
 As configured in [docker-compose.yml](file:///Users/unnatishrotriya/Documents/Codebase/primary_%20assessment/docker-compose.yml), the backend is split into independent services to improve scalability and system availability:
 
-1. **`db` (momentum-db):** PostgreSQL 15 database on Alpine Linux. It maps local storage to the `postgres_data` volume and exposes port `5432` internally.
-2. **`redis` (momentum-redis):** Redis 7 on Alpine Linux. Acts as the Celery message broker and result backend (port `6379`).
-3. **`backend-core` (momentum-backend-core):** The core transaction application running with environment variable `APP_MODE=core`. It handles school onboarding, class management, team directory, and report reviews.
-4. **`ai-assessment` (momentum-ai-assessment):** The interactive interview server running with `APP_MODE=ai-assessment`. It handles live student voice interactions, WebSocket handshakes, and STT/TTS transactions.
-5. **`nginx` (momentum-gateway):** Nginx container that maps external port `5001` to internal port `80` using a custom routing design.
+1. **`db` (proctors-db):** PostgreSQL 15 database on Alpine Linux. It maps local storage to the `postgres_data` volume and exposes port `5432` internally.
+2. **`redis` (proctors-redis):** Redis 7 on Alpine Linux. Acts as the Celery message broker and result backend (port `6379`).
+3. **`backend-core` (proctors-backend-core):** The core transaction application running with environment variable `APP_MODE=core`. It handles school onboarding, class management, team directory, and report reviews.
+4. **`ai-assessment` (proctors-ai-assessment):** The interactive interview server running with `APP_MODE=ai-assessment`. It handles live student voice interactions, WebSocket handshakes, and STT/TTS transactions.
+5. **`nginx` (proctors-gateway):** Nginx container that maps external port `5001` to internal port `80` using a custom routing design.
 
 ### 2.2. Nginx Gateway & Load Balancing Config
 
 The entry gateway defined in [nginx.conf](file:///Users/unnatishrotriya/Documents/Codebase/primary_%20assessment/nginx.conf) performs path-based routing. Administrative workloads are isolated from real-time socket-based oral testing sessions:
 
-* **Real-time Session Routing:** Incoming calls to `/api/interviews` and `/api/voice` are proxy-passed to the `ai_assessment` upstream pool (`momentum-ai-assessment:5000`). This ensures long-lived WebSockets and audio uploads do not block administrative workflows.
-* **Core Route Routing:** All other administrative calls (`/api/auth`, `/api/classes`, `/api/subjects`, etc.) are proxy-passed to the `backend_core` upstream pool (`momentum-backend-core:5000`).
+* **Real-time Session Routing:** Incoming calls to `/api/interviews` and `/api/voice` are proxy-passed to the `ai_assessment` upstream pool (`proctors-ai-assessment:5000`). This ensures long-lived WebSockets and audio uploads do not block administrative workflows.
+* **Core Route Routing:** All other administrative calls (`/api/auth`, `/api/classes`, `/api/subjects`, etc.) are proxy-passed to the `backend_core` upstream pool (`proctors-backend-core:5000`).
 * **WebSocket Support:** Explicitly sets headers `Upgrade $http_upgrade` and `Connection "upgrade"` to support persistent connections for oral assessments.
 
 ---
@@ -386,7 +386,7 @@ The application manages database schema evolutions using Alembic and programmati
 ### 5.2. Seeding Strategy
 On startup, if the database is unpopulated, the seeding pipeline executes:
 
-1. **School Tenant:** Configures the default school (`SCH-SYSTEM`, "Momentum Central School").
+1. **School Tenant:** Configures the default school (`SCH-SYSTEM`, "Proctors Central School").
 2. **Default Administrator:** Creates user `admin@example.com` (password: `admin123`) with role `admin` and access to all core modules.
 3. **NCERT Chapters & Questions Syllabus Seeding:** Runs [app/db/seed_ncert.py](file:///Users/unnatishrotriya/Documents/Codebase/primary_%20assessment/backend/app/db/seed_ncert.py) to seed Grade 1–5 Math and English classes, core subjects, chapters, and sample question banks.
 

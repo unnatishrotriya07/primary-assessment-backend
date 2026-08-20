@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Momentum Backend - Sync Database from Render to Local PostgreSQL
+# Proctors Backend - Sync Database from Render to Local PostgreSQL
 # ==============================================================================
 # This script dumps the live database from Render and restores it into your
 # local PostgreSQL database (primary_assessment).
 #
 # Usage:
 #   1. Set RENDER_DATABASE_URL in .env OR pass it as an argument:
-#      ./scripts/sync_db_from_render.sh "postgresql://user:pass@dpg-xxx.render.com/momentum_db"
+#      ./scripts/sync_db_from_render.sh "postgresql://user:pass@dpg-xxx.render.com/proctors_db"
 #   2. Or simply run the script and paste your Render External Database URL when prompted.
 # ==============================================================================
 

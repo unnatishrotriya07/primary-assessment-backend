@@ -34,7 +34,7 @@ def test_integration():
     try:
         t0 = time.time()
         payload = {
-            "text": "Hello, welcome to the Momentum educational assessment platform. Let's start with a quick question.",
+            "text": "Hello, welcome to the Proctors educational assessment platform. Let's start with a quick question.",
             "voice": "af_bella",
             "speed": 1.0
         }
@@ -53,7 +53,7 @@ def test_integration():
     try:
         t0 = time.time()
         payload = {
-            "text": "Hello, welcome to the Momentum educational assessment platform. Let's start with a quick question.",
+            "text": "Hello, welcome to the Proctors educational assessment platform. Let's start with a quick question.",
             "voice": "af_bella",
             "speed": 1.0
         }

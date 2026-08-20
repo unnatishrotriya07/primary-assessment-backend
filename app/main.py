@@ -34,11 +34,11 @@ try:
         if not default_school:
             default_school = School(
                 tenant_id="SCH-SYSTEM",
-                name="Momentum Central School"
+                name="Proctors Central School"
             )
             db.add(default_school)
             db.commit()
-            print("Database successfully seeded with default school: Momentum Central School (SCH-SYSTEM)", flush=True)
+            print("Database successfully seeded with default school: Proctors Central School (SCH-SYSTEM)", flush=True)
 
         print("DEBUG STARTUP: Checking if default admin exists...", flush=True)
         admin_exists = db.query(Admin).filter(Admin.email == "admin@example.com").first()

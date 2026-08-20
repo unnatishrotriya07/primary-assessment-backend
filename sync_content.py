@@ -495,7 +495,7 @@ def sync_chapter(db: Session, book: Book, chapter_num: int, code: str, title: st
     db.commit()
 
 def main():
-    parser = argparse.ArgumentParser(description="Momentum Content Engine Importer")
+    parser = argparse.ArgumentParser(description="Proctors Content Engine Importer")
     parser.add_argument("--class-name", type=str, help="Grade/Class to sync (e.g. 'Grade 1')")
     parser.add_argument("--subject", type=str, help="Subject to sync (e.g. 'Mathematics')")
     parser.add_argument("--chapter", type=int, help="Specific chapter number to sync (requires class-name and subject)")

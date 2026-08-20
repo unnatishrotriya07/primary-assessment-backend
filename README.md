@@ -1,4 +1,4 @@
-# Momentum Python Backend
+# Proctors Python Backend
 
 This is a modular FastAPI backend designed for primary school assessment and quiz management. It implements a layered architecture (Controller/Routes, Services, Repositories, Models, and Schemas) and includes Gemini AI prompts and generator orchestration scripts.
 

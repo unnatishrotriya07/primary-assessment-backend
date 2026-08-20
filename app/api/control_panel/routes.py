@@ -66,7 +66,7 @@ def get_control_panel_diagnostics(
             {
                 "id": "int_1",
                 "studentName": "Aditya Roy",
-                "schoolName": "Momentum Academy",
+                "schoolName": "Proctors Academy",
                 "subject": "Math (Division)",
                 "date": "2026-07-03",
                 "score": 85,
