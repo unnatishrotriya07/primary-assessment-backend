@@ -31,3 +31,11 @@ cache/
 static/books/
 static/interviews/
 static/test_folder/
+
+# Terraform local state (remote state is in S3)
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform-bootstrap/.terraform/
+terraform-bootstrap/*.tfstate
+*.tfvars.auto

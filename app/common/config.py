@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Momentum API"
     API_V1_STR: str = "/api"
+    # Environment: development | staging | production. Guards seeding & fallback paths.
+    APP_ENV: str = os.getenv("APP_ENV", "development")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key-change-in-production-12345")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -29,6 +31,17 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
+    # Task execution mode: "celery" (AWS) | "background" (local dev fallback).
+    TASK_MODE: str = os.getenv("TASK_MODE", "celery")
+
+    # Structured logging
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
+    @property
+    def is_production_like(self) -> bool:
+        """True on staging/production where in-process BackgroundTasks must not run."""
+        return self.APP_ENV in ("staging", "production")
+
     # SendGrid configuration
     SENDGRID_API_KEY: str = os.getenv("SENDGRID_API_KEY", "")
     SENDGRID_FROM_EMAIL: str = os.getenv("SENDGRID_FROM_EMAIL", "")
@@ -39,6 +52,8 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
     AWS_REGION: str = os.getenv("AWS_REGION", "us-east-1")
     AWS_STORAGE_BUCKET_NAME: str = os.getenv("AWS_STORAGE_BUCKET_NAME", "student-assessment-pictures-primary")
+    S3_BUCKET_MEDIA: str = os.getenv("S3_BUCKET_MEDIA", "momentum-media")
+    S3_BUCKET_REPORTS: str = os.getenv("S3_BUCKET_REPORTS", "momentum-reports")
 
     class Config:
         case_sensitive = True

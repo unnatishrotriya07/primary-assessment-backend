@@ -1,0 +1,27 @@
+# Secrets — never bake into images
+.env
+.env.local
+.env.*.local
+
+# VCS
+.git
+.gitignore
+
+# Python caches / build
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Local runtime artifacts
+*.db
+*.sqlite3
+static/
+cache/
+scratch/
+
+# OS
+.DS_Store

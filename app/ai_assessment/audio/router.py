@@ -7,20 +7,15 @@ from app.ai_assessment.audio.schemas import STTResponse, TTSRequest, TranscribeR
 from app.ai_assessment.audio.whisper_service import WhisperService, get_whisper_service
 from app.ai_assessment.audio.kokoro_service import KokoroService, get_kokoro_service
 from app.ai_assessment.audio.audio_utils import validate_audio_file
+from app.infrastructure.storage import get_media_store
 
 router = APIRouter()
 
 def save_uploaded_audio(content: bytes, interview_id: int, question_index: int) -> str:
-    folder = os.path.join("static", "interviews", str(interview_id))
-    os.makedirs(folder, exist_ok=True)
-    
-    filename = f"q{question_index + 1}.wav"
-    filepath = os.path.join(folder, filename)
-    
-    with open(filepath, "wb") as f:
-        f.write(content)
-        
-    return f"/static/interviews/{interview_id}/{filename}"
+    key = f"interviews/{interview_id}/q{question_index + 1}.wav"
+    store = get_media_store()
+    store.upload(key, content, "audio/wav")
+    return store.url(key)
 
 @router.get("/health")
 async def health_check(

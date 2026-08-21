@@ -25,28 +25,39 @@ The platform is designed as a decoupled modern enterprise application consisting
 
 ## 2. STT (Speech-to-Text) and TTS (Text-to-Speech) Services
 
-The client-side `VoiceService` dynamically configures the voice engine by probing backend health at `/voice/health`.
+> ⚠️ **Accuracy note (2026-08-22):** The backend `/voice/*` endpoints and the
+> `WhisperService`/`KokoroService` implementations are **stubs** — they raise
+> "deprecated, use browser speech APIs" and report `unavailable` on `/voice/health`.
+> The client's `VoiceService` also **hardcodes** `sttProvider: "browser"` and
+> `ttsProvider: "browser"` (`voice.service.ts:33-34`), so the API/Whisper/Kokoro paths are
+> currently **dead code**. The only functional path today is **Browser Mode**. See
+> [`interview_enhancement.md`](./interview_enhancement.md) for the remediation plan.
+
+The client-side `VoiceService` exposes a hybrid engine (`mode: "browser" | "api" | "auto"`).
+Today only Browser Mode is reachable.
 
 ### 2.1 Speech-to-Text (STT)
 
-* **Hybrid Setup**:
-  * **API/Whisper Mode (Preferred)**: If the backend voice service is healthy, the client uses the backend `/voice/transcribe` endpoint. The student's microphone stream is recorded using the HTML5 `MediaRecorder` API in `.webm` format and sent via `multipart/form-data`.
-  * **Browser Mode (Fallback)**: Uses the native Web Speech API (`webkitSpeechRecognition` or `SpeechRecognition`) to transcribe speech directly in the browser.
-* **Backend Processing**:
-  * Done via `WhisperService` ([whisper_service.py](file:///Users/unnatishrotriya/Documents/Codebase/primary_%20assessment/backend/app/voice/whisper_service.py)).
-  * Runs a local self-hosted **faster-whisper** model (defaulting to the `small` model size, running on CPU/CUDA, configured via `FASTER_WHISPER_MODEL`, `FASTER_WHISPER_DEVICE`, and `FASTER_WHISPER_COMPUTE_TYPE`).
-  * Returns the transcript text, detected language, duration, and processing time.
+* **Browser Mode (functional)** — Uses the native Web Speech API (`webkitSpeechRecognition` or
+  `SpeechRecognition`) to transcribe speech directly in the browser, with interim results and a
+  2.5s-silence auto-finalize. **Not supported on iOS Safari.**
+* **API/Whisper Mode (implemented, NOT active)** — `ApiSTTService` records the microphone via
+  the HTML5 `MediaRecorder` API and posts the blob to `/voice/transcribe`
+  (`multipart/form-data`). The backend `WhisperService`
+  ([whisper_service.py](app/ai_assessment/audio/whisper_service.py)) is a **stub** — it
+  raises and returns no transcript. Intended backend processing (faster-whisper, configured via
+  `FASTER_WHISPER_MODEL`, `FASTER_WHISPER_DEVICE`, `FASTER_WHISPER_COMPUTE_TYPE`) is not wired up.
 
 ### 2.2 Text-to-Speech (TTS)
 
-* **Hybrid Setup**:
-  * **API/Kokoro Mode (Preferred)**: If the backend voice service is healthy, the client uses the backend `/voice/speak` endpoint. It requests speech audio files from the backend, receiving a binary MP3 blob, and plays it via a custom HTML5 Audio context player.
-  * **Browser Mode (Fallback)**: Uses the browser's native `window.speechSynthesis` and `SpeechSynthesisUtterance` (with a rate of `0.88` and pitch of `1.15`). Includes a keep-alive interval (which regularly pauses/resumes synthesized voices) to work around Chrome's 15-second speech limit bug.
-* **Backend Processing**:
-  * Done via `KokoroService` ([kokoro_service.py](file:///Users/unnatishrotriya/Documents/Codebase/primary_%20assessment/backend/app/voice/kokoro_service.py)).
-  * Interfaces with a self-hosted local Kokoro container API (base URL `http://localhost:8880/v1`).
-  * Utilizes a SHA-256 caching mechanism (`hashlib.sha256` hash of `text||voice||speed`) to store generated MP3 audio chunks under `cache/tts/`.
-  * Splices/chunks long text sentences using punctuation boundaries to maintain voice synthesis quality, merges the resulting MP3 audio streams, and streams them back to the frontend.
+* **Browser Mode (functional)** — Uses `window.speechSynthesis` + `SpeechSynthesisUtterance`
+  (rate `0.88`, pitch `1.15`), with a keep-alive pause/resume interval to work around Chrome's
+  15-second speech limit bug. Voice selection is language-aware (`hi-*` / `en-*`).
+* **API/Kokoro Mode (implemented, NOT active)** — `ApiTTSService` posts to `/voice/speak` and
+  plays the returned MP3 blob. The backend `KokoroService`
+  ([kokoro_service.py](app/ai_assessment/audio/kokoro_service.py)) is a **stub** — it raises
+  and produces no audio. The intended SHA-256 TTS cache (`cache/tts/`) and Kokoro container
+  integration (`KOKORO_BASE_URL`, default `http://localhost:8880/v1`) are not wired up.
 
 ---
 

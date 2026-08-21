@@ -194,23 +194,16 @@ class ConversationEngine:
         }
 
     def _trigger_background_evaluation(self, interview: Interview):
-        try:
-            # Check if Redis is alive before calling Celery
-            redis_alive = False
-            try:
-                import redis
-                r = redis.Redis.from_url(settings.CELERY_BROKER_URL, socket_timeout=0.5, socket_connect_timeout=0.5)
-                r.ping()
-                redis_alive = True
-            except Exception:
-                redis_alive = False
+        from app.tasks.dispatch import enqueue_evaluation
 
-            if redis_alive:
+        if not settings.is_production_like:
+            # Dev: Celery with in-process thread fallback so a zero-Redis setup still works.
+            try:
                 from app.tasks.evaluation_tasks import evaluate_interview_task
                 evaluate_interview_task.delay(interview.id)
-                print(f"[ConversationEngine] Triggered asynchronous evaluation task via Celery for interview {interview.id}", flush=True)
-            else:
-                print(f"[ConversationEngine] Redis not reachable. Running pipeline synchronously in background thread.", flush=True)
+                return
+            except Exception as exc:
+                print(f"[ConversationEngine] Celery enqueue failed ({exc}); running pipeline synchronously in thread.", flush=True)
                 import threading
                 from app.application import GenerateReportUseCase
                 def run_sync():
@@ -224,5 +217,7 @@ class ConversationEngine:
                     finally:
                         db.close()
                 threading.Thread(target=run_sync).start()
-        except Exception as e:
-            print(f"[ConversationEngine] Failed to trigger background evaluation: {e}", flush=True)
+                return
+
+        # staging/production: Celery only, no silent fallback.
+        enqueue_evaluation(interview.id)

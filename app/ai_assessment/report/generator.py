@@ -7,12 +7,15 @@ import httpx
 import re
 import random
 import os
+import logging
 from sqlalchemy.orm import Session
 
 from app.core.models.interview import Interview, InterviewMessage, InterviewEvaluationStep, ConversationTurn
 from app.core.models.assessment import Assessment
 from app.ai_assessment.report import analytics
 from app.ai_assessment.report import recommendation
+
+logger = logging.getLogger(__name__)
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
@@ -210,7 +213,7 @@ class EvaluationPipelineService:
 
         from unittest.mock import Mock
         if isinstance(getattr(self, "_call_llm_with_fallback", None), Mock):
-            print("[EvaluationPipeline] Mock test detected. Bypassing unified LLM call.", flush=True)
+            logger.info("Mock test detected. Bypassing unified LLM call.")
             return {}
 
         prompt = f"""You are a child education diagnostic analyzer.
@@ -260,18 +263,18 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
         system_instruction = "You are a precise child education diagnostic grading engine. Return raw JSON object matching the requested schema exactly. Do NOT output markdown formatting, natural language explanations, or backticks outside the JSON."
         
         try:
-            print("[EvaluationPipeline] Running unified single-call LLM analysis...", flush=True)
+            logger.info("Running unified single-call LLM analysis...")
             res = self._call_llm_with_fallback(prompt, system_instruction, fallback_data)
             if res and isinstance(res, dict) and "evaluated_answers" in res:
-                print("[EvaluationPipeline] Unified analysis call succeeded.", flush=True)
+                logger.info("Unified analysis call succeeded.")
                 return res
         except Exception as e:
-            print(f"[EvaluationPipeline] Unified analysis call failed: {e}", flush=True)
+            logger.warning("Unified analysis call failed", extra={"interview_id": interview_id, "error": str(e)})
             
         return {}
 
     def _run_step(self, interview_id: int, step_name: str, step_func, *args):
-        print(f"[EvaluationPipeline] Starting step: {step_name} for interview {interview_id}", flush=True)
+        logger.info("Starting evaluation step", extra={"interview_id": interview_id, "step": step_name})
         step = self.db.query(InterviewEvaluationStep).filter(
             InterviewEvaluationStep.interview_id == interview_id,
             InterviewEvaluationStep.step_name == step_name
@@ -299,7 +302,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
             step.status = "Completed"
             step.completed_at = datetime.datetime.utcnow()
             self.db.commit()
-            print(f"[EvaluationPipeline] Completed step: {step_name}", flush=True)
+            logger.info("Completed evaluation step", extra={"step": step_name})
             return output
         except Exception as e:
             self.db.rollback()
@@ -308,7 +311,7 @@ Ensure your response is ONLY the raw JSON object, without backticks or code fenc
             step.status = "Failed"
             step.completed_at = datetime.datetime.utcnow()
             self.db.commit()
-            print(f"[EvaluationPipeline] Failed step: {step_name}. Error: {e}", flush=True)
+            logger.error("Failed evaluation step", extra={"step": step_name, "error": str(e)})
             raise e
 
     # ─── PIPELINE WORKERS ──────────────────────────────────────────────────────
@@ -581,7 +584,7 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
                     graded_json = raw_res
                     break
             except Exception as e:
-                print(f"[EvaluationPipeline] Attempt {attempt+1} failed evaluating question {question_id}: {e}", flush=True)
+                logger.warning("Question evaluation attempt failed", extra={"attempt": attempt + 1, "question_id": question_id, "error": str(e)})
                 
         if not graded_json:
             return {
@@ -773,7 +776,7 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
         groq_api_key = settings.GROQ_API_KEY
         if groq_api_key:
             try:
-                print("[EvaluationPipeline] Attempting LLM call via Groq...", flush=True)
+                logger.info("Attempting LLM call via Groq")
                 response = httpx.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
@@ -795,12 +798,12 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
                 raw = response.json()["choices"][0]["message"]["content"]
                 return self._parse_json(raw)
             except Exception as e:
-                print(f"[EvaluationPipeline] Groq failed: {e}", flush=True)
+                logger.warning("Groq LLM call failed", extra={"provider": "groq", "error": str(e)})
 
         openai_api_key = settings.OPENAI_API_KEY
         if openai_api_key:
             try:
-                print("[EvaluationPipeline] Attempting LLM call via OpenAI...", flush=True)
+                logger.info("Attempting LLM call via OpenAI")
                 from app.ai.openai_provider import OpenAIProvider
                 openai_prov = OpenAIProvider()
                 raw_response = openai_prov.generate(
@@ -811,12 +814,12 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
                 )
                 return self._parse_json(raw_response)
             except Exception as e:
-                print(f"[EvaluationPipeline] OpenAI failed: {e}", flush=True)
+                logger.warning("OpenAI LLM call failed", extra={"provider": "openai", "error": str(e)})
 
         gemini_api_key = settings.GEMINI_API_KEY
         if gemini_api_key:
             try:
-                print("[EvaluationPipeline] Attempting LLM call via Gemini...", flush=True)
+                logger.info("Attempting LLM call via Gemini")
                 from app.ai.gemini_provider import GeminiProvider
                 gemini_prov = GeminiProvider()
                 raw_response = gemini_prov.generate(
@@ -827,9 +830,9 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
                 )
                 return self._parse_json(raw_response)
             except Exception as e:
-                print(f"[EvaluationPipeline] Gemini failed: {e}", flush=True)
+                logger.warning("Gemini LLM call failed", extra={"provider": "gemini", "error": str(e)})
 
-        print("[EvaluationPipeline] Utilizing local heuristic fallback", flush=True)
+        logger.warning("All LLM providers failed; using local heuristic fallback")
         return fallback_data
 
     def _parse_json(self, text: str) -> any:
@@ -841,5 +844,5 @@ Return ONLY a valid JSON object matching the following structure exactly. Do not
             clean_json = clean_json.replace("```json", "").replace("```", "").strip()
             return json.loads(clean_json)
         except Exception as pe:
-            print(f"[EvaluationPipeline] JSON parse error: {pe}. Raw response: {text}", flush=True)
+            logger.error("JSON parse error from LLM", extra={"error": str(pe)})
             raise pe

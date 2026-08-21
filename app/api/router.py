@@ -31,6 +31,10 @@ api_router.include_router(control_panel_router, prefix="/control-panel", tags=["
 api_router.include_router(interviews_router, prefix="/interviews", tags=["interviews"])
 api_router.include_router(voice_router, prefix="/voice", tags=["voice"])
 
+# Non-breaking addition: hardened, token-gated interview module (see app/ai_interview).
+from app.ai_interview.api.routes import router as ai_interviews_router
+api_router.include_router(ai_interviews_router, prefix="/ai-interviews", tags=["ai-interviews"])
+
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session

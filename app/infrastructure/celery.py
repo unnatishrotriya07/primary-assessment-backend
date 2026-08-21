@@ -1,5 +1,8 @@
 from celery import Celery
 from app.common.config import settings
+from app.infrastructure.logging import setup_logging
+
+setup_logging()
 
 celery_app = Celery(
     "momentum_workers",

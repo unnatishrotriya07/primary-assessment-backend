@@ -1,0 +1,113 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment (staging | production)"
+        required: true
+        default: staging
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: momentum-backend
+
+jobs:
+  build-and-deploy:
+    name: Build, Migrate & Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event.inputs.environment }}" != "" ]; then
+            echo "env=${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "env=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push backend image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Capture current frontend image (avoid clobbering on apply)
+        id: frontend-image
+        run: |
+          FAMILY="momentum-${{ steps.env.outputs.env }}-next"
+          IMG=$(aws ecs describe-task-definition --task-definition "$FAMILY" \
+                  --query 'taskDefinition.containerDefinitions[0].image' \
+                  --output text --region ${{ env.AWS_REGION }} 2>/dev/null || echo "")
+          echo "image=${IMG}" >> "$GITHUB_OUTPUT"
+          echo "Frontend image in use: ${IMG:-<none yet — placeholder>}"
+
+      - name: Terraform plan (env)
+        working-directory: terraform/envs/${{ steps.env.outputs.env }}
+        run: |
+          terraform init -backend-config=backend.tf
+          terraform plan \
+            -var-file="${{ steps.env.outputs.env }}.tfvars" \
+            -var="image_backend=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" \
+            -var="image_frontend=${{ steps.frontend-image.outputs.image }}"
+
+      - name: Terraform apply (env)
+        working-directory: terraform/envs/${{ steps.env.outputs.env }}
+        run: |
+          terraform apply -auto-approve \
+            -var-file="${{ steps.env.outputs.env }}.tfvars" \
+            -var="image_backend=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" \
+            -var="image_frontend=${{ steps.frontend-image.outputs.image }}"
+
+      - name: Run DB migration (alembic upgrade head)
+        working-directory: terraform/envs/${{ steps.env.outputs.env }}
+        run: |
+          CLUSTER="momentum-${{ steps.env.outputs.env }}"
+          MIGRATE_TASK_ARN=$(terraform output -raw migrate_task_definition_arn)
+          aws ecs run-task \
+            --cluster "$CLUSTER" \
+            --task-definition "$MIGRATE_TASK_ARN" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=${{ secrets.PRIVATE_SUBNETS }},securityGroups=${{ secrets.API_SG_ID }},assignPublicIp=DISABLED}" \
+            --wait-for-completion
+
+      - name: Deploy api + worker services (rolling)
+        run: |
+          CLUSTER="momentum-${{ steps.env.outputs.env }}"
+          for SERVICE in "momentum-${{ steps.env.outputs.env }}-api" "momentum-${{ steps.env.outputs.env }}-worker"; do
+            aws ecs update-service \
+              --cluster "$CLUSTER" \
+              --service "$SERVICE" \
+              --force-new-deployment \
+              --region ${{ env.AWS_REGION }}
+          done
+
+      - name: Wait for services stable
+        run: |
+          CLUSTER="momentum-${{ steps.env.outputs.env }}"
+          aws ecs wait services-stable \
+            --cluster "$CLUSTER" \
+            --services "momentum-${{ steps.env.outputs.env }}-api" "momentum-${{ steps.env.outputs.env }}-worker" \
+            --region ${{ env.AWS_REGION }}

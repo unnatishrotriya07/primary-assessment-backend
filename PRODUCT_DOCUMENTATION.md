@@ -37,8 +37,8 @@ graph TD
     CeleryWorker -->|Saves Results| DB
     CeleryWorker -->|Audio / PDF Uploads| S3[AWS S3 Bucket: student-assessment-pictures-primary]
     
-    AI_Service -.->|Local TTS| Kokoro[Kokoro API Container: Port 8880]
-    AI_Service -.->|Local STT| Whisper[faster-whisper Container]
+    AI_Service -.->|Local TTS (stubbed)| Kokoro[Kokoro API Container: Port 8880]
+    AI_Service -.->|Local STT (stubbed)| Whisper[faster-whisper Container]
 ```
 
 ### 2.1. Docker Container Services
@@ -522,8 +522,14 @@ If all external APIs are offline, the backend executes a local fallback algorith
 The backend integrates with several external APIs and self-hosted container services:
 
 ### 9.1. Voice Container APIs
-* **Text-to-Speech (TTS):** Integrates with a local self-hosted **Kokoro TTS container** (`http://localhost:8880/v1`). It splits text into chunks at punctuation boundaries to maintain voice quality, generating MP3 outputs cached locally via SHA-256 hashes (`cache/tts/`).
-* **Speech-to-Text (STT):** Integrates with a self-hosted **faster-whisper container** running the `small` model size on CPU/CUDA. It processes incoming student audio recorded in `.webm` format.
+> ⚠️ **Accuracy note (2026-08-22):** These voice backends are **stubs**. `WhisperService` and
+> `KokoroService` (`app/ai_assessment/audio/`) raise "deprecated, use browser speech APIs" and
+> report `unavailable` on `/voice/health`. The frontend `VoiceService` also hardcodes
+> `sttProvider`/`ttsProvider` to `"browser"` (`voice.service.ts:33-34`), so the only functional
+> path is the browser Web Speech API + `speechSynthesis`. See
+> [`interview_enhancement.md`](./interview_enhancement.md) for the remediation plan.
+* **Text-to-Speech (TTS):** (intended) a local self-hosted **Kokoro TTS container** (`http://localhost:8880/v1`), chunking long text at punctuation boundaries, MP3 output cached via SHA-256 hashes (`cache/tts/`). **Not wired up.**
+* **Speech-to-Text (STT):** (intended) a self-hosted **faster-whisper container** running the `small` model size on CPU/CUDA, processing `.webm` uploads. **Not wired up.**
 
 ### 9.2. S3 Storage & SendGrid Integration
 * **AWS S3 Bucket:** Accesses `student-assessment-pictures-primary` in the `us-east-1` region to store student audio waveforms and ingested textbook PDF resources.

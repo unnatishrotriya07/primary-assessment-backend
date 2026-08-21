@@ -145,37 +145,12 @@ def submit_interview(
     service = InterviewService(db) # Still needed for background task fallback referencing evaluate_interview_in_background_v2
     try:
         interview = use_case.execute(payload)
-        
-        # Check if Redis is alive before calling Celery
-        redis_alive = False
-        try:
-            import redis
-            from app.core.config import settings
-            r = redis.Redis.from_url(settings.CELERY_BROKER_URL, socket_timeout=0.5, socket_connect_timeout=0.5)
-            r.ping()
-            redis_alive = True
-        except Exception:
-            redis_alive = False
 
-        if redis_alive:
-            # Async Celery pipeline trigger
-            try:
-                from app.tasks.evaluation_tasks import evaluate_interview_task
-                evaluate_interview_task.delay(interview.id)
-                print(f"[Routes] Enqueued evaluation task via Celery for interview {interview.id}", flush=True)
-            except Exception as celery_err:
-                print(f"[Routes] Celery connection failed: {celery_err}. Falling back to BackgroundTasks.", flush=True)
-                background_tasks.add_task(
-                    service.evaluate_interview_in_background_v2,
-                    interview.id
-                )
-        else:
-            print("[Routes] Redis not reachable. Falling back to BackgroundTasks directly.", flush=True)
-            background_tasks.add_task(
-                service.evaluate_interview_in_background_v2,
-                interview.id
-            )
-            
+        # Enqueue evaluation. On staging/production this must go through Celery;
+        # an unreachable broker raises instead of silently running in-process.
+        from app.tasks.dispatch import enqueue_evaluation
+        enqueue_evaluation(interview.id, service=service, background_tasks=background_tasks)
+
         return _build_response(interview)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -198,16 +173,9 @@ def regenerate_interview_report(
         interview.status = "Transcript Saved"
         db.commit()
         
-        try:
-            from app.tasks.evaluation_tasks import evaluate_interview_task
-            evaluate_interview_task.delay(interview.id)
-            print(f"[Routes] Enqueued regeneration task via Celery for interview {interview.id}", flush=True)
-        except Exception as celery_err:
-            print(f"[Routes] Celery connection failed: {celery_err}. Falling back to BackgroundTasks.", flush=True)
-            background_tasks.add_task(
-                service.evaluate_interview_in_background_v2,
-                interview.id
-            )
+        # Enqueue regeneration. On staging/production no in-process fallback is allowed.
+        from app.tasks.dispatch import enqueue_evaluation
+        enqueue_evaluation(interview.id, service=service, background_tasks=background_tasks)
         return {"status": "success", "message": "Evaluation regeneration started"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
